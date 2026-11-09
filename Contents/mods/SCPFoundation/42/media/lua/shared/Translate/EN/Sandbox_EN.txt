@@ -1,0 +1,17 @@
+Sandbox_EN = {
+    Sandbox_SCP = "SCP Foundation",
+    Sandbox_SCP_EnableLoot = "Foundation loot",
+    Sandbox_SCP_EnableLoot_tooltip = "Adds SCP gear to vanilla loot tables.",
+    Sandbox_SCP_BlinkInterval = "Blink interval (seconds)",
+    Sandbox_SCP_SCP173Range = "SCP-173 strike range (tiles)",
+    Sandbox_SCP_SCP096TriggerMin = "SCP-096 scream minimum (seconds)",
+    Sandbox_SCP_SCP096TriggerMax = "SCP-096 scream maximum (seconds)",
+    Sandbox_SCP_SCP106Speed = "SCP-106 speed",
+    Sandbox_SCP_SCP035Drain = "SCP-035 health drain per minute",
+    Sandbox_SCP_SCP035LockMinutes = "SCP-035 minutes before it locks on",
+    Sandbox_SCP_GasFilterHours = "Gas filter duration (hours)",
+    Sandbox_SCP_PocketDimensionDepth = "Pocket Dimension depth (Z level)",
+    Sandbox_SCP_BreachChancePerDay = "Breach chance per day (%)",
+    Sandbox_SCP_BreachDurationHours = "Breach duration (hours)",
+    Sandbox_SCP_BreachGuardCount = "Zombified guards per breach",
+}

@@ -1,0 +1,79 @@
+VERSION = 1,
+
+option SCP.EnableLoot
+{
+    type = boolean, default = true,
+    page = SCP, translation = SCP_EnableLoot,
+}
+
+option SCP.BlinkInterval
+{
+    type = double, min = 2.0, max = 30.0, default = 7.0,
+    page = SCP, translation = SCP_BlinkInterval,
+}
+
+option SCP.SCP173Range
+{
+    type = integer, min = 3, max = 30, default = 10,
+    page = SCP, translation = SCP_SCP173Range,
+}
+
+option SCP.SCP096TriggerMin
+{
+    type = integer, min = 1, max = 30, default = 5,
+    page = SCP, translation = SCP_SCP096TriggerMin,
+}
+
+option SCP.SCP096TriggerMax
+{
+    type = integer, min = 1, max = 60, default = 10,
+    page = SCP, translation = SCP_SCP096TriggerMax,
+}
+
+option SCP.SCP106Speed
+{
+    type = double, min = 0.01, max = 0.2, default = 0.035,
+    page = SCP, translation = SCP_SCP106Speed,
+}
+
+option SCP.SCP035Drain
+{
+    type = double, min = 0.0, max = 5.0, default = 0.4,
+    page = SCP, translation = SCP_SCP035Drain,
+}
+
+option SCP.SCP035LockMinutes
+{
+    type = integer, min = 0, max = 600, default = 30,
+    page = SCP, translation = SCP_SCP035LockMinutes,
+}
+
+option SCP.GasFilterHours
+{
+    type = integer, min = 1, max = 200, default = 12,
+    page = SCP, translation = SCP_GasFilterHours,
+}
+
+option SCP.PocketDimensionDepth
+{
+    type = integer, min = -32, max = -1, default = -12,
+    page = SCP, translation = SCP_PocketDimensionDepth,
+}
+
+option SCP.BreachChancePerDay
+{
+    type = integer, min = 0, max = 100, default = 5,
+    page = SCP, translation = SCP_BreachChancePerDay,
+}
+
+option SCP.BreachDurationHours
+{
+    type = integer, min = 1, max = 72, default = 6,
+    page = SCP, translation = SCP_BreachDurationHours,
+}
+
+option SCP.BreachGuardCount
+{
+    type = integer, min = 0, max = 50, default = 8,
+    page = SCP, translation = SCP_BreachGuardCount,
+}

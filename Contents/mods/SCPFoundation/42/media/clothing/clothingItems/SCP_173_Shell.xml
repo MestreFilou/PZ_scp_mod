@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PLACEHOLDER: uses a vanilla model with a temporary texture. Replace the model in media/models_X and the texture in media/textures/SCP. -->
+<clothingItem>
+	<m_MaleModel>skinned\clothes\Boilersuit</m_MaleModel>
+	<m_FemaleModel>skinned\clothes\Boilersuit</m_FemaleModel>
+	<m_GUID>b30c82ae-c723-5557-9004-c16cde7a8074</m_GUID>
+	<m_Static>false</m_Static>
+	<m_AllowRandomHue>false</m_AllowRandomHue>
+	<m_AllowRandomTint>false</m_AllowRandomTint>
+	<m_AttachBone></m_AttachBone>
+	<textureChoices>SCP\SCP_173_Shell</textureChoices>
+</clothingItem>

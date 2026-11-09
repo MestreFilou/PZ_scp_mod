@@ -1,0 +1,166 @@
+/* SCP Foundation - clothing and armor
+   Placeholder visuals: see media/clothing/clothingItems and media/models_X. */
+module Base
+{
+    item SCP_ClassD_Jumpsuit
+    {
+        DisplayCategory = Clothing,
+        ItemType = base:clothing,
+        Weight = 1.0,
+        Icon = SCP_ClassD_Jumpsuit,
+        ClothingItem = SCP_ClassD_Jumpsuit,
+        BodyLocation = base:boilersuit,
+        BloodLocation = Jumpsuit,
+        BiteDefense = 0,
+        ScratchDefense = 5,
+        Insulation = 0.3,
+        WindResistance = 0.2,
+        FabricType = Cotton,
+        WorldStaticModel = Boilersuit_Ground,
+    }
+
+    item SCP_MTF_Helmet
+    {
+        DisplayCategory = ProtectiveGear,
+        ItemType = base:clothing,
+        Weight = 1.2,
+        Icon = SCP_MTF_Helmet,
+        ClothingItem = SCP_MTF_Helmet,
+        BodyLocation = base:hat,
+        BloodLocation = Head,
+        CanHaveHoles = false,
+        BiteDefense = 100,
+        ScratchDefense = 100,
+        BulletDefense = 80,
+        Insulation = 0.2,
+        WindResistance = 0.3,
+        ChanceToFall = 0,
+        Tags = GasMaskCompatible;NVGCompatible,
+        WorldStaticModel = Hat_Army_Ground,
+    }
+
+    item SCP_MTF_Vest
+    {
+        DisplayCategory = ProtectiveGear,
+        ItemType = base:clothing,
+        Weight = 3.0,
+        Icon = SCP_MTF_Vest,
+        ClothingItem = SCP_MTF_Vest,
+        BodyLocation = base:torsoextravest,
+        BloodLocation = ShirtNoSleeves,
+        CanHaveHoles = false,
+        BiteDefense = 60,
+        ScratchDefense = 80,
+        BulletDefense = 100,
+        Insulation = 0.3,
+        WindResistance = 0.4,
+        RunSpeedModifier = 0.95,
+        CombatSpeedModifier = 0.97,
+        AttachmentsProvided = SmallBeltLeft;SmallBeltRight;WebbingLeft;WebbingRight,
+        WorldStaticModel = Vest_BulletArmy_Ground,
+    }
+
+    item SCP_MTF_Uniform
+    {
+        DisplayCategory = Clothing,
+        ItemType = base:clothing,
+        Weight = 1.4,
+        Icon = SCP_MTF_Uniform,
+        ClothingItem = SCP_MTF_Uniform,
+        BodyLocation = base:boilersuit,
+        BloodLocation = Jumpsuit,
+        BiteDefense = 15,
+        ScratchDefense = 30,
+        Insulation = 0.5,
+        WindResistance = 0.5,
+        WaterResistance = 0.3,
+        FabricType = Denim,
+        WorldStaticModel = Boilersuit_Ground,
+    }
+
+    item SCP_Hazmat_Suit
+    {
+        DisplayCategory = ProtectiveGear,
+        ItemType = base:clothing,
+        Weight = 3.0,
+        Icon = SCP_Hazmat_Suit,
+        ClothingItem = SCP_Hazmat_Suit,
+        BodyLocation = base:fullsuithead,
+        BloodLocation = Jumpsuit;FullHelmet,
+        CanHaveHoles = false,
+        BiteDefense = 30,
+        ScratchDefense = 50,
+        Insulation = 0.7,
+        WindResistance = 1.0,
+        WaterResistance = 1.0,
+        RunSpeedModifier = 0.85,
+        CombatSpeedModifier = 0.9,
+        Tags = SCP_HazmatProtection;GasMask,
+        WorldStaticModel = HazmatSuit_Ground,
+    }
+
+    item SCP_GasMask
+    {
+        DisplayCategory = ProtectiveGear,
+        ItemType = base:clothing,
+        Weight = 0.8,
+        Icon = SCP_GasMask,
+        ClothingItem = SCP_GasMask,
+        BodyLocation = base:maskfull,
+        BloodLocation = Head,
+        CanHaveHoles = false,
+        BiteDefense = 10,
+        ScratchDefense = 20,
+        Tags = SCP_NeedsFilter;GasMask,
+        WorldStaticModel = GasMask_Ground,
+    }
+
+    item SCP_035_Mask
+    {
+        DisplayCategory = Junk,
+        ItemType = base:clothing,
+        Weight = 0.3,
+        Icon = SCP_035_Mask,
+        ClothingItem = SCP_035_Mask,
+        BodyLocation = base:mask,
+        BloodLocation = Head,
+        CanHaveHoles = false,
+        Tags = SCP_Anomaly,
+        WorldStaticModel = Hat_HockeyMask_Ground,
+    }
+
+    /* Outfits worn by the SCP entities (zombies). Not meant to be looted. */
+    item SCP_173_Shell
+    {
+        DisplayCategory = Junk,
+        ItemType = base:clothing,
+        Weight = 50.0,
+        Icon = SCP_173_Shell,
+        ClothingItem = SCP_173_Shell,
+        BodyLocation = base:boilersuit,
+        CanHaveHoles = false,
+        Tags = SCP_EntitySkin,
+    }
+
+    item SCP_096_Skin
+    {
+        DisplayCategory = Junk,
+        ItemType = base:clothing,
+        Weight = 0.1,
+        Icon = SCP_096_Skin,
+        ClothingItem = SCP_096_Skin,
+        BodyLocation = base:boilersuit,
+        Tags = SCP_EntitySkin,
+    }
+
+    item SCP_106_Skin
+    {
+        DisplayCategory = Junk,
+        ItemType = base:clothing,
+        Weight = 0.1,
+        Icon = SCP_106_Skin,
+        ClothingItem = SCP_106_Skin,
+        BodyLocation = base:boilersuit,
+        Tags = SCP_EntitySkin,
+    }
+}

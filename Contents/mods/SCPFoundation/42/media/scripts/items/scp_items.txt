@@ -1,0 +1,89 @@
+/* SCP Foundation - items */
+module Base
+{
+    item SCP_GasFilter
+    {
+        DisplayCategory = ProtectiveGear,
+        ItemType = base:drainable,
+        Weight = 0.2,
+        Icon = SCP_GasFilter,
+        UseDelta = 0.1,
+        UseWhileEquipped = false,
+        Tags = SCP_GasFilter,
+        WorldStaticModel = Battery_Ground,
+    }
+
+    item SCP_Keycard_L1
+    {
+        DisplayCategory = Security,
+        ItemType = base:normal,
+        Weight = 0.01,
+        Icon = SCP_Keycard_L1,
+        Tags = SCP_Keycard,
+        WorldStaticModel = CreditCard,
+    }
+
+    item SCP_Keycard_L2
+    {
+        DisplayCategory = Security,
+        ItemType = base:normal,
+        Weight = 0.01,
+        Icon = SCP_Keycard_L2,
+        Tags = SCP_Keycard,
+        WorldStaticModel = CreditCard,
+    }
+
+    item SCP_Keycard_L3
+    {
+        DisplayCategory = Security,
+        ItemType = base:normal,
+        Weight = 0.01,
+        Icon = SCP_Keycard_L3,
+        Tags = SCP_Keycard,
+        WorldStaticModel = CreditCard,
+    }
+
+    item SCP_Keycard_L4
+    {
+        DisplayCategory = Security,
+        ItemType = base:normal,
+        Weight = 0.01,
+        Icon = SCP_Keycard_L4,
+        Tags = SCP_Keycard,
+        WorldStaticModel = CreditCard,
+    }
+
+    item SCP_Keycard_L5
+    {
+        DisplayCategory = Security,
+        ItemType = base:normal,
+        Weight = 0.01,
+        Icon = SCP_Keycard_L5,
+        Tags = SCP_Keycard,
+        WorldStaticModel = CreditCard,
+    }
+
+    /* SCP-500: a bottle with a limited number of pills (UseDelta 0.2 = 5 pills). */
+    item SCP_500_Pill
+    {
+        DisplayCategory = FirstAid,
+        ItemType = base:drainable,
+        Weight = 0.1,
+        Icon = SCP_500_Pill,
+        UseDelta = 0.2,
+        UseWhileEquipped = false,
+        Medical = TRUE,
+        Tags = SCP_Anomaly,
+        WorldStaticModel = PillBottle,
+    }
+
+    item SCP_Document_Containment
+    {
+        DisplayCategory = Literature,
+        ItemType = base:literature,
+        Weight = 0.1,
+        Icon = SCP_Document,
+        CanBeWrite = false,
+        WorldStaticModel = Paper,
+    }
+}
