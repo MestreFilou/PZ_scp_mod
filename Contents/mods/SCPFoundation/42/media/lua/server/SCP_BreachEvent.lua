@@ -50,6 +50,8 @@ function SCP.Breach.start()
     for _, p in ipairs(world.points) do
         if p.type == SCP.Types.GUARD then
             guardPoints[#guardPoints + 1] = p
+        elseif p.contained then
+            -- Already in its cell (SCP site): the open doors release it.
         else
             SCP.Spawner.spawn(p.type, p.x, p.y, p.z, 1)
         end

@@ -4,12 +4,14 @@
 ]]
 
 require "SCP_System"
+require "SCP_Facility_Layout"
 
 local SPAWNABLE = {
     { SCP.Types.SCP173, "ContextMenu_SCP_173" },
     { SCP.Types.SCP096, "ContextMenu_SCP_096" },
     { SCP.Types.SCP106, "ContextMenu_SCP_106" },
     { SCP.Types.SCP035, "ContextMenu_SCP_035" },
+    { SCP.Types.SCP049, "ContextMenu_SCP_049" },
     { SCP.Types.GUARD,  "ContextMenu_SCP_Guard" },
 }
 
@@ -50,6 +52,10 @@ local function onFillWorldMenu(playerNum, context, worldobjects, test)
     end
     menu:addOption(getText("ContextMenu_SCP_ClearPoints"), player, send, "ClearPoints",
         { x = pos.x, y = pos.y, z = pos.z, radius = 10 })
+
+    if not SCP.Facility or not SCP.Facility.origin() then
+        menu:addOption(getText("ContextMenu_SCP_PlaceFacility"), player, send, "PlaceFacility", { x = pos.x, y = pos.y })
+    end
 
     menu:addOption(getText("ContextMenu_SCP_StartBreach"), player, send, "StartBreach", {})
     menu:addOption(getText("ContextMenu_SCP_StopBreach"), player, send, "StopBreach", {})

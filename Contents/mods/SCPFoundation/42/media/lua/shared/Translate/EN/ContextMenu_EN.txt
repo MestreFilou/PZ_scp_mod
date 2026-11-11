@@ -18,4 +18,7 @@ ContextMenu_EN = {
     ContextMenu_SCP_106 = "SCP-106",
     ContextMenu_SCP_035 = "SCP-035 host",
     ContextMenu_SCP_Guard = "Zombified guard",
+    ContextMenu_SCP_049 = "SCP-049",
+    ContextMenu_SCP_Elevator = "Take the elevator",
+    ContextMenu_SCP_PlaceFacility = "Build the SCP site here",
 }

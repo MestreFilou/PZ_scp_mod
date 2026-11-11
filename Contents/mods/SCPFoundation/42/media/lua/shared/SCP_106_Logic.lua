@@ -242,6 +242,7 @@ end)
 local function onZombieUpdate(zombie)
     if not SCP.isEntity(zombie, SCP.Types.SCP106) then return end
     SCP.freeze(zombie, true)
+    if SCP.isDormant(zombie, 5) then return end
     local md = zombie:getModData()
     local t = getTimestampMs()
 

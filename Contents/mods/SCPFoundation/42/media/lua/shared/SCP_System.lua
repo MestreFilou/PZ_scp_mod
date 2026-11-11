@@ -12,6 +12,8 @@ SCP.Types = {
     SCP096 = "SCP_096",
     SCP106 = "SCP_106",
     SCP035 = "SCP_035_Host",
+    SCP049 = "SCP_049",
+    SCP049_2 = "SCP_049_2",
     GUARD  = "SCP_ZombieGuard",
 }
 
@@ -35,6 +37,9 @@ local defaults = {
     BreachChancePerDay = 5,
     BreachDurationHours = 6,
     BreachGuardCount = 8,
+    FacilityX = 0,
+    FacilityY = 0,
+    FacilityDepth = -2,
 }
 
 function SCP.opt(name)
@@ -305,6 +310,19 @@ function SCP.world()
     md.points = md.points or {}
     md.breach = md.breach or { active = false }
     return md
+end
+
+function SCP.isBreachActive()
+    local md = ModData.get("SCPFoundation")
+    return md ~= nil and md.breach ~= nil and md.breach.active == true
+end
+
+-- SCPs placed in their cell by the facility stay dormant until a breach,
+-- unless someone walks right up to them.
+function SCP.isDormant(zombie, wakeDist)
+    if not zombie:getModData().SCP_Contained or SCP.isBreachActive() then return false end
+    local p, d = SCP.nearestPlayer(zombie, wakeDist or 6)
+    return p == nil
 end
 
 ------------------------------------------------------------------------

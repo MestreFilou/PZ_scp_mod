@@ -40,4 +40,16 @@
 		<path>media/clothing/clothingItems/SCP_106_Skin.xml</path>
 		<guid>dc3f3867-5559-5b5f-8b1e-4221c999737b</guid>
 	</files>
+	<files>
+		<path>media/clothing/clothingItems/SCP_049_Robe.xml</path>
+		<guid>3ae25a49-6cc2-5842-92d3-26c313ed58c5</guid>
+	</files>
+	<files>
+		<path>media/clothing/clothingItems/SCP_049_Mask.xml</path>
+		<guid>4e9f3e01-7d6b-527f-961a-2d30116671b6</guid>
+	</files>
+	<files>
+		<path>media/clothing/clothingItems/SCP_049_2_Skin.xml</path>
+		<guid>247fb2b2-7082-5bff-a444-57e11f869d1d</guid>
+	</files>
 </fileGuidTable>

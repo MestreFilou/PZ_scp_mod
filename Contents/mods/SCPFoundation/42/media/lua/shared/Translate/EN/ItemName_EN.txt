@@ -19,4 +19,7 @@ ItemName_EN = {
     ItemName_Base.SCP_Keycard_L3 = "Keycard Level 3",
     ItemName_Base.SCP_Keycard_L4 = "Keycard Level 4",
     ItemName_Base.SCP_Keycard_L5 = "Keycard Level 5",
+    ItemName_Base.SCP_049_Robe = "SCP-049 Robe",
+    ItemName_Base.SCP_049_Mask = "Plague Doctor Mask",
+    ItemName_Base.SCP_049_2_Skin = "SCP-049-2 Remains",
 }

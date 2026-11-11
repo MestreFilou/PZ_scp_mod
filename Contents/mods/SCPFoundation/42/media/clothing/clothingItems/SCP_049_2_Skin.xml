@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Based on the vanilla Boilersuit.xml (same model and masks), with an SCP texture. -->
+<clothingItem>
+	<m_MaleModel>skinned\clothes\bob_boilersuit</m_MaleModel>
+	<m_FemaleModel>skinned\clothes\kate_boilersuit</m_FemaleModel>
+	<m_GUID>247fb2b2-7082-5bff-a444-57e11f869d1d</m_GUID>
+	<m_Static>false</m_Static>
+	<m_AllowRandomTint>false</m_AllowRandomTint>
+	<m_AttachBone></m_AttachBone>
+	<m_Masks>2</m_Masks>
+	<m_Masks>3</m_Masks>
+	<m_Masks>5</m_Masks>
+	<m_Masks>7</m_Masks>
+	<m_Masks>9</m_Masks>
+	<textureChoices>SCP\SCP_049_2_Skin</textureChoices>
+</clothingItem>

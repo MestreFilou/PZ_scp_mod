@@ -163,4 +163,37 @@ module Base
         BodyLocation = base:boilersuit,
         Tags = SCP_EntitySkin,
     }
+
+    item SCP_049_Robe
+    {
+        DisplayCategory = Junk,
+        ItemType = base:clothing,
+        Weight = 2.0,
+        Icon = SCP_106_Skin,
+        ClothingItem = SCP_049_Robe,
+        BodyLocation = base:boilersuit,
+        Tags = SCP_EntitySkin,
+    }
+
+    item SCP_049_Mask
+    {
+        DisplayCategory = Junk,
+        ItemType = base:clothing,
+        Weight = 0.5,
+        Icon = SCP_035_Mask,
+        ClothingItem = SCP_049_Mask,
+        BodyLocation = base:maskfull,
+        Tags = SCP_EntitySkin,
+    }
+
+    item SCP_049_2_Skin
+    {
+        DisplayCategory = Junk,
+        ItemType = base:clothing,
+        Weight = 0.1,
+        Icon = SCP_096_Skin,
+        ClothingItem = SCP_049_2_Skin,
+        BodyLocation = base:boilersuit,
+        Tags = SCP_EntitySkin,
+    }
 }

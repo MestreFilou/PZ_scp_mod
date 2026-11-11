@@ -14,4 +14,7 @@ Sandbox_EN = {
     Sandbox_SCP_BreachChancePerDay = "Breach chance per day (%)",
     Sandbox_SCP_BreachDurationHours = "Breach duration (hours)",
     Sandbox_SCP_BreachGuardCount = "Zombified guards per breach",
+    Sandbox_SCP_FacilityX = "SCP site X (0 = placed by an admin)",
+    Sandbox_SCP_FacilityY = "SCP site Y (0 = placed by an admin)",
+    Sandbox_SCP_FacilityDepth = "SCP site depth (Z level of the Entrance Zone)",
 }

@@ -13,6 +13,8 @@ local HEALTH = {
     [SCP.Types.SCP096] = 20,
     [SCP.Types.SCP106] = 1000,
     [SCP.Types.SCP035] = 6,
+    [SCP.Types.SCP049] = 40,
+    [SCP.Types.SCP049_2] = 3,
     [SCP.Types.GUARD]  = 2,
 }
 
