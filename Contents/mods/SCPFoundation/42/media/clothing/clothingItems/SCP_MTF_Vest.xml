@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- PLACEHOLDER: uses a vanilla model with a temporary texture. Replace the model in media/models_X and the texture in media/textures/SCP. -->
+<!-- Based on the vanilla Vest_BulletSWAT.xml (same model and masks), with an SCP texture. -->
 <clothingItem>
-	<m_MaleModel>skinned\clothes\Vest_BulletArmy</m_MaleModel>
-	<m_FemaleModel>skinned\clothes\Vest_BulletArmy</m_FemaleModel>
+	<m_MaleModel>skinned\clothes\bob_bulletvest</m_MaleModel>
+	<m_FemaleModel>skinned\clothes\kate_bulletvest</m_FemaleModel>
 	<m_GUID>34aa13e8-8ed2-59cc-ad0f-3358b886e2f2</m_GUID>
 	<m_Static>false</m_Static>
 	<m_AllowRandomHue>false</m_AllowRandomHue>
 	<m_AllowRandomTint>false</m_AllowRandomTint>
 	<m_AttachBone></m_AttachBone>
+	<m_Masks>12</m_Masks>
+	<m_MasksFolder>media/textures/Clothes/BulletVest/Masks_BulletVest</m_MasksFolder>
+	<m_UnderlayMasksFolder>media/textures/Clothes/BulletVest/Masks_BulletVest</m_UnderlayMasksFolder>
 	<textureChoices>SCP\SCP_MTF_Vest</textureChoices>
 </clothingItem>

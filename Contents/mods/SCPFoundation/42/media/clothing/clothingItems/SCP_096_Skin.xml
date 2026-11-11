@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- PLACEHOLDER: uses a vanilla model with a temporary texture. Replace the model in media/models_X and the texture in media/textures/SCP. -->
+<!-- Based on the vanilla Boilersuit.xml (same model and masks), with an SCP texture. -->
 <clothingItem>
-	<m_MaleModel>skinned\clothes\Boilersuit</m_MaleModel>
-	<m_FemaleModel>skinned\clothes\Boilersuit</m_FemaleModel>
+	<m_MaleModel>skinned\clothes\bob_boilersuit</m_MaleModel>
+	<m_FemaleModel>skinned\clothes\kate_boilersuit</m_FemaleModel>
 	<m_GUID>cc9b3f6f-cc18-51d4-aacd-9b5439f47269</m_GUID>
 	<m_Static>false</m_Static>
-	<m_AllowRandomHue>false</m_AllowRandomHue>
 	<m_AllowRandomTint>false</m_AllowRandomTint>
 	<m_AttachBone></m_AttachBone>
+	<m_Masks>2</m_Masks>
+	<m_Masks>3</m_Masks>
+	<m_Masks>5</m_Masks>
+	<m_Masks>7</m_Masks>
+	<m_Masks>9</m_Masks>
 	<textureChoices>SCP\SCP_096_Skin</textureChoices>
 </clothingItem>

@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- PLACEHOLDER: uses a vanilla model with a temporary texture. Replace the model in media/models_X and the texture in media/textures/SCP. -->
+<!-- Based on the vanilla Hat_GasMask.xml (same model and masks), with an SCP texture. -->
 <clothingItem>
-	<m_MaleModel>skinned\clothes\Hat_GasMask</m_MaleModel>
-	<m_FemaleModel>skinned\clothes\Hat_GasMask</m_FemaleModel>
 	<m_GUID>ec68e6d8-2518-5227-be36-6f7ade243d3b</m_GUID>
-	<m_Static>false</m_Static>
+	<m_MaleModel>static\clothes\m_gasmask</m_MaleModel>
+	<m_FemaleModel>static\clothes\f_gasmask</m_FemaleModel>
+	<m_AltMaleModel></m_AltMaleModel>
+	<m_AltFemaleModel></m_AltFemaleModel>
+	<m_Static>true</m_Static>
 	<m_AllowRandomHue>false</m_AllowRandomHue>
 	<m_AllowRandomTint>false</m_AllowRandomTint>
-	<m_AttachBone></m_AttachBone>
+	<m_AttachBone>Bip01_Head</m_AttachBone>
+	<m_HatCategory>nobeard</m_HatCategory>
+	<m_MasksFolder>media/textures/Clothes/Hat/Masks</m_MasksFolder>
 	<textureChoices>SCP\SCP_GasMask</textureChoices>
 </clothingItem>
