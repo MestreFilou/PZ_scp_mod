@@ -68,4 +68,8 @@
 		<path>media/clothing/clothingItems/SCP_NVG.xml</path>
 		<guid>85337390-921c-5f4f-8293-7ed2546ad3c1</guid>
 	</files>
+	<files>
+		<path>media/clothing/clothingItems/SCP_LabCoat.xml</path>
+		<guid>4778b793-87a2-5be8-b870-1c67b650dc7e</guid>
+	</files>
 </fileGuidTable>

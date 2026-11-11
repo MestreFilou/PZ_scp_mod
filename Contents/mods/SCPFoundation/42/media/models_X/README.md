@@ -1,7 +1,8 @@
 # Modèles 3D et textures (à remplacer)
 
 Les tenues utilisent les **modèles vanilla** (repris des fichiers du jeu) avec des **textures SCP** dans `media/textures/SCP/`.
-Ces textures sont des recolorations des textures d'origine : le patron (carte UV) est donc respecté.
+Les textures sont repeintes sur la carte UV des modèles vanilla (même taille, mêmes zones), puis vérifiées par des rendus 3D.
+Attention : sur `Boilersuit`, `BulletVest`, `Hazmat` et `JacketLong`, le milieu du dos est coupé par la couture UV (colonnes u = 53 et u = 203 sur 256) ; un texte au dos doit être coupé en deux de part et d'autre.
 
 | Objet | Modèle vanilla de base | Texture |
 |---|---|---|
@@ -10,9 +11,11 @@ Ces textures sont des recolorations des textures d'origine : le patron (carte UV
 | Casque NTF | `Hat_Army` | `SCP_MTF_Helmet.png` |
 | Gilet NTF | `Vest_BulletSWAT` | `SCP_MTF_Vest.png` |
 | Combinaison NRBC | `HazmatSuit` | `SCP_Hazmat_Suit.png` |
+| Blouse du scientifique | `JacketLong_Doctor` (`Bob_JacketLong` / `Kate_JacketLong`) | `SCP_LabCoat.png` |
 | Masque à gaz | `Hat_GasMask` | `SCP_GasMask.png` |
 | SCP-035 | `Hat_HockeyMask` | `SCP_035_Mask.png` |
-| SCP-173 / 096 / 106 | `Boilersuit` | `SCP_173_Shell.png`, `SCP_096_Skin.png`, `SCP_106_Skin.png` |
+| SCP-049 | `Boilersuit` + `Hat_GasMask` | `SCP_049_Robe.png`, `SCP_049_Mask.png` |
+| SCP-049-2 / 173 / 096 / 106 / 939 / 966 | `Boilersuit` | `SCP_049_2_Skin.png`, `SCP_173_Shell.png`, `SCP_096_Skin.png`, `SCP_106_Skin.png`, `SCP_939_Skin.png`, `SCP_966_Skin.png` |
 
 Pour retoucher une texture : ouvrir le PNG dans Krita / Photopea et peindre par-dessus **sans changer la taille ni déplacer les zones**.
 

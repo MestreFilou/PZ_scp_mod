@@ -25,8 +25,8 @@ P.List = {
     scp_scientist = {
         cost = 0,
         room = { "EZ", "H" },
-        wear = { "SCP_Hazmat_Suit" },
-        give = { "SCP_Keycard_L2", "SCP_Document_Containment", "SCP_Document_008", "Torch" },
+        wear = { "SCP_LabCoat" },
+        give = { "SCP_Hazmat_Suit", "SCP_Keycard_L2", "SCP_Document_Containment", "SCP_Document_008", "Torch" },
         xp = { Doctor = 2, Electricity = 1 },
     },
     scp_mtf = {

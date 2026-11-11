@@ -65,7 +65,7 @@ local function onFillWorldMenu(playerNum, context, worldobjects, test)
     menu:addOption(getText("ContextMenu_SCP_GiveKit"), player, function(p)
         local inv = p:getInventory()
         for l = 1, SCP.MaxKeyLevel do inv:AddItem("Base.SCP_Keycard_L" .. l) end
-        for _, t in ipairs({ "SCP_500_Pill", "SCP_GasMask", "SCP_GasFilter", "SCP_Hazmat_Suit",
+        for _, t in ipairs({ "SCP_500_Pill", "SCP_GasMask", "SCP_GasFilter", "SCP_Hazmat_Suit", "SCP_LabCoat",
             "SCP_MTF_Helmet", "SCP_MTF_Vest", "SCP_MTF_Uniform", "SCP_ClassD_Jumpsuit", "SCP_035_Mask",
             "SCP_714_Ring", "SCP_NVG", "SCP_1025_Book", "SCP_008_Sample", "SCP_Document_008" }) do
             inv:AddItem("Base." .. t)

@@ -4,6 +4,7 @@ ItemName_EN = {
     ItemName_Base.SCP_MTF_Vest = "MTF Tactical Vest",
     ItemName_Base.SCP_MTF_Uniform = "MTF Combat Uniform",
     ItemName_Base.SCP_Hazmat_Suit = "Advanced Hazmat Suit",
+    ItemName_Base.SCP_LabCoat = "Foundation Lab Coat",
     ItemName_Base.SCP_GasMask = "Foundation Gas Mask",
     ItemName_Base.SCP_GasFilter = "Gas Mask Filter",
     ItemName_Base.SCP_035_Mask = "SCP-035 (Possessive Mask)",

@@ -60,6 +60,22 @@ module Base
         WorldStaticModel = Vest_BulletArmy_Ground,
     }
 
+    item SCP_LabCoat
+    {
+        DisplayCategory = Clothing,
+        ItemType = base:clothing,
+        Weight = 0.8,
+        Icon = SCP_LabCoat,
+        ClothingItem = SCP_LabCoat,
+        BodyLocation = base:jacket,
+        BloodLocation = Jacket,
+        BiteDefense = 0,
+        ScratchDefense = 5,
+        Insulation = 0.25,
+        WindResistance = 0.2,
+        FabricType = Cotton,
+    }
+
     item SCP_MTF_Uniform
     {
         DisplayCategory = Clothing,
