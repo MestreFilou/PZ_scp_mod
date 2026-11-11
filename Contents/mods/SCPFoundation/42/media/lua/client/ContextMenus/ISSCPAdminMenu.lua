@@ -12,6 +12,8 @@ local SPAWNABLE = {
     { SCP.Types.SCP106, "ContextMenu_SCP_106" },
     { SCP.Types.SCP035, "ContextMenu_SCP_035" },
     { SCP.Types.SCP049, "ContextMenu_SCP_049" },
+    { SCP.Types.SCP939, "ContextMenu_SCP_939" },
+    { SCP.Types.SCP966, "ContextMenu_SCP_966" },
     { SCP.Types.GUARD,  "ContextMenu_SCP_Guard" },
 }
 
@@ -64,7 +66,8 @@ local function onFillWorldMenu(playerNum, context, worldobjects, test)
         local inv = p:getInventory()
         for l = 1, SCP.MaxKeyLevel do inv:AddItem("Base.SCP_Keycard_L" .. l) end
         for _, t in ipairs({ "SCP_500_Pill", "SCP_GasMask", "SCP_GasFilter", "SCP_Hazmat_Suit",
-            "SCP_MTF_Helmet", "SCP_MTF_Vest", "SCP_MTF_Uniform", "SCP_ClassD_Jumpsuit", "SCP_035_Mask" }) do
+            "SCP_MTF_Helmet", "SCP_MTF_Vest", "SCP_MTF_Uniform", "SCP_ClassD_Jumpsuit", "SCP_035_Mask",
+            "SCP_714_Ring", "SCP_NVG", "SCP_1025_Book", "SCP_008_Sample", "SCP_Document_008" }) do
             inv:AddItem("Base." .. t)
         end
     end)

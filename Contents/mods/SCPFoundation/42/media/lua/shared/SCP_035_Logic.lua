@@ -53,7 +53,12 @@ local function everyMinute()
             md.SCP035_CarriedMinutes = 0
             md.SCP035_Wearing = true
 
-            SCP.damageHealth(player, SCP.opt("SCP035Drain"))
+            local drain = SCP.opt("SCP035Drain")
+            if SCP.isWearing714(player) then
+                drain = drain / 2
+                md.SCP035_WornMinutes = 0 -- SCP-714 keeps the mask from taking hold
+            end
+            SCP.damageHealth(player, drain)
             SCP.setStat(player, "STRESS", math.min(1, SCP.getStat(player, "STRESS") + 0.01))
             SCP.setStat(player, "SANITY", math.max(0, SCP.getStat(player, "SANITY") - 0.005))
             SCP.setStat(player, "ENDURANCE", 1)
@@ -71,7 +76,7 @@ local function everyMinute()
             local carried = findCarried(player)
             if carried then
                 md.SCP035_CarriedMinutes = (md.SCP035_CarriedMinutes or 0) + 1
-                if md.SCP035_CarriedMinutes >= CARRY_LIMIT_MINUTES then
+                if md.SCP035_CarriedMinutes >= CARRY_LIMIT_MINUTES and not SCP.isWearing714(player) then
                     md.SCP035_CarriedMinutes = 0
                     wear(player, carried)
                     SCP.say(player, "UI_SCP_035_Attach", 200, 60, 200)

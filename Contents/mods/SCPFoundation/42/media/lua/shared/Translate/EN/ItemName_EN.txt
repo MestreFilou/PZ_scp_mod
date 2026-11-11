@@ -22,4 +22,11 @@ ItemName_EN = {
     ItemName_Base.SCP_049_Robe = "SCP-049 Robe",
     ItemName_Base.SCP_049_Mask = "Plague Doctor Mask",
     ItemName_Base.SCP_049_2_Skin = "SCP-049-2 Remains",
+    ItemName_Base.SCP_939_Skin = "SCP-939 Remains",
+    ItemName_Base.SCP_966_Skin = "SCP-966 Remains",
+    ItemName_Base.SCP_714_Ring = "SCP-714 (Jaded Ring)",
+    ItemName_Base.SCP_NVG = "Night Vision Goggles",
+    ItemName_Base.SCP_Document_008 = "SCP-008 Report",
+    ItemName_Base.SCP_008_Sample = "SCP-008 Sample",
+    ItemName_Base.SCP_1025_Book = "SCP-1025 (Encyclopedia of Diseases)",
 }

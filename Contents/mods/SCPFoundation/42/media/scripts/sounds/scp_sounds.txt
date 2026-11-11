@@ -12,4 +12,7 @@ module Base
     sound SCP_KeycardAccept { category = World, clip { file = media/sound/SCP_KeycardAccept.ogg, distanceMax = 10, volume = 0.7, } }
     sound SCP_KeycardDeny   { category = World, clip { file = media/sound/SCP_KeycardDeny.ogg, distanceMax = 10, volume = 0.7, } }
     sound SCP_PillSwallow   { category = Player, clip { file = media/sound/SCP_PillSwallow.ogg, distanceMax = 5, volume = 0.7, } }
+    sound SCP914_Clockwork  { category = World, clip { file = media/sound/SCP914_Clockwork.ogg, distanceMax = 25, volume = 0.9, } }
+    sound SCP939_Voice      { category = Zombie, clip { file = media/sound/SCP939_Voice.ogg, distanceMax = 30, volume = 0.9, } }
+    sound SCP_TeslaZap      { category = World, clip { file = media/sound/SCP_TeslaZap.ogg, distanceMax = 30, volume = 1.0, } }
 }

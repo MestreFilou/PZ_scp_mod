@@ -35,7 +35,10 @@ F.Sprites = F.Sprites or {
     doorN = "fixtures_doors_01_69",
     elevator = "floors_interior_tilesandwood_01_3", -- yellow checkered tiles
     containmentFloor = "floors_interior_tilesandwood_01_24", -- dark grey smooth tiles
-    terminal = "appliances_com_01_52",              -- old security terminal (SCP-079)
+    terminal = "appliances_com_01_52",
+    scp914 = "location_shop_accessories_01_17",     -- large machine (SCP-914 placeholder)
+    scp294 = "location_shop_zippee_01_56",          -- soda machine (SCP-294 placeholder)
+    warhead = "security_01_0",                      -- Alpha Warhead control panel              -- old security terminal (SCP-079)
     -- Generator control panels. Real generator tiles would let players pick up free generators.
     generators = { "security_01_0", "security_01_0", "security_01_0" },
 }
@@ -155,13 +158,22 @@ local function roomContents(level, cx, cy, ch, x, y, z)
         table.insert(spawnQueue, { outfit = room.zombies[1], count = room.zombies[2], x = x, y = y, z = z })
     end
     if room.scp then
-        table.insert(spawnQueue, { scp = room.scp, x = x, y = y, z = z })
+        table.insert(spawnQueue, { scp = room.scp, count = room.count or 1, x = x, y = y, z = z })
     end
 
     -- SCP-079's terminal and the three re-containment generators
     if room.special == "scp079" then
         local obj = addObject(getCell():getOrCreateGridSquare(x, y - 2, z), F.Sprites.terminal)
         if obj then obj:getModData().SCP079_Terminal = true end
+    elseif room.special == "scp914" then
+        local obj = addObject(getCell():getOrCreateGridSquare(x, y - 2, z), F.Sprites.scp914)
+        if obj then obj:getModData().SCP914_Machine = true end
+    elseif room.special == "scp294" then
+        local obj = addObject(getCell():getOrCreateGridSquare(x + 3, y - 3, z), F.Sprites.scp294)
+        if obj then obj:getModData().SCP294_Machine = true end
+    elseif room.special == "warhead" then
+        local obj = addObject(getCell():getOrCreateGridSquare(x, y - 2, z), F.Sprites.warhead)
+        if obj then obj:getModData().SCP_Warhead = true end
     elseif room.special == "generators" then
         for i, sprite in ipairs(F.Sprites.generators) do
             local obj = addObject(getCell():getOrCreateGridSquare(x - 4 + (i - 1) * 4, y - 3, z), sprite)
@@ -286,7 +298,7 @@ local function processSpawns()
         if not world.facility.spawned[key] then
             world.facility.spawned[key] = true
             if s.scp then
-                local list = SCP.Spawner.spawn(s.scp, s.x, s.y, s.z, 1)
+                local list = SCP.Spawner.spawn(s.scp, s.x, s.y, s.z, s.count or 1)
                 for _, z in ipairs(list) do z:getModData().SCP_Contained = true end
                 table.insert(world.points, { type = s.scp, x = s.x, y = s.y, z = s.z, contained = true })
             else

@@ -78,6 +78,12 @@ local function updateDoctor(zombie)
             end
             if d < TOUCH_DIST and (not md.SCP049_NextTouch or t > md.SCP049_NextTouch) then
                 md.SCP049_NextTouch = t + TOUCH_COOLDOWN_MS
+                if SCP.isWearing714(p) then
+                    -- SCP-714 keeps the "cure" from working.
+                    SCP.damageHealth(p, 8)
+                    SCP.say(p, "UI_SCP_714_Protects049", 120, 200, 140)
+                    return
+                end
                 local x, y, z = math.floor(p:getX()), math.floor(p:getY()), math.floor(p:getZ())
                 SCP.say(p, "UI_SCP_049_Cured", 255, 80, 80)
                 SCP.killPlayer(p, zombie, nil)

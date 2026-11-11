@@ -308,4 +308,56 @@
 			<itemGUID>247fb2b2-7082-5bff-a444-57e11f869d1d</itemGUID>
 		</m_items>
 	</m_FemaleOutfits>
+	<m_MaleOutfits>
+		<m_Name>SCP_939</m_Name>
+		<m_Guid>09a87ad0-0500-50de-a25c-857a4abc2366</m_Guid>
+		<m_Top>false</m_Top>
+		<m_Pants>false</m_Pants>
+		<m_AllowPantsHue>false</m_AllowPantsHue>
+		<m_AllowTopTint>false</m_AllowTopTint>
+		<m_AllowTShirtDecal>false</m_AllowTShirtDecal>
+		<m_items>
+			<probability>1.0</probability>
+			<itemGUID>3c0814e8-43b6-5e56-8e63-dac3b91406a6</itemGUID>
+		</m_items>
+	</m_MaleOutfits>
+	<m_MaleOutfits>
+		<m_Name>SCP_966</m_Name>
+		<m_Guid>4c7ab3af-2eb5-59f1-b9e4-c3e8335bd1b6</m_Guid>
+		<m_Top>false</m_Top>
+		<m_Pants>false</m_Pants>
+		<m_AllowPantsHue>false</m_AllowPantsHue>
+		<m_AllowTopTint>false</m_AllowTopTint>
+		<m_AllowTShirtDecal>false</m_AllowTShirtDecal>
+		<m_items>
+			<probability>1.0</probability>
+			<itemGUID>392ebe4a-645d-59d6-aba4-d3d3237f5a5a</itemGUID>
+		</m_items>
+	</m_MaleOutfits>
+	<m_FemaleOutfits>
+		<m_Name>SCP_939</m_Name>
+		<m_Guid>20cf3342-b9e6-5e07-a13c-f02f56b9712e</m_Guid>
+		<m_Top>false</m_Top>
+		<m_Pants>false</m_Pants>
+		<m_AllowPantsHue>false</m_AllowPantsHue>
+		<m_AllowTopTint>false</m_AllowTopTint>
+		<m_AllowTShirtDecal>false</m_AllowTShirtDecal>
+		<m_items>
+			<probability>1.0</probability>
+			<itemGUID>3c0814e8-43b6-5e56-8e63-dac3b91406a6</itemGUID>
+		</m_items>
+	</m_FemaleOutfits>
+	<m_FemaleOutfits>
+		<m_Name>SCP_966</m_Name>
+		<m_Guid>9929e939-3f66-5c78-b36a-6c2acdd5f435</m_Guid>
+		<m_Top>false</m_Top>
+		<m_Pants>false</m_Pants>
+		<m_AllowPantsHue>false</m_AllowPantsHue>
+		<m_AllowTopTint>false</m_AllowTopTint>
+		<m_AllowTShirtDecal>false</m_AllowTShirtDecal>
+		<m_items>
+			<probability>1.0</probability>
+			<itemGUID>392ebe4a-645d-59d6-aba4-d3d3237f5a5a</itemGUID>
+		</m_items>
+	</m_FemaleOutfits>
 </outfitManager>

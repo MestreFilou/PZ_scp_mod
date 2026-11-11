@@ -14,7 +14,9 @@
       H  research lab    R  generator room     G  reception / lobby
       T  SCP-173         P  SCP-500 vault      X  SCP-035
       Y  SCP-096         Z  SCP-106            N  SCP-049
-      Q  SCP-079 (AI)
+      Q  SCP-079 (AI)    V  SCP-008            J  SCP-939 pen
+      I  SCP-966 pen     U  SCP-914            W  Alpha Warhead control
+      E  corridor with a Tesla gate
 
     Rooms open onto corridors through one door. Two rooms side by side do
     not connect. Corridors next to each other form one open hallway.
@@ -37,18 +39,18 @@ F.Levels = {
             "CCCCCCC",
             "OCGMGCO",
             "CCCKCCC",
-            "OHC2CHO",
+            "WHC2CHO",
         },
     },
     {
         id = "HCZ", depth = -1,
         rows = {
             "ZCYCNCAR",
-            "CCCCCCCC",
-            "HC.LC.HM",
+            "CCCECCCC",
+            "HCVLCJHM",
             "C1CCCK2K",
-            "LQC.C.SH",
-            "..CCC...",
+            "LQCIC.SH",
+            "..CEC...",
         },
     },
     {
@@ -58,7 +60,7 @@ F.Levels = {
             "CCCCCCCC",
             "OMCXCOCL",
             "CCCCCCCC",
-            "LOK.K.OD",
+            "LOKUK.OD",
             "..C1C...",
         },
     },
@@ -70,8 +72,9 @@ local T = SCP.Types
 F.Rooms = {
     C = { corridor = true },
     K = { corridor = true, level = 3, name = "Checkpoint" },
+    E = { corridor = true, tesla = true, name = "Tesla gate" },
     O = { level = 1, name = "Office",
-          loot = { "SCP_Keycard_L1", 2, "SCP_Keycard_L2", 1, "SCP_Document_Containment", 2, "Torch", 1 } },
+          loot = { "SCP_Keycard_L1", 2, "SCP_Keycard_L2", 1, "SCP_Document_Containment", 1, "SCP_Document_008", 1, "Torch", 1 } },
     S = { level = 2, name = "Security",
           loot = { "SCP_MTF_Baton", 1, "SCP_MTF_Helmet", 1, "SCP_Keycard_L3", 1, "Torch", 1 },
           zombies = { T.GUARD, 2 } },
@@ -80,7 +83,7 @@ F.Rooms = {
           zombies = { T.GUARD, 3 } },
     D = { level = 1, name = "Class-D cells",
           loot = { "SCP_ClassD_Jumpsuit", 2 },
-          zombies = { "SCP_ClassD", 3 } },
+          zombies = { "SCP_ClassD", 1 } },
     L = { level = 2, name = "Storage",
           loot = { "SCP_GasMask", 1, "SCP_GasFilter", 3, "SCP_Hazmat_Suit", 1, "SCP_Keycard_L2", 1, "Torch", 1 } },
     M = { level = 2, name = "Medical bay",
@@ -90,12 +93,17 @@ F.Rooms = {
           zombies = { "SCP_Hazmat", 2 } },
     R = { level = 3, name = "Generator room", special = "generators",
           loot = { "SCP_Keycard_L4", 1, "Torch", 1 } },
-    G = { level = 0, name = "Lobby",
+    G = { level = 0, name = "Lobby", special = "scp294",
           loot = { "SCP_Keycard_L1", 1 },
           zombies = { T.GUARD, 1 } },
     T = { level = 3, name = "SCP-173", scp = T.SCP173 },
     P = { level = 3, name = "SCP-500", loot = { "SCP_500_Pill", 1 } },
-    X = { level = 3, name = "SCP-035", loot = { "SCP_035_Mask", 1 } },
+    X = { level = 3, name = "SCP-035", loot = { "SCP_035_Mask", 1, "SCP_714_Ring", 1 } },
+    V = { level = 4, name = "SCP-008", special = "scp008", loot = { "SCP_008_Sample", 2, "SCP_Document_008", 1, "SCP_GasFilter", 2 } },
+    J = { level = 4, name = "SCP-939", scp = T.SCP939, count = 3 },
+    I = { level = 3, name = "SCP-966", scp = T.SCP966, count = 2 },
+    U = { level = 2, name = "SCP-914", special = "scp914", loot = { "SCP_1025_Book", 1 } },
+    W = { level = 5, name = "Alpha Warhead", special = "warhead" },
     Y = { level = 4, name = "SCP-096", scp = T.SCP096 },
     Z = { level = 5, name = "SCP-106", scp = T.SCP106 },
     Q = { level = 4, name = "SCP-079", special = "scp079" },
@@ -153,6 +161,51 @@ function F.findElevator(level, digit)
             if row:sub(cx + 1, cx + 1) == digit then
                 local mid = math.floor(F.ROOM / 2)
                 return cx * F.ROOM + mid, cy * F.ROOM + mid
+            end
+        end
+    end
+    return nil
+end
+
+-- Character of the room at (x, y, z), or nil outside the site.
+function F.roomAt(x, y, z)
+    local o = F.origin()
+    local lv = F.levelAt(x, y, z)
+    if not o or not lv then return nil end
+    local lx, ly = math.floor(x) - o.x, math.floor(y) - o.y
+    return F.charAt(lv, math.floor(lx / F.ROOM), math.floor(ly / F.ROOM)), lv
+end
+
+-- True if (x, y, z) is on the line of a Tesla gate.
+function F.isTesla(x, y, z)
+    local o = F.origin()
+    if not o then return false end
+    local lv = F.levelAt(x, y, z)
+    if not lv then return false end
+    local lx, ly = math.floor(x) - o.x, math.floor(y) - o.y
+    local cx, cy = math.floor(lx / F.ROOM), math.floor(ly / F.ROOM)
+    local room = F.Rooms[F.charAt(lv, cx, cy)]
+    if not room or not room.tesla then return false end
+    local mid = math.floor(F.ROOM / 2)
+    -- The gate is a line across the corridor, perpendicular to its length.
+    local horizontal = F.Rooms[F.charAt(lv, cx - 1, cy)] and F.Rooms[F.charAt(lv, cx - 1, cy)].corridor
+    if horizontal then return lx - cx * F.ROOM == mid end
+    return ly - cy * F.ROOM == mid
+end
+
+-- Center of the first room of a given kind on a level (for spawns).
+function F.roomCenter(levelId, ch)
+    local o = F.origin()
+    if not o then return nil end
+    for _, lv in ipairs(F.Levels) do
+        if lv.id == levelId then
+            for cy = 0, #lv.rows - 1 do
+                for cx = 0, #lv.rows[1] - 1 do
+                    if F.charAt(lv, cx, cy) == ch then
+                        local mid = math.floor(F.ROOM / 2)
+                        return o.x + cx * F.ROOM + mid, o.y + cy * F.ROOM + mid, o.z + lv.depth
+                    end
+                end
             end
         end
     end

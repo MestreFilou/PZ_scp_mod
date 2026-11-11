@@ -63,6 +63,34 @@ confinement (les SCP se réveillent) et diffuse des menaces à la radio sur 107.
 démarrer les 3 panneaux de la salle des générateurs, puis « Surcharger SCP-079 » depuis son terminal
 (ce qui termine aussi une brèche en cours).
 
+**SCP-914** : la machine à engrenages (Light Containment). Clic droit → *Utiliser SCP-914*, puis un
+réglage (Brut, Grossier, 1:1, Fin, Très fin) pour détruire, abîmer, échanger, réparer ou améliorer l'objet
+en main. Une carte d'accès passée en « Fin » monte d'un niveau.
+
+**SCP-008** : chambre du prion en Heavy Containment. Sans masque à gaz filtré ni combinaison NRBC, l'air
+infecte. Échantillon et rapport dans la salle.
+
+**SCP-966** et **SCP-939** : 966 est invisible sans les lunettes de vision nocturne et empêche de dormir ;
+939 imite des voix humaines pour attirer les joueurs, et ne voit pas ceux qui avancent accroupis.
+
+**SCP-294** : distributeur de boissons (Entrance Zone). Eau, café, thé, chocolat… ou une boisson bizarre.
+
+**SCP-714** : l'anneau de jade rend somnolent mais protège du toucher de SCP-049 et de SCP-035.
+
+**SCP-1025** : l'encyclopédie des maladies. Lire une page donne la maladie décrite (rhume, poison,
+fracture… ou l'infection de Knox).
+
+**Portes Tesla** : couloirs électrifiés en Heavy Containment, qui frappent tout ce qui passe.
+Coupées pendant une coupure de courant.
+
+**Éclairage** : le site est sombre, les lumières clignotent et passent au rouge pendant une brèche.
+
+**Ogive Alpha** : salle de contrôle en Entrance Zone (carte niveau 5). L'armer lance un compte à rebours de
+30 min ; à zéro, le site et tout ce qui s'y trouve est détruit. Annulable depuis le même terminal.
+
+**Professions** : Classe-D (commence dans les cellules pendant une brèche), Scientifique (labo, carte
+niveau 2) et Garde NTF (salle de sécurité, carte niveau 3).
+
 **Site SCP** : trois niveaux souterrains (Entrance, Heavy et Light Containment) reliés par des ascenseurs
 (case jaune), construits au chargement de la zone. Placement : menu admin → *Construire le site SCP ici*.
 
@@ -74,7 +102,7 @@ Fin automatique après 6 h de jeu (courant et verrous rétablis).
 
 Clic droit au sol → **Fondation SCP (admin)** :
 - *Me donner le kit de test SCP* : toutes les cartes, SCP-500, masques, tenues
-- *Faire apparaître ici* : SCP-173, 096, 106, hôte de 035, garde zombifié
+- *Faire apparaître ici* : SCP-173, 096, 106, 049, 939, 966, hôte de 035, garde zombifié
 - *Ajouter un point de confinement* : où chaque SCP sera relâché pendant une brèche
 - *Déclencher / Terminer une brèche de confinement*
 

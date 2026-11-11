@@ -14,6 +14,8 @@ SCP.Types = {
     SCP035 = "SCP_035_Host",
     SCP049 = "SCP_049",
     SCP049_2 = "SCP_049_2",
+    SCP939 = "SCP_939",
+    SCP966 = "SCP_966",
     GUARD  = "SCP_ZombieGuard",
 }
 
@@ -442,4 +444,27 @@ function SCP.smashAround(x, y, z, radius)
             end
         end
     end
+end
+
+------------------------------------------------------------------------
+-- Diseases (SCP-008, SCP-1025)
+------------------------------------------------------------------------
+
+-- Gives the Knox infection (the zombie plague).
+function SCP.infect(player)
+    local bd = player:getBodyDamage()
+    local part = bd:getBodyPart(BodyPartType.Hand_R)
+    if part then pcall(part.SetInfected, part, true) end
+    pcall(bd.setInfected, bd, true)
+    pcall(bd.setInfectionTime, bd, getGameTime():getWorldAgeHours())
+    local duration = 48
+    if bd.pickMortalityDuration then
+        local ok, v = pcall(bd.pickMortalityDuration, bd)
+        if ok and v then duration = v end
+    end
+    pcall(bd.setInfectionMortalityDuration, bd, duration)
+end
+
+function SCP.isWearing714(player)
+    return SCP.getWorn(player, "Base.SCP_714_Ring") ~= nil
 end

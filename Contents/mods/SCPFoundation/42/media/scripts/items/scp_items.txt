@@ -86,4 +86,37 @@ module Base
         CanBeWrite = false,
         WorldStaticModel = Paper,
     }
+
+    item SCP_Document_008
+    {
+        DisplayCategory = Literature,
+        ItemType = base:literature,
+        Weight = 0.1,
+        Icon = SCP_Document_008,
+        CanBeWrite = false,
+        WorldStaticModel = Paper,
+    }
+
+    /* SCP-008: sealed sample of the zombie plague. */
+    item SCP_008_Sample
+    {
+        DisplayCategory = Junk,
+        ItemType = base:normal,
+        Weight = 0.2,
+        Icon = SCP_008_Sample,
+        Tags = SCP_Anomaly,
+        WorldStaticModel = PillBottle,
+    }
+
+    /* SCP-1025: reading a page gives you the disease it describes. */
+    item SCP_1025_Book
+    {
+        DisplayCategory = Literature,
+        ItemType = base:literature,
+        Weight = 0.8,
+        Icon = SCP_1025_Book,
+        CanBeWrite = false,
+        Tags = SCP_Anomaly,
+        WorldStaticModel = Book,
+    }
 }

@@ -196,4 +196,50 @@ module Base
         BodyLocation = base:boilersuit,
         Tags = SCP_EntitySkin,
     }
+
+    item SCP_939_Skin
+    {
+        DisplayCategory = Junk,
+        ItemType = base:clothing,
+        Weight = 0.1,
+        Icon = SCP_106_Skin,
+        ClothingItem = SCP_939_Skin,
+        BodyLocation = base:boilersuit,
+        Tags = SCP_EntitySkin,
+    }
+
+    item SCP_966_Skin
+    {
+        DisplayCategory = Junk,
+        ItemType = base:clothing,
+        Weight = 0.1,
+        Icon = SCP_096_Skin,
+        ClothingItem = SCP_966_Skin,
+        BodyLocation = base:boilersuit,
+        Tags = SCP_EntitySkin,
+    }
+
+    /* SCP-714: protects from SCP-049 and SCP-035, makes the wearer drowsy. */
+    item SCP_714_Ring
+    {
+        DisplayCategory = Accessory,
+        ItemType = base:clothing,
+        Weight = 0.05,
+        Icon = SCP_714_Ring,
+        ClothingItem = SCP_714_Ring,
+        BodyLocation = base:left_middlefinger,
+        Tags = SCP_Anomaly,
+    }
+
+    /* Night vision goggles: reveal SCP-966. */
+    item SCP_NVG
+    {
+        DisplayCategory = ProtectiveGear,
+        ItemType = base:clothing,
+        Weight = 0.6,
+        Icon = SCP_NVG,
+        ClothingItem = SCP_NVG,
+        BodyLocation = base:eyes,
+        Tags = SCP_NightVision,
+    }
 }
