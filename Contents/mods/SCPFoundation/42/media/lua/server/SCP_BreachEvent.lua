@@ -44,6 +44,7 @@ function SCP.Breach.start()
 
     setPower(false)
     SCP.Doors.setAllLocked(false)
+    if SCP.SCP079 and SCP.SCP079.reset then SCP.SCP079.reset() end
 
     local guards = SCP.opt("BreachGuardCount")
     local guardPoints = {}

@@ -54,6 +54,18 @@ flaques de corrosion (brûlent les pieds sans combinaison NRBC). Son contact env
 **dimension de poche** : une salle souterraine où l'on saigne, avec 4 sorties dont une seule
 ramène à la surface.
 
+**SCP-049** : son toucher tue, et la victime se relève en SCP-049-2. Il « soigne » aussi les cadavres
+proches. Ses 049-2 le suivent et attaquent quiconque s'approche de lui.
+
+**SCP-079** : une IA dans un terminal en Heavy Containment. Tant qu'elle est active, elle verrouille ou
+ouvre les portes autour des joueurs, déclenche des alarmes qui attirent les zombies, coupe le courant du
+confinement (les SCP se réveillent) et diffuse des menaces à la radio sur 107.9 MHz. Pour la reconfiner :
+démarrer les 3 panneaux de la salle des générateurs, puis « Surcharger SCP-079 » depuis son terminal
+(ce qui termine aussi une brèche en cours).
+
+**Site SCP** : trois niveaux souterrains (Entrance, Heavy et Light Containment) reliés par des ascenseurs
+(case jaune), construits au chargement de la zone. Placement : menu admin → *Construire le site SCP ici*.
+
 **Brèche de confinement** : coupure de courant, toutes les portes à carte s'ouvrent, sirènes et
 lumières rouges, apparition des SCP et de gardes zombifiés à chaque point de confinement.
 Fin automatique après 6 h de jeu (courant et verrous rétablis).

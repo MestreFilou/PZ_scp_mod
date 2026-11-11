@@ -321,6 +321,10 @@ end
 -- unless someone walks right up to them.
 function SCP.isDormant(zombie, wakeDist)
     if not zombie:getModData().SCP_Contained or SCP.isBreachActive() then return false end
+    -- SCP-079 cut the containment power: everything wakes up.
+    local md = ModData.get("SCPFoundation")
+    local until079 = md and md.scp079 and md.scp079.blackoutUntil
+    if until079 and getGameTime():getWorldAgeHours() < until079 then return false end
     local p, d = SCP.nearestPlayer(zombie, wakeDist or 6)
     return p == nil
 end

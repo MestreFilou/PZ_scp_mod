@@ -14,6 +14,7 @@
       H  research lab    R  generator room     G  reception / lobby
       T  SCP-173         P  SCP-500 vault      X  SCP-035
       Y  SCP-096         Z  SCP-106            N  SCP-049
+      Q  SCP-079 (AI)
 
     Rooms open onto corridors through one door. Two rooms side by side do
     not connect. Corridors next to each other form one open hallway.
@@ -46,7 +47,7 @@ F.Levels = {
             "CCCCCCCC",
             "HC.LC.HM",
             "C1CCCK2K",
-            "L.C.C.SH",
+            "LQC.C.SH",
             "..CCC...",
         },
     },
@@ -87,7 +88,7 @@ F.Rooms = {
     H = { level = 2, name = "Research lab",
           loot = { "SCP_Hazmat_Suit", 1, "SCP_Document_Containment", 2, "SCP_Keycard_L3", 1 },
           zombies = { "SCP_Hazmat", 2 } },
-    R = { level = 3, name = "Generator room",
+    R = { level = 3, name = "Generator room", special = "generators",
           loot = { "SCP_Keycard_L4", 1, "Torch", 1 } },
     G = { level = 0, name = "Lobby",
           loot = { "SCP_Keycard_L1", 1 },
@@ -97,6 +98,7 @@ F.Rooms = {
     X = { level = 3, name = "SCP-035", loot = { "SCP_035_Mask", 1 } },
     Y = { level = 4, name = "SCP-096", scp = T.SCP096 },
     Z = { level = 5, name = "SCP-106", scp = T.SCP106 },
+    Q = { level = 4, name = "SCP-079", special = "scp079" },
     N = { level = 4, name = "SCP-049", scp = T.SCP049, loot = { "SCP_Keycard_L5", 1 } },
 }
 for d = 0, 9 do
@@ -152,6 +154,20 @@ function F.findElevator(level, digit)
                 local mid = math.floor(F.ROOM / 2)
                 return cx * F.ROOM + mid, cy * F.ROOM + mid
             end
+        end
+    end
+    return nil
+end
+
+-- Which level of the site (if any) a character is on.
+function F.levelAt(x, y, z)
+    local o = F.origin()
+    if not o then return nil end
+    local lx, ly = x - o.x, y - o.y
+    for _, lv in ipairs(F.Levels) do
+        local c, r = F.size(lv)
+        if math.floor(z) == o.z + lv.depth and lx >= 0 and ly >= 0 and lx <= c * F.ROOM and ly <= r * F.ROOM then
+            return lv
         end
     end
     return nil

@@ -21,4 +21,7 @@ ContextMenu_EN = {
     ContextMenu_SCP_049 = "SCP-049",
     ContextMenu_SCP_Elevator = "Take the elevator",
     ContextMenu_SCP_PlaceFacility = "Build the SCP site here",
+    ContextMenu_SCP_079_Talk = "Talk to SCP-079",
+    ContextMenu_SCP_079_Overcharge = "Overcharge SCP-079",
+    ContextMenu_SCP_079_StartGenerator = "Start generator %1 (control panel)",
 }

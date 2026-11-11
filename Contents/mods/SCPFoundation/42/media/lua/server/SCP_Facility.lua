@@ -35,6 +35,9 @@ F.Sprites = F.Sprites or {
     doorN = "fixtures_doors_01_69",
     elevator = "floors_interior_tilesandwood_01_3", -- yellow checkered tiles
     containmentFloor = "floors_interior_tilesandwood_01_24", -- dark grey smooth tiles
+    terminal = "appliances_com_01_52",              -- old security terminal (SCP-079)
+    -- Generator control panels. Real generator tiles would let players pick up free generators.
+    generators = { "security_01_0", "security_01_0", "security_01_0" },
 }
 
 local origin = nil       -- cached F.origin()
@@ -153,6 +156,17 @@ local function roomContents(level, cx, cy, ch, x, y, z)
     end
     if room.scp then
         table.insert(spawnQueue, { scp = room.scp, x = x, y = y, z = z })
+    end
+
+    -- SCP-079's terminal and the three re-containment generators
+    if room.special == "scp079" then
+        local obj = addObject(getCell():getOrCreateGridSquare(x, y - 2, z), F.Sprites.terminal)
+        if obj then obj:getModData().SCP079_Terminal = true end
+    elseif room.special == "generators" then
+        for i, sprite in ipairs(F.Sprites.generators) do
+            local obj = addObject(getCell():getOrCreateGridSquare(x - 4 + (i - 1) * 4, y - 3, z), sprite)
+            if obj then obj:getModData().SCP079_Generator = i end
+        end
     end
 
     -- Elevator: the yellow floor tile of the room's center carries the link.
