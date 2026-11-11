@@ -15,17 +15,26 @@ require "SCP_Spawner"
 
 local F = SCP.Facility
 
--- Tiles used by the builder. Each zone has its own look.
--- Wall sprites follow the usual PZ sheet order: west wall, north wall,
--- north-west corner. Doors: west door, north door (closed sprites).
+-- Tiles used by the builder (names checked against the game's tile
+-- definitions). Wall sheets: _0 west wall, _1 north wall, _2 corner,
+-- _10 / _11 door frames.
+local function wallSet(name)
+    return { wallW = name .. "_0", wallN = name .. "_1", wallNW = name .. "_2", frameW = name .. "_10", frameN = name .. "_11" }
+end
+
 F.Sprites = F.Sprites or {
-    EZ  = { floor = "floors_interior_tilesandwood_01_0", wallW = "walls_interior_house_01_0", wallN = "walls_interior_house_01_1", wallNW = "walls_interior_house_01_2" },
-    HCZ = { floor = "floors_exterior_street_01_0",       wallW = "walls_interior_house_01_0", wallN = "walls_interior_house_01_1", wallNW = "walls_interior_house_01_2" },
-    LCZ = { floor = "floors_interior_tilesandwood_01_0", wallW = "walls_interior_house_01_0", wallN = "walls_interior_house_01_1", wallNW = "walls_interior_house_01_2" },
-    doorW = "fixtures_doors_01_0",
-    doorN = "fixtures_doors_01_1",
-    elevator = "floors_exterior_street_01_0",
-    containmentFloor = "floors_exterior_street_01_0",
+    EZ  = wallSet("walls_interior_house_02"),       -- plaster offices
+    HCZ = wallSet("walls_commercial_03"),           -- bare cinderblock
+    LCZ = wallSet("walls_interior_bathroom_01"),    -- white ceramic labs
+    floors = {
+        EZ  = "floors_interior_tilesandwood_01_28", -- grey squares
+        HCZ = "floors_interior_tilesandwood_01_29", -- dark grey squares
+        LCZ = "floors_interior_tilesandwood_01_16", -- white smooth tiles
+    },
+    doorW = "fixtures_doors_01_68",                 -- metal door
+    doorN = "fixtures_doors_01_69",
+    elevator = "floors_interior_tilesandwood_01_3", -- yellow checkered tiles
+    containmentFloor = "floors_interior_tilesandwood_01_24", -- dark grey smooth tiles
 }
 
 local origin = nil       -- cached F.origin()
@@ -69,7 +78,8 @@ local function addObject(sq, sprite)
     return nil
 end
 
-local function addDoor(sq, north, level)
+local function addDoor(sq, north, level, sprites)
+    addObject(sq, north and sprites.frameN or sprites.frameW)
     local sprite = north and F.Sprites.doorN or F.Sprites.doorW
     if not spriteOk(sprite) then warnSprite(sprite) return end
     local ok, door = pcall(IsoDoor.new, getCell(), sq, sprite, north)
@@ -145,12 +155,10 @@ local function roomContents(level, cx, cy, ch, x, y, z)
         table.insert(spawnQueue, { scp = room.scp, x = x, y = y, z = z })
     end
 
-    -- Elevator marker
+    -- Elevator: the yellow floor tile of the room's center carries the link.
     if room.elevator then
-        local obj = addObject(getCell():getOrCreateGridSquare(x, y, z), F.Sprites.elevator)
-        if obj then
-            obj:getModData().SCP_Elevator = { level = level.id, link = room.elevator }
-        end
+        local floor = getCell():getOrCreateGridSquare(x, y, z):getFloor()
+        if floor then floor:getModData().SCP_Elevator = { level = level.id, link = room.elevator } end
     end
 end
 
@@ -171,10 +179,15 @@ local function buildTile(level, lx, ly, x, y, z)
     local sq = getCell():getOrCreateGridSquare(x, y, z)
     if not sq then return end
     local sprites = F.Sprites[level.id] or F.Sprites.EZ
+    local mid = math.floor(S / 2)
+    local center = ix == mid and iy == mid
 
     if F.solid(here) then
         local room = F.Rooms[here]
-        addFloor(sq, room.scp and F.Sprites.containmentFloor or sprites.floor)
+        local floor = F.Sprites.floors[level.id] or F.Sprites.floors.EZ
+        if room.scp then floor = F.Sprites.containmentFloor end
+        if room.elevator and center then floor = F.Sprites.elevator end
+        addFloor(sq, floor)
     end
 
     if west == "wall" and north == "wall" then
@@ -183,11 +196,10 @@ local function buildTile(level, lx, ly, x, y, z)
         if west == "wall" then addObject(sq, sprites.wallW) end
         if north == "wall" then addObject(sq, sprites.wallN) end
     end
-    if west == "door" then addDoor(sq, false, westDoorLevel) end
-    if north == "door" then addDoor(sq, true, northDoorLevel) end
+    if west == "door" then addDoor(sq, false, westDoorLevel, sprites) end
+    if north == "door" then addDoor(sq, true, northDoorLevel, sprites) end
 
-    local mid = math.floor(S / 2)
-    if F.solid(here) and ix == mid and iy == mid then
+    if F.solid(here) and center then
         roomContents(level, cx, cy, here, x, y, z)
     end
 
@@ -211,8 +223,9 @@ local function buildColumn(surfaceSq)
     end
     -- Gate A on the surface, right above the site's corner.
     if lx == 0 and ly == 0 then
-        local obj = addObject(surfaceSq, F.Sprites.elevator)
-        if obj then obj:getModData().SCP_Elevator = { level = "SURFACE", link = "0" } end
+        if surfaceSq.addFloor then pcall(surfaceSq.addFloor, surfaceSq, F.Sprites.elevator) end
+        local floor = surfaceSq:getFloor()
+        if floor then floor:getModData().SCP_Elevator = { level = "SURFACE", link = "0" } end
     end
     surfaceSq:getModData().SCP_FacilityBuilt = F.VERSION
 end
