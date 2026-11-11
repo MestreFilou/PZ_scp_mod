@@ -16,8 +16,9 @@ Les tenues utilisent pour l'instant des **modèles vanilla** avec des **textures
 Pour remplacer : déposer le modèle `.fbx`/`.x` ici (par ex. `models_X/Skinned/Clothes/SCP_MTF_Helmet.fbx`),
 puis changer `m_MaleModel` / `m_FemaleModel` dans le XML correspondant de `media/clothing/clothingItems/`.
 
-Autres fichiers temporaires :
-- Icônes : `media/textures/Item_SCP_*.png` (32×32)
-- Affiche : `poster.png`, `icon.png`, et `preview.png` à la racine du dépôt (Workshop)
+Déjà remplacés (images Gemini) : icônes `media/textures/Item_SCP_*.png`, `poster.png`, `icon.png`, `preview.png`.
+Planches de concept pour les futurs modèles 3D : `art/concepts/` à la racine du dépôt (hors du mod).
+
+Encore temporaires :
 - Sons : `media/sound/*.ogg` (bips et bruits générés)
 - Tuiles de corrosion / dimension de poche : constantes en haut de `media/lua/shared/SCP_106_Logic.lua`
