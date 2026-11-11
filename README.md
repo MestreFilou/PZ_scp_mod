@@ -70,7 +70,7 @@ en main. Une carte d'accès passée en « Fin » monte d'un niveau.
 **SCP-008** : chambre du prion en Heavy Containment. Sans masque à gaz filtré ni combinaison NRBC, l'air
 infecte. Échantillon et rapport dans la salle.
 
-**SCP-966** et **SCP-939** : 966 est invisible sans les lunettes de vision nocturne et empêche de dormir ;
+**SCP-966** et **SCP-939** : 966 est invisible sans les lunettes de vision nocturne et épuise ceux qu'il approche ;
 939 imite des voix humaines pour attirer les joueurs, et ne voit pas ceux qui avancent accroupis.
 
 **SCP-294** : distributeur de boissons (Entrance Zone). Eau, café, thé, chocolat… ou une boisson bizarre.
@@ -80,8 +80,8 @@ infecte. Échantillon et rapport dans la salle.
 **SCP-1025** : l'encyclopédie des maladies. Lire une page donne la maladie décrite (rhume, poison,
 fracture… ou l'infection de Knox).
 
-**Portes Tesla** : couloirs électrifiés en Heavy Containment, qui frappent tout ce qui passe.
-Coupées pendant une coupure de courant.
+**Portes Tesla** : couloirs électrifiés en Heavy Containment, qui frappent tout ce qui passe
+(joueurs gravement blessés, zombies détruits).
 
 **Éclairage** : le site est sombre, les lumières clignotent et passent au rouge pendant une brèche.
 
