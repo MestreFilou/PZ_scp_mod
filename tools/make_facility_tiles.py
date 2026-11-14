@@ -233,22 +233,22 @@ def wall_lcz():
 
 
 def wall_hcz():
-    a = base(WALL_W, WALL_H, "#5c6062", 12, 22, 3)
+    a = base(WALL_W, WALL_H, "#383b3d", 12, 22, 3)
     # big poured concrete slabs with formwork holes
-    hline(a, 0.33, 0.006, "#45484a")
-    hline(a, 0.66, 0.006, "#45484a")
+    hline(a, 0.33, 0.006, "#26282a")
+    hline(a, 0.66, 0.006, "#26282a")
     for u in (0.25, 0.75):
         for v in (0.165, 0.495, 0.82):
-            bolts(a, [(u, v)], 5, "#3a3d3f")
+            bolts(a, [(u, v)], 5, "#1f2122")
     # rusty steel ribs
     for u in (0.02, 0.98):
-        rect(a, u - 0.03, 0, u + 0.03, 1, "#4d4a46")
+        rect(a, u - 0.03, 0, u + 0.03, 1, "#3a3530")
         shade_rect(a, u - 0.03, 0, u - 0.01, 1, 1.25)
-    rect(a, 0, 0.44, 1, 0.47, "#a3392a")          # red warning band
-    rect(a, 0, 0.965, 1, 1, "#2f3133")
+    rect(a, 0, 0.44, 1, 0.47, "#7d2a20")          # red warning band
+    rect(a, 0, 0.965, 1, 1, "#1a1b1c")
     a[..., :3] += (noise(WALL_W, WALL_H, 10, 10)[..., None]) * np.array([1.0, 0.7, 0.4])
     grime(a, 35, 0.3)
-    drips(a, 6, "#3a352c", 0.25, 33)
+    drips(a, 6, "#211e18", 0.25, 33)
     return to_img(a)
 
 
@@ -292,19 +292,19 @@ def floor_lcz():
 
 
 def floor_hcz():
-    a = base(FLOOR, FLOOR, "#5f6367", 6, 10, 13)
+    a = base(FLOOR, FLOOR, "#3a3d40", 6, 10, 13)
     # diamond plate
     yy, xx = np.mgrid[0:FLOOR, 0:FLOOR]
     p = 32
     lx, ly = (xx % p) - p / 2, (yy % p) - p / 2
     ridge = (np.abs(lx + ly) < 3) & (np.abs(lx - ly) < 11)
     ridge2 = (np.abs(lx - ly) < 3) & (np.abs(lx + ly) < 11)
-    a[ridge, :3] += 28
+    a[ridge, :3] += 20
     a[ridge2, :3] -= 0
     a[(np.roll(ridge, 2, axis=0)) & ~ridge, :3] -= 22
     for i in (0, 1):
-        hline(a, i, 0.012, "#3e4144")
-        vline(a, i, 0.012, "#3e4144")
+        hline(a, i, 0.012, "#232527")
+        vline(a, i, 0.012, "#232527")
     return to_img(a)
 
 
