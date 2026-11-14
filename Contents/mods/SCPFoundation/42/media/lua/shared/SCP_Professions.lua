@@ -16,61 +16,34 @@ local P = SCP.Professions
 
 P.List = {
     scp_classd = {
-        cost = 8,       -- positive = gives points (hard start)
         room = { "LCZ", "D" },
         wear = { "SCP_ClassD_Jumpsuit" },
         give = {},
-        traits = {},
     },
     scp_scientist = {
-        cost = 0,
         room = { "EZ", "H" },
         wear = { "SCP_LabCoat" },
         give = { "SCP_Hazmat_Suit", "SCP_Keycard_L2", "SCP_Document_Containment", "SCP_Document_008", "Torch" },
-        xp = { Doctor = 2, Electricity = 1 },
     },
     scp_mtf = {
-        cost = -4,
         room = { "EZ", "S" },
         wear = { "SCP_MTF_Uniform", "SCP_MTF_Vest", "SCP_MTF_Helmet" },
         give = { "SCP_MTF_Baton", "SCP_Keycard_L3", "SCP_GasMask", "SCP_GasFilter", "Torch" },
-        xp = { Aiming = 2, Fitness = 1, Strength = 1 },
     },
 }
 
-local function addProfessions()
-    if not ProfessionFactory or not ProfessionFactory.addProfession then
-        SCP.log("ProfessionFactory not available: SCP occupations disabled")
-        return
-    end
-    for id, def in pairs(P.List) do
-        local ok, prof = pcall(ProfessionFactory.addProfession, id, getText("UI_prof_" .. id), "", def.cost)
-        if ok and prof then
-            pcall(function() prof:setDescription(getText("UI_profdesc_" .. id)) end)
-            for perkName, lvl in pairs(def.xp or {}) do
-                if Perks and Perks[perkName] then pcall(prof.addXPBoost, prof, Perks[perkName], lvl) end
-            end
-        end
-    end
-end
-
-Events.OnGameBoot.Add(addProfessions)
-if Events.OnCreateLivingCharacter then
-    -- some versions rebuild the profession list later; add ours again if missing
-    Events.OnGameStart.Add(function()
-        if ProfessionFactory and ProfessionFactory.getProfession and not ProfessionFactory.getProfession("scp_classd") then
-            addProfessions()
-        end
-    end)
-end
+-- The occupations themselves are declared in media/registries.lua and
+-- media/scripts/characters/scp_professions.txt (Build 42.13+ format).
+-- P.List above only holds their gear and start room.
 
 function P.getId(player)
     local desc = player:getDescriptor()
-    local prof = desc and desc:getProfession()
+    if not desc then return nil end
+    local prof = nil
+    if desc.getCharacterProfession then prof = desc:getCharacterProfession() end   -- B42.13+
+    if not prof and desc.getProfession then prof = desc:getProfession() end         -- older builds
     if not prof then return nil end
-    local id = tostring(prof)
-    if type(prof) ~= "string" and prof.getType then id = prof:getType() end
-    id = tostring(id):lower()
+    local id = tostring(prof):lower()   -- e.g. "scpfoundation:scp_classd"
     for key in pairs(P.List) do
         if id:find(key, 1, true) then return key end
     end
