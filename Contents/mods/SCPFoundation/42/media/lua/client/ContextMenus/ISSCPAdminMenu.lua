@@ -70,6 +70,12 @@ local function onFillWorldMenu(playerNum, context, worldobjects, test)
             "SCP_714_Ring", "SCP_NVG", "SCP_1025_Book", "SCP_008_Sample", "SCP_Document_008" }) do
             inv:AddItem("Base." .. t)
         end
+        -- A flashlight with batteries (item names differ between builds).
+        local sm = getScriptManager()
+        for _, t in ipairs({ "Base.Torch", "Base.HandTorch", "Base.Flashlight" }) do
+            if sm:FindItem(t) then inv:AddItem(t) break end
+        end
+        if sm:FindItem("Base.Battery") then inv:AddItem("Base.Battery"); inv:AddItem("Base.Battery") end
     end)
 end
 

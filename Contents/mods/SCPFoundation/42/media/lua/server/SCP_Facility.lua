@@ -276,6 +276,11 @@ local function buildTile(level, lx, ly, x, y, z)
 
     pcall(sq.RecalcProperties, sq)
     pcall(sq.RecalcAllWithNeighbours, sq, true)
+    -- New squares underground: make the lighting pass look at them again.
+    local chunk = sq.getChunk and sq:getChunk()
+    if chunk and chunk.checkLightingLater_AllPlayers_AllLevels then
+        pcall(chunk.checkLightingLater_AllPlayers_AllLevels, chunk)
+    end
 end
 
 ------------------------------------------------------------------------
