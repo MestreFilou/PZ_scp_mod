@@ -25,7 +25,31 @@ puis changer `m_MaleModel` / `m_FemaleModel` dans le XML correspondant de `media
 Déjà remplacés (images Gemini) : icônes `media/textures/Item_SCP_*.png`, `poster.png`, `icon.png`, `preview.png`.
 Planches de concept pour les futurs modèles 3D : `art/concepts/` à la racine du dépôt (hors du mod).
 
+## Modèles 3D propres (branche `models/creatures-tiles`)
+
+Générés par `tools/build_models.py` (Blender, hors du dépôt) : géométrie, poids sur le squelette de Bob
+(transférés depuis `MaleBody.x`), texture cuite depuis des matériaux procéduraux.
+
+| Objet | Modèle | Texture | Remarque |
+|---|---|---|---|
+| SCP-173 | `skinned/clothes/scp_173.x` | `SCP/SCP_173_Model.png` | statue rigide (os `Bip01_Pelvis`) |
+| SCP-096 / 939 / 106 / 966 | `skinned/clothes/scp_0xx.x` | `SCP/SCP_0xx_Model.png` | squelette complet |
+| SCP-049 (capuche + bec) | `static/clothes/scp_049_mask.x` | `SCP/SCP_049_BeakMask.png` | os de la tête |
+| Lunettes de vision nocturne | `static/clothes/scp_nvg.x` | `SCP/SCP_NVG.png` | os de la tête |
+| SCP-714 | `skinned/clothes/scp_714_ring.x` | `SCP/SCP_714_Ring.png` | os `Bip01_L_Finger1` |
+
+Les créatures masquent tout le corps (masques 0 à 10) et apparaissent toujours en homme
+(`MALE_ONLY` dans `SCP_Spawner.lua`), car leurs poids sont calculés pour le squelette de Bob.
+Les anciennes textures sur combinaison (`SCP_173_Shell.png`, `SCP_096_Skin.png`…) restent en repli.
+
+## Tuiles 2D
+
+`media/texturepacks/scp_facility.pack` + `media/scp_facility.tiles` (déclarés dans `mod.info`, numéro 1914),
+tileset `scp_facility_01` : 0-2 SCP-914 (entrée, engrenages, sortie), 3 SCP-294, 4 terminal SCP-079,
+5 panneau de générateur, 6 console de l'ogive Alpha, 7-8 portique Tesla (bord ouest / nord).
+Planche : `art/scp_facility_01_tilesheet.png`. Si le pack ne se charge pas, `F.Fallback`
+(`SCP_Facility.lua`) remet les tuiles vanilla d'avant.
+
 Encore temporaires :
-- Modèles 3D propres aux SCP (173, 096, 106 portent pour l'instant une combinaison)
 - Sons : `media/sound/*.ogg` (bips et bruits générés)
 - Tuiles de corrosion / dimension de poche : constantes en haut de `media/lua/shared/SCP_106_Logic.lua`

@@ -20,10 +20,14 @@ local HEALTH = {
     [SCP.Types.GUARD]  = 2,
 }
 
+-- The creatures' own 3D models are skinned on the male (Bob) skeleton: never spawn them female.
+local MALE_ONLY = { SCP_173 = true, SCP_096 = true, SCP_106 = true, SCP_939 = true, SCP_966 = true }
+
 local function addZombies(x, y, z, count, outfit)
-    local ok, list = pcall(addZombiesInOutfit, x, y, z, count, outfit, 50)
+    local female = MALE_ONLY[outfit] and 0 or 50
+    local ok, list = pcall(addZombiesInOutfit, x, y, z, count, outfit, female)
     if ok and list then return list end
-    ok, list = pcall(addZombiesInOutfit, x, y, z, count, outfit, 50, false, false, false, false, 1.0)
+    ok, list = pcall(addZombiesInOutfit, x, y, z, count, outfit, female, false, false, false, false, 1.0)
     if ok and list then return list end
     SCP.log("could not spawn outfit", outfit)
     return nil
