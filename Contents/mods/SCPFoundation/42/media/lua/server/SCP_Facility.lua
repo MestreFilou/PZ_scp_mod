@@ -43,6 +43,7 @@ F.Sprites = F.Sprites or {
     scp914Out = "scp_facility_01_2",                -- SCP-914: output booth (east)
     scp294 = "scp_facility_01_3",                   -- SCP-294: drink machine
     warhead = "scp_facility_01_6",                  -- Alpha Warhead control panel
+    femur = "scp_facility_01_6",                    -- Femur Breaker console (same panel tile for now)
     -- Generator control panels. Real generator tiles would let players pick up free generators.
     generators = { "scp_facility_01_5", "scp_facility_01_5", "scp_facility_01_5" },
     teslaW = "scp_facility_01_7",                   -- Tesla gate on the west edge of a square
@@ -91,11 +92,13 @@ local function addFloor(sq, sprite)
     if ok and obj then sq:AddTileObject(obj) end
 end
 
-local function addObject(sq, sprite)
+-- setup(obj), if given, runs before the object is added to the square.
+local function addObject(sq, sprite, setup)
     if not spriteOk(sprite) and F.Fallback[sprite] then sprite = F.Fallback[sprite] end
     if not spriteOk(sprite) then warnSprite(sprite) return nil end
     local ok, obj = pcall(IsoObject.new, getCell(), sq, sprite)
     if ok and obj then
+        if setup then setup(obj) end
         sq:AddTileObject(obj)
         return obj
     end
@@ -186,16 +189,27 @@ local function roomContents(level, cx, cy, ch, x, y, z)
     elseif room.special == "scp914" then
         local obj = addObject(getCell():getOrCreateGridSquare(x, y - 2, z), F.Sprites.scp914)
         if obj then obj:getModData().SCP914_Machine = true end
-        -- Intake and output booths on each side (right-clicking them also opens SCP-914).
-        if spriteOk(F.Sprites.scp914In) then
-            for dx, key in pairs({ [-1] = "scp914In", [1] = "scp914Out" }) do
-                local booth = addObject(getCell():getOrCreateGridSquare(x + dx, y - 2, z), F.Sprites[key])
-                if booth then booth:getModData().SCP914_Machine = true end
-            end
+        -- Intake (west) and output (east) booths: containers, like furniture.
+        for dx, kind in pairs({ [-1] = "in", [1] = "out" }) do
+            local key = kind == "in" and "scp914In" or "scp914Out"
+            local booth = addObject(getCell():getOrCreateGridSquare(x + dx, y - 2, z), F.Sprites[key], function(o)
+                o:getModData().SCP914_Booth = kind
+                local ok, c = pcall(ItemContainer.new, "scp914_" .. kind, o:getSquare(), o)
+                if ok and c then
+                    pcall(c.setCapacity, c, 50)
+                    pcall(c.setExplored, c, true)
+                    pcall(o.setContainer, o, c)
+                else
+                    SCP.log("SCP-914: could not create the booth container")
+                end
+            end)
         end
     elseif room.special == "scp294" then
         local obj = addObject(getCell():getOrCreateGridSquare(x + 3, y - 3, z), F.Sprites.scp294)
         if obj then obj:getModData().SCP294_Machine = true end
+    elseif room.special == "femur" then
+        local obj = addObject(getCell():getOrCreateGridSquare(x, y - 2, z), F.Sprites.femur)
+        if obj then obj:getModData().SCP106_Breaker = true end
     elseif room.special == "warhead" then
         local obj = addObject(getCell():getOrCreateGridSquare(x, y - 2, z), F.Sprites.warhead)
         if obj then obj:getModData().SCP_Warhead = true end
@@ -330,7 +344,10 @@ local function processSpawns()
             world.facility.spawned[key] = true
             if s.scp then
                 local list = SCP.Spawner.spawn(s.scp, s.x, s.y, s.z, s.count or 1)
-                for _, z in ipairs(list) do z:getModData().SCP_Contained = true end
+                for _, z in ipairs(list) do
+                    z:getModData().SCP_Contained = true
+                    z:getModData().SCP_Home = { x = s.x, y = s.y, z = s.z }
+                end
                 table.insert(world.points, { type = s.scp, x = s.x, y = s.y, z = s.z, contained = true })
             else
                 SCP.Spawner.spawn(s.outfit, s.x, s.y, s.z, s.count)

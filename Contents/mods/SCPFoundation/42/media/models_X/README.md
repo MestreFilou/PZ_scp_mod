@@ -68,5 +68,6 @@ Planche : `art/scp_facility_01_tilesheet.png`. Si le pack ne se charge pas, `F.F
 (`SCP_Facility.lua`) remet les tuiles vanilla d'avant.
 
 Encore temporaires :
-- Sons : `media/sound/*.ogg` (bips et bruits générés)
+- Sons : presque tous remplacés (voir `CREDITS_SOUNDS.md`) ; restent générés `SCP_BreachVoice.ogg` et `SCP_PillSwallow.ogg`
+- Console du broyeur de fémur : réutilise la tuile de l'ogive Alpha (`scp_facility_01_6`)
 - Tuiles de corrosion / dimension de poche : constantes en haut de `media/lua/shared/SCP_106_Logic.lua`

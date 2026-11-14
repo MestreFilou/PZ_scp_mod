@@ -16,7 +16,7 @@
       Y  SCP-096         Z  SCP-106            N  SCP-049
       Q  SCP-079 (AI)    V  SCP-008            J  SCP-939 pen
       I  SCP-966 pen     U  SCP-914            W  Alpha Warhead control
-      E  corridor with a Tesla gate
+      E  corridor with a Tesla gate  B  Femur Breaker (re-contains SCP-106)
 
     Rooms open onto corridors through one door. Two rooms side by side do
     not connect. Corridors next to each other form one open hallway.
@@ -49,7 +49,7 @@ F.Levels = {
             "CCCECCCC",
             "HCVLCJHM",
             "C1CCCK2K",
-            "LQCIC.SH",
+            "LQCICBSH",
             "..CEC...",
         },
     },
@@ -106,6 +106,7 @@ F.Rooms = {
     W = { level = 5, name = "Alpha Warhead", special = "warhead" },
     Y = { level = 4, name = "SCP-096", scp = T.SCP096 },
     Z = { level = 5, name = "SCP-106", scp = T.SCP106 },
+    B = { level = 5, name = "Femur Breaker", special = "femur" },
     Q = { level = 4, name = "SCP-079", special = "scp079" },
     N = { level = 4, name = "SCP-049", scp = T.SCP049, loot = { "SCP_Keycard_L5", 1 } },
 }

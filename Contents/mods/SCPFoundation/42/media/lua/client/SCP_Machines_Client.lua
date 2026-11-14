@@ -33,32 +33,112 @@ end
 -- SCP-914
 ------------------------------------------------------------------------
 
-local function on914(player, machine, item, setting)
-    if not near(player, machine) then return end
-    if not player:getInventory():contains(item) then return end
-    machine:getSquare():playSound("SCP914_Clockwork")
-    local key = SCP.SCP914.refine(player, item, setting)
-    SCP.say(player, key, 220, 200, 140)
+-- The machine sits between its two booths on the same row:
+-- intake booth to the west, output booth to the east.
+local function findParts(obj)
+    local sq = obj:getSquare()
+    local parts = {}
+    for dx = -2, 2 do
+        local s = getCell():getGridSquare(sq:getX() + dx, sq:getY(), sq:getZ())
+        if s then
+            local objs = s:getObjects()
+            for i = 0, objs:size() - 1 do
+                local o = objs:get(i)
+                local md = o:getModData()
+                if md.SCP914_Machine then parts.machine = o end
+                if md.SCP914_Booth == "in" then parts.intake = o:getContainer() end
+                if md.SCP914_Booth == "out" then parts.output = o:getContainer() end
+            end
+        end
+    end
+    return parts
 end
 
-local function fill914(context, player, machine)
+local function removeFrom(container, item)
+    container:DoRemoveItem(item)
+    if isClient() and sendRemoveItemFromContainer then pcall(sendRemoveItemFromContainer, container, item) end
+end
+
+local function addTo(container, itemOrType)
+    local ok, item = pcall(container.AddItem, container, itemOrType)
+    if ok and item and isClient() and sendAddItemToContainer then pcall(sendAddItemToContainer, container, item) end
+    return ok and item or nil
+end
+
+local running = {}   -- machine key -> { parts, setting, player, doneAt }
+
+local function machineKey(m)
+    local sq = m:getSquare()
+    return sq:getX() .. "," .. sq:getY() .. "," .. sq:getZ()
+end
+
+local function finish914(job)
+    local intake, output = job.parts.intake, job.parts.output
+    local items = intake:getItems()
+    local list = {}
+    for i = 0, items:size() - 1 do list[#list + 1] = items:get(i) end
+    local lastKey, count = nil, 0
+    for _, item in ipairs(list) do
+        local res = SCP.SCP914.refine(item, job.setting)
+        removeFrom(intake, item)
+        if res.keep then addTo(output, item) end
+        for _, o in ipairs(res.out or {}) do
+            for _ = 1, o[2] or 1 do addTo(output, o[1]) end
+        end
+        lastKey, count = res.key, count + 1
+    end
+    if job.player and not job.player:isDead() then
+        if count == 1 then
+            SCP.say(job.player, lastKey, 220, 200, 140)
+        else
+            SCP.say(job.player, "UI_SCP_914_Done", 220, 200, 140, count)
+        end
+    end
+end
+
+Events.OnTick.Add(function()
+    local t = getTimestampMs()
+    for key, job in pairs(running) do
+        if t >= job.doneAt then
+            running[key] = nil
+            finish914(job)
+        end
+    end
+end)
+
+local function on914(player, machine, setting)
+    if not near(player, machine) then return end
+    local parts = findParts(machine)
+    if not parts.intake or not parts.output then
+        SCP.say(player, "UI_SCP_914_NoBooths", 220, 200, 140)
+        return
+    end
+    local key = machineKey(machine)
+    if running[key] then
+        SCP.say(player, "UI_SCP_914_Busy", 220, 200, 140)
+        return
+    end
+    if parts.intake:getItems():size() == 0 then
+        SCP.say(player, "UI_SCP_914_Empty", 220, 200, 140)
+        return
+    end
+    machine:getSquare():playSound("SCP914_Clockwork")
+    running[key] = { parts = parts, setting = setting, player = player, doneAt = getTimestampMs() + SCP.SCP914.RUN_MS }
+    SCP.say(player, "UI_SCP_914_Running", 220, 200, 140)
+end
+
+local function fill914(context, player, obj)
+    local parts = findParts(obj)
+    local machine = parts.machine or obj
     local root = context:addOption(getText("ContextMenu_SCP_914_Use"))
     local menu = ISContextMenu:getNew(context)
     context:addSubMenu(root, menu)
-    local items = player:getInventory():getItems()
     for _, setting in ipairs(SCP.SCP914.SETTINGS) do
-        local opt = menu:addOption(getText("ContextMenu_SCP_914_" .. setting))
-        local sub = ISContextMenu:getNew(menu)
-        menu:addSubMenu(opt, sub)
-        local shown = 0
-        for i = 0, items:size() - 1 do
-            local item = items:get(i)
-            if shown < 25 and not player:isEquipped(item) and not instanceof(item, "InventoryContainer") then
-                sub:addOption(item:getDisplayName(), player, on914, machine, item, setting)
-                shown = shown + 1
-            end
-        end
-        if shown == 0 then opt.notAvailable = true end
+        local opt = menu:addOption(getText("ContextMenu_SCP_914_" .. setting), player, on914, machine, setting)
+        opt.toolTip = ISToolTip:new()
+        opt.toolTip:initialise()
+        opt.toolTip:setName(getText("ContextMenu_SCP_914_" .. setting))
+        opt.toolTip.description = getText("UI_SCP_914_Tip_" .. setting)
     end
 end
 
@@ -125,7 +205,7 @@ end
 
 local function onFillWorldMenu(playerNum, context, worldobjects, test)
     local player = getSpecificPlayer(playerNum)
-    local m914 = findTagged(worldobjects, "SCP914_Machine")
+    local m914 = findTagged(worldobjects, "SCP914_Machine") or findTagged(worldobjects, "SCP914_Booth")
     local m294 = findTagged(worldobjects, "SCP294_Machine")
     if not m914 and not m294 then return end
     if test then return true end

@@ -43,4 +43,7 @@ ContextMenu_FR = {
     ContextMenu_SCP_008_Open = "Ouvrir l'échantillon",
     ContextMenu_SCP_Warhead_Arm = "Armer l'ogive Alpha",
     ContextMenu_SCP_Warhead_Cancel = "Annuler l'ogive Alpha",
+    ContextMenu_SCP_106_Console = "Broyeur de fémur",
+    ContextMenu_SCP_106_FemurBreaker = "Activer le broyeur de fémur",
+    ContextMenu_SCP_106_Recall = "Rappel magnétique de SCP-106",
 }

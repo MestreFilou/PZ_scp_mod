@@ -9,7 +9,7 @@ require "SCP_096_Logic"
 local LOOK_DIST = 30
 local LOOK_FOV = 40                         -- the player must look right at it
 local FACE_DOT = math.cos(math.rad(50))     -- 096 must be facing the player
-local CRY_EVERY_MS = 9000
+local CRY_EVERY_MS = 35000                -- length of the crying loop
 local SMASH_EVERY_MS = 700
 local PATH_EVERY_MS = 1000
 
@@ -32,6 +32,7 @@ local function onZombieUpdate(zombie)
         for _, p in ipairs(SCP.localPlayers()) do
             if sawFace(p, zombie) then
                 SCP.say(p, "UI_SCP_096_Seen", 255, 60, 60)
+                p:playSound("SCP096_Triggered")
                 SCP.sendToServer(p, "SCP096Trigger", { key = SCP.zombieKey(zombie) })
                 return
             end

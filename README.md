@@ -53,6 +53,10 @@ il se met tout seul. Si le porteur meurt, un « hôte possédé » rapide et ré
 flaques de corrosion (brûlent les pieds sans combinaison NRBC). Son contact envoie dans la
 **dimension de poche** : une salle souterraine où l'on saigne, avec 4 sorties dont une seule
 ramène à la surface.
+Reconfinement : le **broyeur de fémur** (Heavy Containment, carte niveau 5). Déposer un corps à côté
+de la console (le sacrifice), puis *Activer le broyeur de fémur* : les cris attirent SCP-106 pendant
+30 min. Quand il est dans le broyeur, lancer le *Rappel magnétique* : il retourne dans sa cellule et y
+dort, même pendant la brèche en cours, jusqu'à la brèche suivante.
 
 **SCP-049** : son toucher tue, et la victime se relève en SCP-049-2. Il « soigne » aussi les cadavres
 proches. Ses 049-2 le suivent et attaquent quiconque s'approche de lui.
@@ -63,9 +67,12 @@ confinement (les SCP se réveillent) et diffuse des menaces à la radio sur 107.
 démarrer les 3 panneaux de la salle des générateurs, puis « Surcharger SCP-079 » depuis son terminal
 (ce qui termine aussi une brèche en cours).
 
-**SCP-914** : la machine à engrenages (Light Containment). Clic droit → *Utiliser SCP-914*, puis un
-réglage (Brut, Grossier, 1:1, Fin, Très fin) pour détruire, abîmer, échanger, réparer ou améliorer l'objet
-en main. Une carte d'accès passée en « Fin » monte d'un niveau.
+**SCP-914** : la machine à engrenages (Light Containment), entre deux cabines. On dépose les objets dans la
+cabine d'entrée (à gauche, comme un meuble), clic droit sur la machine → *Utiliser SCP-914* → un réglage
+(Brut, Grossier, 1:1, Fin, Très fin). Après 16 s, le résultat sort dans la cabine de droite. Recettes
+dédiées (bois, métal, lames, armes, tissu, médicaments, électronique, équipement de la Fondation),
+puis règles générales : Brut détruit en débris, Grossier démonte ou use, 1:1 échange, Fin répare ou
+améliore, Très fin est imprévisible (parfait, doublé, transformé ou disparu). Les cartes changent de niveau.
 
 **SCP-008** : chambre du prion en Heavy Containment. Sans masque à gaz filtré ni combinaison NRBC, l'air
 infecte. Échantillon et rapport dans la salle.
@@ -97,6 +104,10 @@ niveau 2) et Garde NTF (salle de sécurité, carte niveau 3).
 **Brèche de confinement** : coupure de courant, toutes les portes à carte s'ouvrent, sirènes et
 lumières rouges, apparition des SCP et de gardes zombifiés à chaque point de confinement.
 Fin automatique après 6 h de jeu (courant et verrous rétablis).
+
+## Sons
+
+La plupart des sons viennent de *SCP – Containment Breach* (CC BY-SA 3.0) : voir `CREDITS_SOUNDS.md`.
 
 ## Tester rapidement (solo, mode debug ou admin)
 

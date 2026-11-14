@@ -37,6 +37,7 @@ function SCP.Breach.start()
     local w = getWorld()
     world.breach = {
         active = true,
+        startedAt = now(),
         endsAt = now() + SCP.opt("BreachDurationHours"),
         hadPower = w and w.isHydroPowerOn and w:isHydroPowerOn() or false,
     }

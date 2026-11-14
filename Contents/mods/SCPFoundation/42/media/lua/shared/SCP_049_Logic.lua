@@ -75,6 +75,7 @@ local function updateDoctor(zombie)
             if d < 8 and (not md.SCP049_NextTalk or t > md.SCP049_NextTalk) then
                 md.SCP049_NextTalk = t + TALK_EVERY_MS
                 SCP.say(p, "UI_SCP_049_Talk" .. (ZombRand(3) + 1), 230, 200, 120)
+                zombie:playSound("SCP049_Talk")
             end
             if d < TOUCH_DIST and (not md.SCP049_NextTouch or t > md.SCP049_NextTouch) then
                 md.SCP049_NextTouch = t + TOUCH_COOLDOWN_MS

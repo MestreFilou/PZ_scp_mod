@@ -43,4 +43,7 @@ ContextMenu_EN = {
     ContextMenu_SCP_008_Open = "Open the sample",
     ContextMenu_SCP_Warhead_Arm = "Arm the Alpha Warhead",
     ContextMenu_SCP_Warhead_Cancel = "Cancel the Alpha Warhead",
+    ContextMenu_SCP_106_Console = "Femur Breaker",
+    ContextMenu_SCP_106_FemurBreaker = "Activate the Femur Breaker",
+    ContextMenu_SCP_106_Recall = "Magnetic recall of SCP-106",
 }

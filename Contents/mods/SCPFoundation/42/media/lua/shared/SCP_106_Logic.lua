@@ -149,7 +149,7 @@ function SCP.Pocket.send(player)
     }
     buildPocket(x, y, depth)
     SCP.teleport(player, x + 0.5, y + 0.5, depth)
-    player:playSound("SCP106_Laugh")
+    player:playSound("SCP106_PocketEnter")
     SCP.say(player, "UI_SCP_106_Pocket", 160, 120, 60)
 end
 
@@ -236,16 +236,142 @@ Events.OnPlayerDeath.Add(function(player)
 end)
 
 ------------------------------------------------------------------------
+-- Re-containment (Femur Breaker, see server/SCP_106_Containment.lua)
+--   1. A body is sacrificed in the Femur Breaker: its screams lure every
+--      active SCP-106 to the breaker for 30 in-game minutes.
+--   2. Once 106 reaches the breaker it stays there, feeding.
+--   3. "Magnetic recall" from the console sends it back to its cell, where
+--      it stays dormant even during a breach, until the next breach starts.
+------------------------------------------------------------------------
+
+local LURE_SPEED_MULT = 3
+local FEED_DIST = 1.5
+
+function SCP.SCP106.state()
+    local md = ModData.get("SCPFoundation")
+    return md and md.scp106 or nil
+end
+
+-- Re-contained since the current breach started: stays asleep in its cell.
+local function recontainedThisBreach(zombie)
+    local md = zombie:getModData()
+    if not md.SCP_Contained then return false end
+    local st = SCP.SCP106.state()
+    local rc = st and st.recontainedAt
+    if not rc then return false end
+    local w = ModData.get("SCPFoundation")
+    local started = w and w.breach and w.breach.startedAt or -1
+    return rc > started
+end
+
+local function isAsleep(zombie)
+    if recontainedThisBreach(zombie) then
+        local w = ModData.get("SCPFoundation")
+        local until079 = w and w.scp079 and w.scp079.blackoutUntil
+        if until079 and getGameTime():getWorldAgeHours() < until079 then return false end
+        return SCP.nearestPlayer(zombie, 5) == nil
+    end
+    return SCP.isDormant(zombie, 5)
+end
+
+local function homeOf(zombie)
+    local home = zombie:getModData().SCP_Home
+    if home then return home end
+    local best, bestD = nil, 1e9
+    for _, p in ipairs(SCP.world().points) do
+        if p.type == SCP.Types.SCP106 then
+            local d = math.abs(p.x - zombie:getX()) + math.abs(p.y - zombie:getY())
+            if d < bestD then best, bestD = p, d end
+        end
+    end
+    return best
+end
+
+-- Called on every machine when the server confirms the magnetic recall.
+local function applyRecall(zombie, st)
+    local md = zombie:getModData()
+    if not st.recalledLure or md.SCP106_Feeding ~= st.recalledLure then return false end
+    md.SCP106_Feeding = nil
+    md.SCP106_Lured = nil
+    md.SCP_Contained = true
+    local home = homeOf(zombie)
+    if home then SCP.teleport(zombie, home.x + 0.5, home.y + 0.5, home.z) end
+    return true
+end
+
+-- True when the machine running this code should move `zombie`.
+local function ownsMovement(zombie, target)
+    if not (isClient() or isServer()) then return true end
+    return target ~= nil and target:isLocalPlayer()
+end
+
+local function moveToward(zombie, tx, ty, tz, speedMult, owner)
+    local dx, dy = tx - zombie:getX(), ty - zombie:getY()
+    local d = math.sqrt(dx * dx + dy * dy)
+    if d < 0.05 then return d end
+    local step = SCP.opt("SCP106Speed") * (speedMult or 1) * getGameTime():getMultiplier()
+    step = math.min(step, d)
+    local nx, ny = zombie:getX() + dx / d * step, zombie:getY() + dy / d * step
+    local nz = zombie:getZ()
+    if d < 3 and math.floor(nz) ~= tz then nz = tz end -- sinks/rises through floors
+    SCP.teleport(zombie, nx, ny, nz)
+    -- Corrosion trail
+    local md = zombie:getModData()
+    local lx, ly = md.SCP106_LastX or nx, md.SCP106_LastY or ny
+    if math.abs(nx - lx) + math.abs(ny - ly) >= CORRODE_EVERY_TILES then
+        md.SCP106_LastX, md.SCP106_LastY = nx, ny
+        if owner then
+            SCP.sendToServer(owner, "SCP106Corrode", { x = math.floor(nx), y = math.floor(ny), z = math.floor(nz) })
+        end
+    elseif not md.SCP106_LastX then
+        md.SCP106_LastX, md.SCP106_LastY = nx, ny
+    end
+    return d
+end
+
+-- Lured by the Femur Breaker: walk to it through everything, then feed.
+local function updateLured(zombie, st)
+    local md = zombie:getModData()
+    local lure = st.lure
+    md.SCP106_Lured = lure.id
+    local owner = SCP.nearestPlayer(zombie, 9999, SCP.allPlayers())
+        or SCP.localPlayers()[1]
+    if md.SCP106_Feeding == lure.id then
+        return -- feeding: stays put until the recall or the end of the lure
+    end
+    local dx, dy = lure.x + 0.5 - zombie:getX(), lure.y + 0.5 - zombie:getY()
+    local d = math.sqrt(dx * dx + dy * dy)
+    if d < FEED_DIST and math.floor(zombie:getZ()) == lure.z then
+        md.SCP106_Feeding = lure.id
+        if owner then SCP.sendToServer(owner, "SCP106Feeding", { id = lure.id }) end
+        return
+    end
+    if not ownsMovement(zombie, owner) then return end
+    moveToward(zombie, lure.x + 0.5, lure.y + 0.5, lure.z, LURE_SPEED_MULT, owner)
+end
+
+------------------------------------------------------------------------
 -- Movement: straight line toward the nearest player, through walls.
 ------------------------------------------------------------------------
 
 local function onZombieUpdate(zombie)
     if not SCP.isEntity(zombie, SCP.Types.SCP106) then return end
     SCP.freeze(zombie, true)
-    if SCP.isDormant(zombie, 5) then return end
     local md = zombie:getModData()
-    local t = getTimestampMs()
+    local st = SCP.SCP106.state()
 
+    if st and st.recontainedAt and (md.SCP106_RecallSeen or -1) < st.recontainedAt then
+        md.SCP106_RecallSeen = st.recontainedAt
+        if applyRecall(zombie, st) then return end
+    end
+    if st and st.lure and not isAsleep(zombie) then
+        updateLured(zombie, st)
+        return
+    end
+    md.SCP106_Feeding = nil
+    if isAsleep(zombie) then return end
+
+    local t = getTimestampMs()
     -- Target: nearest player, any floor.
     local target, best = nil, CHASE_DIST
     for _, p in ipairs(SCP.allPlayers()) do
@@ -275,24 +401,9 @@ local function onZombieUpdate(zombie)
     end
 
     -- Only the machine that owns the target moves 106 (keeps MP in step).
-    if not target:isLocalPlayer() and (isClient() or isServer()) then return end
-
-    local step = SCP.opt("SCP106Speed") * getGameTime():getMultiplier()
-    step = math.min(step, d)
-    local nx, ny = zombie:getX() + dx / d * step, zombie:getY() + dy / d * step
-    local nz = zombie:getZ()
-    if d < 3 and math.floor(nz) ~= tz then nz = tz end -- sinks/rises through floors
-    SCP.teleport(zombie, nx, ny, nz)
+    if not ownsMovement(zombie, target) then return end
+    moveToward(zombie, target:getX(), target:getY(), tz, 1, target)
     zombie:faceThisObject(target)
-
-    -- Corrosion trail
-    local lx, ly = md.SCP106_LastX or nx, md.SCP106_LastY or ny
-    if math.abs(nx - lx) + math.abs(ny - ly) >= CORRODE_EVERY_TILES then
-        md.SCP106_LastX, md.SCP106_LastY = nx, ny
-        SCP.sendToServer(target, "SCP106Corrode", { x = math.floor(nx), y = math.floor(ny), z = math.floor(nz) })
-    elseif not md.SCP106_LastX then
-        md.SCP106_LastX, md.SCP106_LastY = nx, ny
-    end
 end
 
 Events.OnZombieUpdate.Add(onZombieUpdate)

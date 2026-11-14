@@ -1,3 +1,5 @@
 IG_UI_EN = {
     IGUI_ItemCat_Security = "Security",
+    IGUI_ContainerTitle_scp914_in = "SCP-914 intake",
+    IGUI_ContainerTitle_scp914_out = "SCP-914 output",
 }

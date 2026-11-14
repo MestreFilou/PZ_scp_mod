@@ -1,3 +1,5 @@
 IG_UI_FR = {
     IGUI_ItemCat_Security = "Sécurité",
+    IGUI_ContainerTitle_scp914_in = "SCP-914 : entrée",
+    IGUI_ContainerTitle_scp914_out = "SCP-914 : sortie",
 }
