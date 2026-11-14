@@ -1,0 +1,18 @@
+/* SCP Foundation - sounds (placeholder audio in media/sound/) */
+module Base
+{
+    sound SCP_BreachAlarm   { category = World, clip { file = media/sound/SCP_BreachAlarm.ogg, distanceMax = 120, volume = 1.0, } }
+    sound SCP_BreachVoice   { category = World, clip { file = media/sound/SCP_BreachVoice.ogg, distanceMax = 120, volume = 1.0, } }
+    sound SCP096_Cry        { category = Zombie, clip { file = media/sound/SCP096_Cry.ogg, distanceMax = 25, volume = 0.8, } }
+    sound SCP096_Scream     { category = Zombie, clip { file = media/sound/SCP096_Scream.ogg, distanceMax = 80, volume = 1.0, } }
+    sound SCP173_Scrape     { category = Zombie, clip { file = media/sound/SCP173_Scrape.ogg, distanceMax = 20, volume = 0.9, } }
+    sound SCP173_NeckSnap   { category = Zombie, clip { file = media/sound/SCP173_NeckSnap.ogg, distanceMax = 15, volume = 1.0, } }
+    sound SCP106_Laugh      { category = Zombie, clip { file = media/sound/SCP106_Laugh.ogg, distanceMax = 40, volume = 1.0, } }
+    sound SCP106_Corrosion  { category = World, clip { file = media/sound/SCP106_Corrosion.ogg, distanceMax = 15, volume = 0.6, } }
+    sound SCP_KeycardAccept { category = World, clip { file = media/sound/SCP_KeycardAccept.ogg, distanceMax = 10, volume = 0.7, } }
+    sound SCP_KeycardDeny   { category = World, clip { file = media/sound/SCP_KeycardDeny.ogg, distanceMax = 10, volume = 0.7, } }
+    sound SCP_PillSwallow   { category = Player, clip { file = media/sound/SCP_PillSwallow.ogg, distanceMax = 5, volume = 0.7, } }
+    sound SCP914_Clockwork  { category = World, clip { file = media/sound/SCP914_Clockwork.ogg, distanceMax = 25, volume = 0.9, } }
+    sound SCP939_Voice      { category = Zombie, clip { file = media/sound/SCP939_Voice.ogg, distanceMax = 30, volume = 0.9, } }
+    sound SCP_TeslaZap      { category = World, clip { file = media/sound/SCP_TeslaZap.ogg, distanceMax = 30, volume = 1.0, } }
+}

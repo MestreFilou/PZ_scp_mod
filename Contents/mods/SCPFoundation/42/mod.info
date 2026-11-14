@@ -1,0 +1,9 @@
+name=SCP Foundation - Facility & Anomalies
+id=SCPFoundation
+description=SCP Foundation equipment, keycard doors, anomalies (SCP-173, SCP-096, SCP-035, SCP-106, SCP-500) and containment breach events.
+poster=poster.png
+icon=icon.png
+versionMin=42.0.0
+modversion=0.1.0
+pack=scp_facility
+tiledef=scp_facility 1914

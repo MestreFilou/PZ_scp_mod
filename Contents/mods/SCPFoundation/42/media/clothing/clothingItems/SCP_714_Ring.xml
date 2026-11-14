@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SCP-714: jade ring, own small model skinned on Bip01_L_Finger1. -->
+<clothingItem>
+	<m_MaleModel>skinned\clothes\scp_714_ring</m_MaleModel>
+	<m_FemaleModel>skinned\clothes\kate_scp_714_ring</m_FemaleModel>
+	<m_GUID>fd8554d3-4f79-58ba-bc51-89af30d99e05</m_GUID>
+	<m_Static>false</m_Static>
+	<m_AllowRandomHue>false</m_AllowRandomHue>
+	<m_AllowRandomTint>false</m_AllowRandomTint>
+	<m_AttachBone></m_AttachBone>
+	<m_MasksFolder>none</m_MasksFolder>
+	<textureChoices>SCP\SCP_714_Ring</textureChoices>
+</clothingItem>
