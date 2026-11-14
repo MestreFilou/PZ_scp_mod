@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Own 3D model skinned on the Bob skeleton (always spawned male). Hides the whole body. -->
+<!-- Own 3D model: Bob skeleton for males, Kate skeleton for females (same UVs and texture).
+     Hides the whole body: same mask list as the vanilla HazmatSuit.xml. -->
 <clothingItem>
 	<m_MaleModel>skinned\clothes\scp_966</m_MaleModel>
-	<m_FemaleModel>skinned\clothes\scp_966</m_FemaleModel>
+	<m_FemaleModel>skinned\clothes\kate_scp_966</m_FemaleModel>
 	<m_GUID>392ebe4a-645d-59d6-aba4-d3d3237f5a5a</m_GUID>
 	<m_Static>false</m_Static>
 	<m_AllowRandomTint>false</m_AllowRandomTint>
 	<m_AttachBone></m_AttachBone>
 	<m_Masks>0</m_Masks>
-	<m_Masks>1</m_Masks>
-	<m_Masks>2</m_Masks>
+	<m_Masks>12</m_Masks>
+	<m_Masks>13</m_Masks>
+	<m_Masks>14</m_Masks>
+	<m_Masks>15</m_Masks>
 	<m_Masks>3</m_Masks>
 	<m_Masks>4</m_Masks>
 	<m_Masks>5</m_Masks>
@@ -18,5 +21,6 @@
 	<m_Masks>8</m_Masks>
 	<m_Masks>9</m_Masks>
 	<m_Masks>10</m_Masks>
+	<m_Masks>11</m_Masks>
 	<textureChoices>SCP\SCP_966_Model</textureChoices>
 </clothingItem>
