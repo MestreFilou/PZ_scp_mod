@@ -319,7 +319,7 @@ local function onLoadGridsquare(sq)
     buildColumn(sq)
 end
 
-Events.LoadGridsquare.Add(onLoadGridsquare)
+SCP.on("LoadGridsquare", onLoadGridsquare)
 
 -- Build what is already loaded (right after the site was placed).
 function F.buildLoaded()
@@ -362,7 +362,7 @@ local function processSpawns()
     if isServer() then ModData.transmit("SCPFoundation") end
 end
 
-Events.EveryOneMinute.Add(processSpawns)
+SCP.on("EveryOneMinute", processSpawns)
 
 ------------------------------------------------------------------------
 -- Placement
@@ -383,6 +383,6 @@ SCP.ServerCommands.PlaceFacility = function(player, args)
     SCP.log("SCP site placed at", args.x, args.y, "depth", world.facility.z)
 end
 
-Events.OnInitGlobalModData.Add(function() refreshOrigin() end)
-Events.OnGameStart.Add(function() refreshOrigin() end)
-if Events.OnServerStarted then Events.OnServerStarted.Add(function() refreshOrigin() end) end
+SCP.on("OnInitGlobalModData", function() refreshOrigin() end)
+SCP.on("OnGameStart", function() refreshOrigin() end)
+if Events.OnServerStarted then SCP.on("OnServerStarted", function() refreshOrigin() end) end

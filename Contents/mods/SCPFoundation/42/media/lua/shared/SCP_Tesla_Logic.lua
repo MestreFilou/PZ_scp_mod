@@ -42,5 +42,5 @@ local function onZombieUpdate(zombie)
     if zombie.Kill then pcall(zombie.Kill, zombie, nil) else zombie:setHealth(0) end
 end
 
-Events.OnPlayerUpdate.Add(onPlayerUpdate)
-Events.OnZombieUpdate.Add(onZombieUpdate)
+SCP.on("OnPlayerUpdate", onPlayerUpdate)
+SCP.on("OnZombieUpdate", onZombieUpdate)

@@ -96,7 +96,7 @@ local function finish914(job)
     end
 end
 
-Events.OnTick.Add(function()
+SCP.on("OnTick", function()
     local t = getTimestampMs()
     for key, job in pairs(running) do
         if t >= job.doneAt then
@@ -213,7 +213,7 @@ local function onFillWorldMenu(playerNum, context, worldobjects, test)
     if m294 then fill294(context, player, m294) end
 end
 
-Events.OnFillWorldObjectContextMenu.Add(onFillWorldMenu)
+SCP.on("OnFillWorldObjectContextMenu", onFillWorldMenu)
 
 ------------------------------------------------------------------------
 -- Readable documents, SCP-1025, SCP-008 samples
@@ -256,4 +256,4 @@ local function onFillInventoryMenu(playerNum, context, items)
     end
 end
 
-Events.OnFillInventoryObjectContextMenu.Add(onFillInventoryMenu)
+SCP.on("OnFillInventoryObjectContextMenu", onFillInventoryMenu)

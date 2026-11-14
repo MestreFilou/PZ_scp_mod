@@ -89,7 +89,7 @@ local function update939(zombie)
     end
 end
 
-Events.OnZombieUpdate.Add(function(zombie)
+SCP.on("OnZombieUpdate", function(zombie)
     local t = SCP.getEntityType(zombie)
     if t == SCP.Types.SCP966 then
         update966(zombie)

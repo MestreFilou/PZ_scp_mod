@@ -130,7 +130,7 @@ local function relock()
     end
 end
 
-Events.EveryOneMinute.Add(relock)
+SCP.on("EveryOneMinute", relock)
 
 ------------------------------------------------------------------------
 -- Client side

@@ -107,8 +107,8 @@ local function everyDay()
     if ZombRand(100) < SCP.opt("BreachChancePerDay") then SCP.Breach.start() end
 end
 
-Events.EveryTenMinutes.Add(everyTenMinutes)
-Events.EveryDays.Add(everyDay)
+SCP.on("EveryTenMinutes", everyTenMinutes)
+SCP.on("EveryDays", everyDay)
 
 SCP.ServerCommands.StartBreach = function(player, args)
     if not SCP.isAdmin(player) then return end

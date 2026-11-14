@@ -16,4 +16,4 @@ local function everyMinute()
     end
 end
 
-Events.EveryOneMinute.Add(everyMinute)
+SCP.on("EveryOneMinute", everyMinute)

@@ -29,8 +29,10 @@ local function onZombieUpdate(zombie)
             md.SCP096_NextCry = t + CRY_EVERY_MS
             zombie:playSound("SCP096_Cry")
         end
+        if md.SCP096_SeenAt and t - md.SCP096_SeenAt < 3000 then return end -- waiting for the server
         for _, p in ipairs(SCP.localPlayers()) do
             if sawFace(p, zombie) then
+                md.SCP096_SeenAt = t
                 SCP.say(p, "UI_SCP_096_Seen", 255, 60, 60)
                 p:playSound("SCP096_Triggered")
                 SCP.sendToServer(p, "SCP096Trigger", { key = SCP.zombieKey(zombie) })
@@ -77,4 +79,4 @@ local function onZombieUpdate(zombie)
     end
 end
 
-Events.OnZombieUpdate.Add(onZombieUpdate)
+SCP.on("OnZombieUpdate", onZombieUpdate)

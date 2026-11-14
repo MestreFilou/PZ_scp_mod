@@ -56,7 +56,7 @@ SCP.ClientCommands.Notify = function(args)
 end
 
 -- Siren near containment points; red lights blink.
-Events.OnTick.Add(function()
+SCP.on("OnTick", function()
     if not B.active then return end
     local t = getTimestampMs()
     if t < (B.nextAlarm or 0) then return end
@@ -76,18 +76,18 @@ Events.OnTick.Add(function()
 end)
 
 -- Restore the effects after loading a save during a breach.
-Events.OnGameStart.Add(function()
+SCP.on("OnGameStart", function()
     local md = ModData.get("SCPFoundation")
     if md and md.breach and md.breach.active then
         SCP.ClientCommands.BreachStart({ points = md.points })
     end
 end)
 
-Events.OnReceiveGlobalModData.Add(function(key, data)
+SCP.on("OnReceiveGlobalModData", function(key, data)
     if key ~= "SCPFoundation" or type(data) ~= "table" then return end
     ModData.add("SCPFoundation", data)
 end)
 
 if isClient() then
-    Events.OnConnected.Add(function() ModData.request("SCPFoundation") end)
+    SCP.on("OnConnected", function() ModData.request("SCPFoundation") end)
 end

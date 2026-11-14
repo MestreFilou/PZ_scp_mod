@@ -80,7 +80,7 @@ SCP.ServerCommands.SCP106Recall = function(player, args)
 end
 
 -- The lure wears off: 106 goes back to hunting.
-Events.EveryOneMinute.Add(function()
+SCP.on("EveryOneMinute", function()
     if isClient() then return end
     local st = SCP.world().scp106
     if st and st.lure and now() > st.lure.untilH then

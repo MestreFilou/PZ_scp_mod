@@ -26,7 +26,7 @@ local function act(player, console, cmd)
     SCP.sendToServer(player, cmd, { x = sq:getX(), y = sq:getY(), z = sq:getZ() })
 end
 
-Events.OnFillWorldObjectContextMenu.Add(function(playerNum, context, worldobjects, test)
+SCP.on("OnFillWorldObjectContextMenu", function(playerNum, context, worldobjects, test)
     local console = findConsole(worldobjects)
     if not console then return end
     if test then return true end

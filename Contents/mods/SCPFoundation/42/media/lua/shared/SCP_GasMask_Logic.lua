@@ -58,4 +58,4 @@ local function drain()
     end
 end
 
-Events.EveryOneMinute.Add(drain)
+SCP.on("EveryOneMinute", drain)

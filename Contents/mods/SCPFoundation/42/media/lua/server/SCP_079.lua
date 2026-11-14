@@ -99,7 +99,7 @@ local function everyMinute()
     end
 end
 
-Events.EveryOneMinute.Add(everyMinute)
+SCP.on("EveryOneMinute", everyMinute)
 
 ------------------------------------------------------------------------
 -- Radio (107.9 MHz)
@@ -120,7 +120,7 @@ local function onLoadRadioScripts(scriptManager, isNewGame)
     end
 end
 
-if Events.OnLoadRadioScripts then Events.OnLoadRadioScripts.Add(onLoadRadioScripts) end
+if Events.OnLoadRadioScripts then SCP.on("OnLoadRadioScripts", onLoadRadioScripts) end
 
 function S079.broadcast()
     if not channel then return end
@@ -136,7 +136,7 @@ function S079.broadcast()
     end)
 end
 
-Events.EveryHours.Add(function()
+SCP.on("EveryHours", function()
     if isClient() or not S079.isActive() then return end
     if ZombRand(3) == 0 then S079.broadcast() end
 end)

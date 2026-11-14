@@ -155,4 +155,4 @@ local function onZombieUpdate(zombie)
     end
 end
 
-Events.OnZombieUpdate.Add(onZombieUpdate)
+SCP.on("OnZombieUpdate", onZombieUpdate)

@@ -113,7 +113,7 @@ local function refresh()
 end
 
 local nextRefresh = 0
-Events.OnTick.Add(function()
+SCP.on("OnTick", function()
     local t = getTimestampMs()
     if t < nextRefresh then return end
     nextRefresh = t + 250

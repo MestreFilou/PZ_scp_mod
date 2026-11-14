@@ -33,4 +33,4 @@ local function addLoot()
     end
 end
 
-Events.OnPreDistributionMerge.Add(addLoot)
+SCP.on("OnPreDistributionMerge", addLoot)

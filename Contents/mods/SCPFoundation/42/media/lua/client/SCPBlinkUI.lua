@@ -64,7 +64,7 @@ local function onTick()
     end
 end
 
-Events.OnTick.Add(onTick)
+SCP.on("OnTick", onTick)
 
 ------------------------------------------------------------------------
 -- UI
@@ -121,11 +121,11 @@ local function ensurePanel(playerNum)
     panels[playerNum] = { bar = bar, overlay = overlay }
 end
 
-Events.OnCreatePlayer.Add(function(playerNum) ensurePanel(playerNum) end)
-Events.OnGameStart.Add(function() ensurePanel(0) end)
+SCP.on("OnCreatePlayer", function(playerNum) ensurePanel(playerNum) end)
+SCP.on("OnGameStart", function() ensurePanel(0) end)
 
 -- Show the overlay only while blinking.
-Events.OnTick.Add(function()
+SCP.on("OnTick", function()
     local t = now()
     for playerNum, p in pairs(panels) do
         local blinking = t < get(playerNum).blinkUntil
@@ -151,7 +151,7 @@ local function blinkKey()
     return Keyboard.KEY_B
 end
 
-Events.OnKeyPressed.Add(function(key)
+SCP.on("OnKeyPressed", function(key)
     if key ~= blinkKey() then return end
     local player = getSpecificPlayer(0)
     if player and SCP.Blink.isThreatened(player) then SCP.Blink.blink(player) end

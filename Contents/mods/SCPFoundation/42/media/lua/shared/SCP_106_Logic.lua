@@ -79,7 +79,7 @@ local function cleanCorrosion()
     world.corrosion = keep
 end
 
-Events.EveryHours.Add(cleanCorrosion)
+SCP.on("EveryHours", cleanCorrosion)
 
 local function corrosionDamage()
     for _, player in ipairs(SCP.localPlayers()) do
@@ -99,7 +99,7 @@ local function corrosionDamage()
     end
 end
 
-Events.EveryOneMinute.Add(corrosionDamage)
+SCP.on("EveryOneMinute", corrosionDamage)
 
 ------------------------------------------------------------------------
 -- Pocket Dimension (built locally for the victim)
@@ -210,7 +210,7 @@ local function onPlayerUpdate(player)
     end
 end
 
-Events.OnPlayerUpdate.Add(onPlayerUpdate)
+SCP.on("OnPlayerUpdate", onPlayerUpdate)
 
 -- Bleeding and dread while trapped.
 local function pocketTick()
@@ -228,10 +228,10 @@ local function pocketTick()
     end
 end
 
-Events.EveryOneMinute.Add(pocketTick)
+SCP.on("EveryOneMinute", pocketTick)
 
 -- Died inside: forget the pocket state.
-Events.OnPlayerDeath.Add(function(player)
+SCP.on("OnPlayerDeath", function(player)
     if player and player:getModData().SCP_Pocket then player:getModData().SCP_Pocket = nil end
 end)
 
@@ -406,4 +406,4 @@ local function onZombieUpdate(zombie)
     zombie:faceThisObject(target)
 end
 
-Events.OnZombieUpdate.Add(onZombieUpdate)
+SCP.on("OnZombieUpdate", onZombieUpdate)

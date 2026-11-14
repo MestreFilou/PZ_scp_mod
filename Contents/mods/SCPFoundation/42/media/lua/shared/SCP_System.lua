@@ -60,6 +60,24 @@ function SCP.log(...)
     print("[SCPFoundation] " .. table.concat(parts, " "))
 end
 
+-- Registers an event handler that cannot break the game: an error is
+-- logged to console.txt (first 5, then every 200th) instead of stopping
+-- in the debugger every tick.
+function SCP.on(eventName, fn, where)
+    local ev = Events[eventName]
+    if not ev then return false end
+    local errors = 0
+    ev.Add(function(...)
+        local r = { pcall(fn, ...) }
+        if r[1] then return unpack(r, 2) end
+        errors = errors + 1
+        if errors <= 5 or errors % 200 == 0 then
+            SCP.log("error in", eventName, where or "", "(" .. errors .. "):", tostring(r[2]))
+        end
+    end)
+    return true
+end
+
 ------------------------------------------------------------------------
 -- Stats: Build 42 moved stats to stats:set(CharacterStat.X, v).
 -- These wrappers try the new API first, then the older setters.
@@ -262,14 +280,18 @@ end
 -- Feedback
 ------------------------------------------------------------------------
 
+-- Halo text over the player. Build 42 signature:
+-- HaloTextHelper.addText(player, text, separator, r, g, b).
 function SCP.say(player, textKey, r, g, b, ...)
     if not player then return end
-    local text = getText(textKey, ...)
+    local ok, text = pcall(getText, textKey, ...)
+    if not ok or not text then text = tostring(textKey) end
+    r, g, b = r or 255, g or 255, b or 255
     if HaloTextHelper and HaloTextHelper.addText then
-        HaloTextHelper.addText(player, text, r or 255, g or 255, b or 255)
-    else
-        player:Say(text)
+        if pcall(HaloTextHelper.addText, player, text, "", r, g, b) then return end
+        if pcall(HaloTextHelper.addText, player, text) then return end
     end
+    pcall(player.Say, player, text)
 end
 
 function SCP.playSoundAt(obj, sound)

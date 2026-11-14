@@ -40,7 +40,7 @@ local function findPanel(worldobjects)
     return nil
 end
 
-Events.OnFillWorldObjectContextMenu.Add(function(playerNum, context, worldobjects, test)
+SCP.on("OnFillWorldObjectContextMenu", function(playerNum, context, worldobjects, test)
     local panel = findPanel(worldobjects)
     if not panel then return end
     if test then return true end

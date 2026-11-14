@@ -56,7 +56,7 @@ local function wear(player, fullType)
 end
 
 -- New character: gear, then a trip to the site once it is built.
-Events.OnNewGame.Add(function(player, square)
+SCP.on("OnNewGame", function(player, square)
     local id = P.getId(player)
     if not id then return end
     local def = P.List[id]
@@ -74,7 +74,7 @@ end)
 
 -- Move the new character into the site once its room is built.
 local nextCheck = 0
-Events.OnTick.Add(function()
+SCP.on("OnTick", function()
     local t = getTimestampMs()
     if t < nextCheck then return end
     nextCheck = t + 500

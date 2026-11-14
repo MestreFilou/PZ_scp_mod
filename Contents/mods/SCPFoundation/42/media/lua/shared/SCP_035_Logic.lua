@@ -89,7 +89,7 @@ local function everyMinute()
     end
 end
 
-Events.EveryOneMinute.Add(everyMinute)
+SCP.on("EveryOneMinute", everyMinute)
 
 -- Locked mask: put it straight back on if the player removes it.
 local function onClothingUpdated(player)
@@ -104,7 +104,7 @@ local function onClothingUpdated(player)
     end
 end
 
-Events.OnClothingUpdated.Add(onClothingUpdated)
+SCP.on("OnClothingUpdated", onClothingUpdated)
 
 -- The wearer died: ask the server to raise a Possessed Host.
 local function onPlayerDeath(player)
@@ -119,7 +119,7 @@ local function onPlayerDeath(player)
     })
 end
 
-Events.OnPlayerDeath.Add(onPlayerDeath)
+SCP.on("OnPlayerDeath", onPlayerDeath)
 
 SCP.ServerCommands.SCP035Host = function(player, args)
     if SCP.Spawner then SCP.Spawner.spawn(SCP.Types.SCP035, args.x, args.y, args.z) end
@@ -148,6 +148,6 @@ local function onZombieUpdate(zombie)
     end
 end
 
-Events.OnZombieUpdate.Add(onZombieUpdate)
+SCP.on("OnZombieUpdate", onZombieUpdate)
 
 -- The host wears the mask as part of its outfit, so it can be looted from the corpse.

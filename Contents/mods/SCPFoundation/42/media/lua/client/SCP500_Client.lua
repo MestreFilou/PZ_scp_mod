@@ -78,4 +78,4 @@ local function onFillInventoryMenu(playerNum, context, items)
     end
 end
 
-Events.OnFillInventoryObjectContextMenu.Add(onFillInventoryMenu)
+SCP.on("OnFillInventoryObjectContextMenu", onFillInventoryMenu)

@@ -103,4 +103,4 @@ local function onFillWorldMenu(playerNum, context, worldobjects, test)
     end
 end
 
-Events.OnFillWorldObjectContextMenu.Add(onFillWorldMenu)
+SCP.on("OnFillWorldObjectContextMenu", onFillWorldMenu)

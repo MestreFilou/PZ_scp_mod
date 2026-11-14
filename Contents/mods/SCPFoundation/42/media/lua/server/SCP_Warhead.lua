@@ -68,7 +68,7 @@ local function detonate()
     if o then addSound(nil, o.x, o.y, 0, 300, 300) end
 end
 
-Events.EveryOneMinute.Add(function()
+SCP.on("EveryOneMinute", function()
     if isClient() then return end
     local st = W.state()
     if not st.armed then return end
