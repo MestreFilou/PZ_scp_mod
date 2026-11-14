@@ -11,8 +11,10 @@ Légende : [x] fait (non testé en jeu sauf mention), [ ] à faire.
 - [ ] Props restants : console du broyeur de fémur (réutilise la tuile de l'ogive)
 
 ## Comportement des SCP (priorité 2)
-- [ ] Démarche et animations propres à chaque SCP (plus de marche de zombie)
-- [ ] Retirer les bruits de zombies, ne garder que les sons SCP
+- [x] Retirer les bruits de zombies (gémissements, morsures, cris de douleur) des SCP, garder leurs propres sons
+- [x] Démarche propre à chaque SCP avec les allures du jeu (096 traîne les pieds puis sprinte, 106 très lent, 049 et 049-2 lents, 173 ne mord plus)
+- [ ] Vraies animations propres (173 raide, 096 bras ballants, 939 à quatre pattes) : il faut des clips d'animation faits dans Blender sur le squelette PZ + un AnimSet, à ajouter au brief Blender
+- [ ] Pas de pas des SCP : bruits de pas encore ceux du jeu (173 devrait seulement racler)
 
 ## Site (plus tard, dans une autre discussion)
 - [ ] Relier le site à la carte en surface par une grande porte / entrée

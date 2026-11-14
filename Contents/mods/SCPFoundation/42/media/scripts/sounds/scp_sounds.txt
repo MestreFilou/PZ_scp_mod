@@ -20,4 +20,16 @@ module Base
     sound SCP914_Clockwork { category = World, clip { file = media/sound/SCP914_Clockwork.ogg, distanceMax = 25, volume = 0.9, } }
     sound SCP939_Voice { category = Zombie, clip { file = media/sound/SCP939_Voice1.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice2.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice3.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice4.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice5.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice6.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice7.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice8.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice9.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice10.ogg, distanceMax = 30, volume = 0.9, } }
     sound SCP_TeslaZap { category = World, clip { file = media/sound/SCP_TeslaZap.ogg, distanceMax = 30, volume = 1.0, } }
+
+    /* Silent zombie voice for SCP entities (see lua/shared/SCP_Behaviour.lua) */
+    sound SCPSilentZombieVoiceA { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieVoiceB { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieVoiceC { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieSprinterVoiceA { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieSprinterVoiceB { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieSprinterVoiceC { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieBiteA { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieBiteB { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieBiteC { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieHurt { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
 }
