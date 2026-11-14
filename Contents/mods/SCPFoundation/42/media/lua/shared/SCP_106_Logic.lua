@@ -19,8 +19,21 @@ SCP.Pocket = SCP.Pocket or {}
 
 -- Placeholder tiles. Replace with custom tiles once they exist.
 SCP.SCP106.CorrosionSprite = "floors_burnt_01_0"
-SCP.Pocket.FloorSprite = "floors_burnt_01_0"
-SCP.Pocket.ExitSprite = "floors_exterior_street_01_0"
+-- Pocket dimension tiles (scp_facility_02, see tools/make_facility_tiles.py),
+-- with vanilla fallbacks if the mod tileset failed to load.
+SCP.Pocket.FloorSprites = { "scp_facility_02_35", "scp_facility_02_36" }
+SCP.Pocket.ExitSprite = "scp_facility_02_37"
+SCP.Pocket.WallW = "scp_facility_02_32"
+SCP.Pocket.WallN = "scp_facility_02_33"
+SCP.Pocket.WallNW = "scp_facility_02_34"
+SCP.Pocket.Fallback = {
+    scp_facility_02_35 = "floors_burnt_01_0", scp_facility_02_36 = "floors_burnt_01_0",
+    scp_facility_02_37 = "floors_exterior_street_01_0",
+    scp_facility_02_32 = "walls_exterior_house_01_0", scp_facility_02_33 = "walls_exterior_house_01_1",
+    scp_facility_02_34 = "walls_exterior_house_01_2",
+}
+-- Dim, sickly green-brown "natural" light: the pocket is never pitch black.
+SCP.Pocket.Light = { r = 0.45, g = 0.38, b = 0.22, radius = 12 }
 
 local CHASE_DIST = 40
 local TOUCH_DIST = 0.9
@@ -107,29 +120,113 @@ SCP.on("EveryOneMinute", corrosionDamage)
 
 local exitsDirs = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }
 
-local function placeTile(x, y, z, sprite)
+local function pocketSprite(sprite)
+    if getSprite and getSprite(sprite) then return sprite end
+    return SCP.Pocket.Fallback[sprite] or sprite
+end
+
+local function placeTile(x, y, z, sprite, replaceFloor)
     local sq = getCell():getOrCreateGridSquare(x, y, z)
     if not sq then return nil end
-    if not sq:getFloor() then
-        local ok, obj = pcall(IsoObject.new, getCell(), sq, sprite)
+    local floor = sq:getFloor()
+    if floor and replaceFloor and floor:getModData().SCP_Pocket then
+        pcall(sq.transmitRemoveItemFromSquare, sq, floor)
+        pcall(sq.RemoveTileObject, sq, floor)
+        floor = nil
+    end
+    if not floor then
+        local ok, obj = pcall(IsoObject.new, getCell(), sq, pocketSprite(sprite))
         if ok and obj then
             obj:getModData().SCP_Pocket = true
             sq:AddTileObject(obj)
         end
     end
-    if sq.RecalcAllWithNeighbours then pcall(sq.RecalcAllWithNeighbours, sq, true) end
     return sq
 end
 
+local function hasPocketObject(sq, sprite)
+    local objs = sq:getObjects()
+    for i = 0, objs:size() - 1 do
+        local o = objs:get(i)
+        if o:getModData().SCP_Pocket and o:getSprite() and o:getSprite():getName() == sprite then return true end
+    end
+    return false
+end
+
+local function placeWall(x, y, z, sprite)
+    local sq = getCell():getOrCreateGridSquare(x, y, z)
+    if not sq then return end
+    sprite = pocketSprite(sprite)
+    if hasPocketObject(sq, sprite) then return end
+    local ok, obj = pcall(IsoObject.new, getCell(), sq, sprite)
+    if ok and obj then
+        obj:getModData().SCP_Pocket = true
+        sq:AddTileObject(obj)
+    end
+end
+
 local function buildPocket(cx, cy, cz)
-    for dx = -POCKET_RADIUS, POCKET_RADIUS do
-        for dy = -POCKET_RADIUS, POCKET_RADIUS do
-            placeTile(cx + dx, cy + dy, cz, SCP.Pocket.FloorSprite)
+    local R = POCKET_RADIUS
+    for dx = -R, R do
+        for dy = -R, R do
+            local fl = SCP.Pocket.FloorSprites[ZombRand(#SCP.Pocket.FloorSprites) + 1]
+            placeTile(cx + dx, cy + dy, cz, fl)
         end
     end
+    -- The four exits all look the same: only one of them is the way out.
     for _, d in ipairs(exitsDirs) do
-        placeTile(cx + d[1] * POCKET_RADIUS, cy + d[2] * POCKET_RADIUS, cz, SCP.Pocket.ExitSprite)
+        placeTile(cx + d[1] * R, cy + d[2] * R, cz, SCP.Pocket.ExitSprite, true)
     end
+    -- Rotten stone walls all around (west/north faces live on the square itself,
+    -- east/south faces are the west/north walls of the next square out).
+    for d = -R, R do
+        placeWall(cx - R, cy + d, cz, SCP.Pocket.WallW)
+        placeWall(cx + R + 1, cy + d, cz, SCP.Pocket.WallW)
+        placeWall(cx + d, cy - R, cz, SCP.Pocket.WallN)
+        placeWall(cx + d, cy + R + 1, cz, SCP.Pocket.WallN)
+    end
+    placeWall(cx - R, cy - R, cz, SCP.Pocket.WallNW)
+    for dx = -R - 1, R + 1 do
+        for dy = -R - 1, R + 1 do
+            local sq = getCell():getGridSquare(cx + dx, cy + dy, cz)
+            if sq and sq.RecalcAllWithNeighbours then pcall(sq.RecalcAllWithNeighbours, sq, true) end
+        end
+    end
+end
+
+-- Client-side ambient light for the pocket (one per local player).
+local pocketLights = {}
+
+local function relightAround(x, y, z)
+    local sq = getCell():getGridSquare(x, y, z)
+    local chunk = sq and sq:getChunk()
+    if chunk and chunk.checkLightingLater_AllPlayers_AllLevels then
+        pcall(chunk.checkLightingLater_AllPlayers_AllLevels, chunk)
+    end
+end
+
+local function ensurePocketLight(player, p)
+    if isServer() then return end
+    local key = player:getPlayerNum()
+    local cur = pocketLights[key]
+    if cur and cur.cx == p.cx and cur.cy == p.cy and cur.cz == p.cz then return end
+    if cur then pcall(getCell().removeLamppost, getCell(), cur.light) end
+    local L = SCP.Pocket.Light
+    local ok, light = pcall(IsoLightSource.new, p.cx, p.cy, p.cz, L.r, L.g, L.b, L.radius)
+    if ok and light then
+        getCell():addLamppost(light)
+        pocketLights[key] = { light = light, cx = p.cx, cy = p.cy, cz = p.cz }
+        relightAround(p.cx, p.cy, p.cz)
+    end
+end
+
+local function clearPocketLight(player)
+    local key = player:getPlayerNum()
+    local cur = pocketLights[key]
+    if not cur then return end
+    pcall(getCell().removeLamppost, getCell(), cur.light)
+    pocketLights[key] = nil
+    relightAround(cur.cx, cur.cy, cur.cz)
 end
 
 function SCP.Pocket.isInside(player)
@@ -175,7 +272,11 @@ end
 local function onPlayerUpdate(player)
     if not player:isLocalPlayer() then return end
     local p = player:getModData().SCP_Pocket
-    if not p then return end
+    if not p then
+        if pocketLights[player:getPlayerNum()] then clearPocketLight(player) end
+        return
+    end
+    ensurePocketLight(player, p)
     local x, y = player:getX(), player:getY()
 
     -- Fell out or got moved elsewhere: put back in the centre.

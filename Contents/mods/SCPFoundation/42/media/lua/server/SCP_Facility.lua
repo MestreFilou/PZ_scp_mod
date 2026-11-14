@@ -15,26 +15,30 @@ require "SCP_Spawner"
 
 local F = SCP.Facility
 
--- Tiles used by the builder (names checked against the game's tile
--- definitions). Wall sheets: _0 west wall, _1 north wall, _2 corner,
--- _10 / _11 door frames.
-local function wallSet(name)
-    return { wallW = name .. "_0", wallN = name .. "_1", wallNW = name .. "_2", frameW = name .. "_10", frameN = name .. "_11" }
+-- Site tiles: tileset scp_facility_02 (tools/make_facility_tiles.py), per zone:
+--   +0 wall W, +1 wall N, +2 corner NW, +3 door frame W, +4 door frame N.
+-- Each sprite falls back to a vanilla one (F.Fallback) if the pack is missing.
+local SET = "scp_facility_02_"
+local function siteWalls(i0)
+    return { wallW = SET .. i0, wallN = SET .. (i0 + 1), wallNW = SET .. (i0 + 2),
+             frameW = SET .. (i0 + 3), frameN = SET .. (i0 + 4) }
 end
 
 F.Sprites = F.Sprites or {
-    EZ  = wallSet("walls_interior_house_02"),       -- plaster offices
-    HCZ = wallSet("walls_commercial_03"),           -- bare cinderblock
-    LCZ = wallSet("walls_interior_bathroom_01"),    -- white ceramic labs
+    EZ  = siteWalls(0),                             -- painted concrete, blue stripe
+    LCZ = siteWalls(8),                             -- white blocks, hazard skirting
+    HCZ = siteWalls(16),                            -- raw concrete, red band
     floors = {
-        EZ  = "floors_interior_tilesandwood_01_28", -- grey squares
-        HCZ = "floors_interior_tilesandwood_01_29", -- dark grey squares
-        LCZ = "floors_interior_tilesandwood_01_16", -- white smooth tiles
+        EZ  = SET .. "5",                           -- grey tiles
+        HCZ = SET .. "21",                          -- diamond plate
+        LCZ = SET .. "13",                          -- light concrete
     },
-    doorW = "fixtures_doors_01_68",                 -- metal door
-    doorN = "fixtures_doors_01_69",
-    elevator = "floors_interior_tilesandwood_01_3", -- yellow checkered tiles
-    containmentFloor = "floors_interior_tilesandwood_01_24", -- dark grey smooth tiles
+    -- Doors: closed W, closed N (+2 = open W, +3 = open N: sliding doors)
+    doorW = SET .. "24", doorN = SET .. "25",                     -- standard
+    heavyDoorW = SET .. "28", heavyDoorN = SET .. "29",           -- containment (level 3+)
+    elevator = SET .. "15",                         -- hazard-striped platform
+    containmentFloor = SET .. "14",                 -- metal grating
+    signs = { EZ = 40, LCZ = 41, HCZ = 42, Logo = 43, Danger = 44 },   -- W; N = +8
     -- Mod tiles (media/texturepacks/scp_facility.pack, media/scp_facility.tiles).
     -- If the pack is not loaded, each one falls back to the vanilla placeholder in F.Fallback.
     terminal = "scp_facility_01_4",                 -- SCP-079: tape reels and CRT
@@ -51,7 +55,21 @@ F.Sprites = F.Sprites or {
 }
 
 -- Vanilla placeholders used when the mod's tile pack is missing (nil = draw nothing).
+local function vanillaWalls(name, i0)
+    local t = {}
+    t[SET .. i0] = name .. "_0"; t[SET .. (i0 + 1)] = name .. "_1"; t[SET .. (i0 + 2)] = name .. "_2"
+    t[SET .. (i0 + 3)] = name .. "_10"; t[SET .. (i0 + 4)] = name .. "_11"
+    return t
+end
+
 F.Fallback = F.Fallback or {
+    [SET .. "5"] = "floors_interior_tilesandwood_01_28",
+    [SET .. "13"] = "floors_interior_tilesandwood_01_16",
+    [SET .. "21"] = "floors_interior_tilesandwood_01_29",
+    [SET .. "14"] = "floors_interior_tilesandwood_01_24",
+    [SET .. "15"] = "floors_interior_tilesandwood_01_3",
+    [SET .. "24"] = "fixtures_doors_01_68", [SET .. "25"] = "fixtures_doors_01_69",
+    [SET .. "28"] = "fixtures_doors_01_68", [SET .. "29"] = "fixtures_doors_01_69",
     scp_facility_01_0 = "location_shop_accessories_01_17",
     scp_facility_01_1 = "location_shop_accessories_01_17",
     scp_facility_01_2 = "location_shop_accessories_01_17",
@@ -60,6 +78,10 @@ F.Fallback = F.Fallback or {
     scp_facility_01_5 = "security_01_0",
     scp_facility_01_6 = "security_01_0",
 }
+for _, t in ipairs({ vanillaWalls("walls_interior_house_02", 0), vanillaWalls("walls_interior_bathroom_01", 8),
+                     vanillaWalls("walls_commercial_03", 16) }) do
+    for k, v in pairs(t) do F.Fallback[k] = F.Fallback[k] or v end
+end
 
 local origin = nil       -- cached F.origin()
 local fw, fh = F.footprint()
@@ -82,8 +104,15 @@ local function warnSprite(name)
     SCP.log("missing tile sprite:", tostring(name), "- edit SCP.Facility.Sprites")
 end
 
+-- The mod tile if its pack is loaded, else its vanilla stand-in.
+local function resolve(sprite)
+    if spriteOk(sprite) then return sprite end
+    return F.Fallback[sprite] or sprite
+end
+
 local function addFloor(sq, sprite)
     if sq:getFloor() then return end
+    sprite = resolve(sprite)
     if not spriteOk(sprite) then warnSprite(sprite) return end
     if sq.addFloor then
         if pcall(sq.addFloor, sq, sprite) then return end
@@ -94,7 +123,7 @@ end
 
 -- setup(obj), if given, runs before the object is added to the square.
 local function addObject(sq, sprite, setup)
-    if not spriteOk(sprite) and F.Fallback[sprite] then sprite = F.Fallback[sprite] end
+    sprite = resolve(sprite)
     if not spriteOk(sprite) then warnSprite(sprite) return nil end
     local ok, obj = pcall(IsoObject.new, getCell(), sq, sprite)
     if ok and obj then
@@ -107,7 +136,14 @@ end
 
 local function addDoor(sq, north, level, sprites)
     addObject(sq, north and sprites.frameN or sprites.frameW)
-    local sprite = north and F.Sprites.doorN or F.Sprites.doorW
+    local heavy = level and level >= 3
+    local sprite
+    if heavy then
+        sprite = north and F.Sprites.heavyDoorN or F.Sprites.heavyDoorW
+    else
+        sprite = north and F.Sprites.doorN or F.Sprites.doorW
+    end
+    sprite = resolve(sprite)
     if not spriteOk(sprite) then warnSprite(sprite) return end
     local ok, door = pcall(IsoDoor.new, getCell(), sq, sprite, north)
     if not ok or not door then return end
@@ -269,6 +305,17 @@ local function buildTile(level, lx, ly, x, y, z)
     end
     if west == "door" then addDoor(sq, false, westDoorLevel, sprites) end
     if north == "door" then addDoor(sq, true, northDoorLevel, sprites) end
+
+    -- One sign per room, on its north wall, near the west corner.
+    if north == "wall" and ix == 3 and F.solid(here) then
+        local room = F.Rooms[here]
+        local kind = nil
+        if room.scp then kind = "Danger"
+        elseif room.elevator then kind = level.id
+        elseif not room.corridor then kind = "Logo" end
+        local signs = F.Sprites.signs
+        if kind and signs and signs[kind] then addObject(sq, SET .. (signs[kind] + 8)) end
+    end
 
     if F.solid(here) and center then
         roomContents(level, cx, cy, here, x, y, z)

@@ -67,7 +67,16 @@ Le jeu lit `media/<nom>.tiles` du mod (`ZomboidFileSystem.loadModTileDefs`), ave
 Planche : `art/scp_facility_01_tilesheet.png`. Si le pack ne se charge pas, `F.Fallback`
 (`SCP_Facility.lua`) remet les tuiles vanilla d'avant.
 
+Tileset `scp_facility_02` (numéro 2 dans le même `.tiles`), généré par `tools/make_facility_tiles.py`
+(qui reconstruit aussi le `.pack` et le `.tiles`), planche `art/scp_facility_02_tilesheet.png` :
+- murs par zone (+0 mur O, +1 mur N, +2 angle NO, +3 cadre de porte O, +4 cadre N) :
+  0-4 Entrance Zone, 8-12 Light Containment, 16-20 Heavy Containment ;
+- sols : 5 EZ, 6 ligne de danger, 13 LCZ, 14 grille de confinement, 15 plateforme d'ascenseur, 21 tôle HCZ ;
+- portes coulissantes (fermée O/N, ouverte O/N) : 24-27 standard, 28-31 confinement (niveau ≥ 3) ;
+- dimension de poche de SCP-106 : 32-34 murs de pierre pourrie, 35-36 sols, 37 sortie (anneau lumineux) ;
+- panneaux : 40-44 sur mur O (EZ, LCZ, HCZ, logo, danger), 48-52 les mêmes sur mur N.
+
 Encore temporaires :
 - Sons : presque tous remplacés (voir `CREDITS_SOUNDS.md`) ; restent générés `SCP_BreachVoice.ogg` et `SCP_PillSwallow.ogg`
 - Console du broyeur de fémur : réutilise la tuile de l'ogive Alpha (`scp_facility_01_6`)
-- Tuiles de corrosion / dimension de poche : constantes en haut de `media/lua/shared/SCP_106_Logic.lua`
+- Tuile de corrosion de SCP-106 : encore vanilla (`floors_burnt_01_0`), constante en haut de `SCP_106_Logic.lua`
