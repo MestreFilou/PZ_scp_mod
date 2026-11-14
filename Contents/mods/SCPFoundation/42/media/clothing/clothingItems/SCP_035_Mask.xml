@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Based on the vanilla Hat_HockeyMask.xml (same model and masks), with an SCP texture. -->
+<!-- Own 3D model: porcelain theatre mask, static on Bip01_Head (same head bone for both sexes). -->
 <clothingItem>
-	<m_MaleModel>media\models_X\Static\Clothes\M_HockeyMask.X</m_MaleModel>
-	<m_FemaleModel>media\models_X\Static\Clothes\F_HockeyMask.X</m_FemaleModel>
+	<m_MaleModel>static\clothes\scp_035_mask</m_MaleModel>
+	<m_FemaleModel>static\clothes\scp_035_mask</m_FemaleModel>
 	<m_AltMaleModel></m_AltMaleModel>
 	<m_AltFemaleModel></m_AltFemaleModel>
 	<m_GUID>bee24a82-de4d-519a-9f8f-a918553ff9b4</m_GUID>
@@ -12,5 +12,5 @@
 	<m_AttachBone>Bip01_Head</m_AttachBone>
 	<m_HatCategory>nobeard</m_HatCategory>
 	<m_MasksFolder>media/textures/Clothes/Hat/Masks</m_MasksFolder>
-	<textureChoices>SCP\SCP_035_Mask</textureChoices>
+	<textureChoices>SCP\SCP_035_Model</textureChoices>
 </clothingItem>

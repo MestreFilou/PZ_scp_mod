@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Based on the vanilla Hat_GasMask.xml (same model and masks), with an SCP texture. -->
+<!-- Plague doctor hood and beak mask (own static model on the head bone). -->
 <clothingItem>
 	<m_GUID>4e9f3e01-7d6b-527f-961a-2d30116671b6</m_GUID>
-	<m_MaleModel>static\clothes\m_gasmask</m_MaleModel>
-	<m_FemaleModel>static\clothes\f_gasmask</m_FemaleModel>
+	<m_MaleModel>static\clothes\scp_049_mask</m_MaleModel>
+	<m_FemaleModel>static\clothes\scp_049_mask</m_FemaleModel>
 	<m_AltMaleModel></m_AltMaleModel>
 	<m_AltFemaleModel></m_AltFemaleModel>
 	<m_Static>true</m_Static>
@@ -12,5 +12,5 @@
 	<m_AttachBone>Bip01_Head</m_AttachBone>
 	<m_HatCategory>nobeard</m_HatCategory>
 	<m_MasksFolder>media/textures/Clothes/Hat/Masks</m_MasksFolder>
-	<textureChoices>SCP\SCP_049_Mask</textureChoices>
+	<textureChoices>SCP\SCP_049_BeakMask</textureChoices>
 </clothingItem>

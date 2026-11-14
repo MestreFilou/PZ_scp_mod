@@ -35,12 +35,29 @@ F.Sprites = F.Sprites or {
     doorN = "fixtures_doors_01_69",
     elevator = "floors_interior_tilesandwood_01_3", -- yellow checkered tiles
     containmentFloor = "floors_interior_tilesandwood_01_24", -- dark grey smooth tiles
-    terminal = "appliances_com_01_52",
-    scp914 = "location_shop_accessories_01_17",     -- large machine (SCP-914 placeholder)
-    scp294 = "location_shop_zippee_01_56",          -- soda machine (SCP-294 placeholder)
-    warhead = "security_01_0",                      -- Alpha Warhead control panel              -- old security terminal (SCP-079)
+    -- Mod tiles (media/texturepacks/scp_facility.pack, media/scp_facility.tiles).
+    -- If the pack is not loaded, each one falls back to the vanilla placeholder in F.Fallback.
+    terminal = "scp_facility_01_4",                 -- SCP-079: tape reels and CRT
+    scp914 = "scp_facility_01_1",                   -- SCP-914: gears and dial (center)
+    scp914In = "scp_facility_01_0",                 -- SCP-914: intake booth (west)
+    scp914Out = "scp_facility_01_2",                -- SCP-914: output booth (east)
+    scp294 = "scp_facility_01_3",                   -- SCP-294: drink machine
+    warhead = "scp_facility_01_6",                  -- Alpha Warhead control panel
     -- Generator control panels. Real generator tiles would let players pick up free generators.
-    generators = { "security_01_0", "security_01_0", "security_01_0" },
+    generators = { "scp_facility_01_5", "scp_facility_01_5", "scp_facility_01_5" },
+    teslaW = "scp_facility_01_7",                   -- Tesla gate on the west edge of a square
+    teslaN = "scp_facility_01_8",                   -- Tesla gate on the north edge of a square
+}
+
+-- Vanilla placeholders used when the mod's tile pack is missing (nil = draw nothing).
+F.Fallback = F.Fallback or {
+    scp_facility_01_0 = "location_shop_accessories_01_17",
+    scp_facility_01_1 = "location_shop_accessories_01_17",
+    scp_facility_01_2 = "location_shop_accessories_01_17",
+    scp_facility_01_3 = "location_shop_zippee_01_56",
+    scp_facility_01_4 = "appliances_com_01_52",
+    scp_facility_01_5 = "security_01_0",
+    scp_facility_01_6 = "security_01_0",
 }
 
 local origin = nil       -- cached F.origin()
@@ -75,6 +92,7 @@ local function addFloor(sq, sprite)
 end
 
 local function addObject(sq, sprite)
+    if not spriteOk(sprite) and F.Fallback[sprite] then sprite = F.Fallback[sprite] end
     if not spriteOk(sprite) then warnSprite(sprite) return nil end
     local ok, obj = pcall(IsoObject.new, getCell(), sq, sprite)
     if ok and obj then
@@ -168,6 +186,13 @@ local function roomContents(level, cx, cy, ch, x, y, z)
     elseif room.special == "scp914" then
         local obj = addObject(getCell():getOrCreateGridSquare(x, y - 2, z), F.Sprites.scp914)
         if obj then obj:getModData().SCP914_Machine = true end
+        -- Intake and output booths on each side (right-clicking them also opens SCP-914).
+        if spriteOk(F.Sprites.scp914In) then
+            for dx, key in pairs({ [-1] = "scp914In", [1] = "scp914Out" }) do
+                local booth = addObject(getCell():getOrCreateGridSquare(x + dx, y - 2, z), F.Sprites[key])
+                if booth then booth:getModData().SCP914_Machine = true end
+            end
+        end
     elseif room.special == "scp294" then
         local obj = addObject(getCell():getOrCreateGridSquare(x + 3, y - 3, z), F.Sprites.scp294)
         if obj then obj:getModData().SCP294_Machine = true end
@@ -213,7 +238,13 @@ local function buildTile(level, lx, ly, x, y, z)
         local floor = F.Sprites.floors[level.id] or F.Sprites.floors.EZ
         if room.scp then floor = F.Sprites.containmentFloor end
         if room.elevator and center then floor = F.Sprites.elevator end
+        local fresh = not sq:getFloor()
         addFloor(sq, floor)
+        -- Tesla gate: one pylon tile per square of the gate line (only when the square is first built).
+        if fresh and room.tesla and F.isTesla(x, y, z) and spriteOk(F.Sprites.teslaW) then
+            local alongY = F.isTesla(x, y + 1, z) or F.isTesla(x, y - 1, z)
+            addObject(sq, alongY and F.Sprites.teslaW or F.Sprites.teslaN)
+        end
     end
 
     if west == "wall" and north == "wall" then

@@ -20,10 +20,12 @@ local HEALTH = {
     [SCP.Types.GUARD]  = 2,
 }
 
+-- Creature models exist for both skeletons (scp_0xx.x for Bob, kate_scp_0xx.x for Kate).
 local function addZombies(x, y, z, count, outfit)
-    local ok, list = pcall(addZombiesInOutfit, x, y, z, count, outfit, 50)
+    local female = 50
+    local ok, list = pcall(addZombiesInOutfit, x, y, z, count, outfit, female)
     if ok and list then return list end
-    ok, list = pcall(addZombiesInOutfit, x, y, z, count, outfit, 50, false, false, false, false, 1.0)
+    ok, list = pcall(addZombiesInOutfit, x, y, z, count, outfit, female, false, false, false, false, 1.0)
     if ok and list then return list end
     SCP.log("could not spawn outfit", outfit)
     return nil
