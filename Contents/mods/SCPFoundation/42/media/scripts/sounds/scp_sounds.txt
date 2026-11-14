@@ -1,0 +1,35 @@
+/* SCP Foundation - sounds (media/sound/). Most come from SCP - Containment Breach, CC BY-SA 3.0: see CREDITS_SOUNDS.md */
+module Base
+{
+    sound SCP_BreachAlarm { category = World, clip { file = media/sound/SCP_BreachAlarm.ogg, distanceMax = 120, volume = 1.0, } }
+    sound SCP_BreachVoice { category = World, clip { file = media/sound/SCP_BreachVoice.ogg, distanceMax = 120, volume = 1.0, } }
+    sound SCP096_Cry { category = Zombie, clip { file = media/sound/SCP096_Cry.ogg, distanceMax = 25, volume = 0.8, } }
+    sound SCP096_Scream { category = Zombie, clip { file = media/sound/SCP096_Scream.ogg, distanceMax = 80, volume = 1.0, } }
+    sound SCP096_Triggered { category = Player, clip { file = media/sound/SCP096_Triggered.ogg, distanceMax = 10, volume = 0.9, } }
+    sound SCP173_Scrape { category = Zombie, clip { file = media/sound/SCP173_Scrape.ogg, distanceMax = 20, volume = 0.9, } }
+    sound SCP173_NeckSnap { category = Zombie, clip { file = media/sound/SCP173_NeckSnap1.ogg, distanceMax = 15, volume = 1.0, } clip { file = media/sound/SCP173_NeckSnap2.ogg, distanceMax = 15, volume = 1.0, } clip { file = media/sound/SCP173_NeckSnap3.ogg, distanceMax = 15, volume = 1.0, } }
+    sound SCP106_Laugh { category = Zombie, clip { file = media/sound/SCP106_Laugh.ogg, distanceMax = 40, volume = 1.0, } }
+    sound SCP106_Corrosion { category = World, clip { file = media/sound/SCP106_Corrosion1.ogg, distanceMax = 15, volume = 0.6, } clip { file = media/sound/SCP106_Corrosion2.ogg, distanceMax = 15, volume = 0.6, } clip { file = media/sound/SCP106_Corrosion3.ogg, distanceMax = 15, volume = 0.6, } }
+    sound SCP106_PocketEnter { category = Player, clip { file = media/sound/SCP106_PocketEnter.ogg, distanceMax = 10, volume = 1.0, } }
+    sound SCP106_FemurBreaker { category = World, clip { file = media/sound/SCP106_FemurBreaker.ogg, distanceMax = 120, volume = 1.0, } }
+    sound SCP106_Magnet { category = World, clip { file = media/sound/SCP106_Magnet.ogg, distanceMax = 60, volume = 1.0, } }
+    sound SCP049_Talk { category = Zombie, clip { file = media/sound/SCP049_Talk1.ogg, distanceMax = 20, volume = 0.9, } clip { file = media/sound/SCP049_Talk2.ogg, distanceMax = 20, volume = 0.9, } clip { file = media/sound/SCP049_Talk3.ogg, distanceMax = 20, volume = 0.9, } clip { file = media/sound/SCP049_Talk4.ogg, distanceMax = 20, volume = 0.9, } clip { file = media/sound/SCP049_Talk5.ogg, distanceMax = 20, volume = 0.9, } clip { file = media/sound/SCP049_Talk6.ogg, distanceMax = 20, volume = 0.9, } clip { file = media/sound/SCP049_Talk7.ogg, distanceMax = 20, volume = 0.9, } }
+    sound SCP_KeycardAccept { category = World, clip { file = media/sound/SCP_KeycardAccept.ogg, distanceMax = 10, volume = 0.7, } }
+    sound SCP_KeycardDeny { category = World, clip { file = media/sound/SCP_KeycardDeny.ogg, distanceMax = 10, volume = 0.7, } }
+    sound SCP_PillSwallow { category = Player, clip { file = media/sound/SCP_PillSwallow.ogg, distanceMax = 5, volume = 0.7, } }
+    sound SCP914_Clockwork { category = World, clip { file = media/sound/SCP914_Clockwork.ogg, distanceMax = 25, volume = 0.9, } }
+    sound SCP939_Voice { category = Zombie, clip { file = media/sound/SCP939_Voice1.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice2.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice3.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice4.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice5.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice6.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice7.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice8.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice9.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice10.ogg, distanceMax = 30, volume = 0.9, } }
+    sound SCP_TeslaZap { category = World, clip { file = media/sound/SCP_TeslaZap.ogg, distanceMax = 30, volume = 1.0, } }
+
+    /* Silent zombie voice for SCP entities (see lua/shared/SCP_Behaviour.lua) */
+    sound SCPSilentZombieVoiceA { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieVoiceB { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieVoiceC { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieSprinterVoiceA { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieSprinterVoiceB { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieSprinterVoiceC { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieBiteA { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieBiteB { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieBiteC { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+    sound SCPSilentZombieHurt { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+}

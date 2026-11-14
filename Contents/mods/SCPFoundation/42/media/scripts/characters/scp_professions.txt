@@ -1,0 +1,33 @@
+/* SCP Foundation - starting occupations (Build 42 script format).
+   Gear and the start inside the SCP site are handled in lua/shared/SCP_Professions.lua. */
+module SCPFoundation
+{
+    character_profession_definition scpfoundation:scp_classd
+    {
+        CharacterProfession = scpfoundation:scp_classd,
+        Cost = 8,
+        UIName = UI_prof_scp_classd,
+        UIDescription = UI_profdesc_scp_classd,
+        IconPathName = profession_burglar2,
+    }
+
+    character_profession_definition scpfoundation:scp_scientist
+    {
+        CharacterProfession = scpfoundation:scp_scientist,
+        Cost = 0,
+        UIName = UI_prof_scp_scientist,
+        UIDescription = UI_profdesc_scp_scientist,
+        IconPathName = profession_doctor2,
+        XPBoosts = Doctor=2;Electricity=1,
+    }
+
+    character_profession_definition scpfoundation:scp_mtf
+    {
+        CharacterProfession = scpfoundation:scp_mtf,
+        Cost = -4,
+        UIName = UI_prof_scp_mtf,
+        UIDescription = UI_profdesc_scp_mtf,
+        IconPathName = profession_securityguard2,
+        XPBoosts = Aiming=2;Fitness=1;Strength=1,
+    }
+}

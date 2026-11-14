@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Own 3D model: torn hospital gown (Bob / Kate skeletons, same UVs); limbs show the zombie body. -->
+<clothingItem>
+	<m_MaleModel>skinned\clothes\scp_049_2</m_MaleModel>
+	<m_FemaleModel>skinned\clothes\kate_scp_049_2</m_FemaleModel>
+	<m_GUID>247fb2b2-7082-5bff-a444-57e11f869d1d</m_GUID>
+	<m_Static>false</m_Static>
+	<m_AllowRandomTint>false</m_AllowRandomTint>
+	<m_AttachBone></m_AttachBone>
+	<m_Masks>12</m_Masks>
+	<m_Masks>13</m_Masks>
+	<m_Masks>14</m_Masks>
+	<m_Masks>15</m_Masks>
+	<textureChoices>SCP\SCP_049_2_Model</textureChoices>
+</clothingItem>

@@ -1,0 +1,5 @@
+version=1
+title=SCP Foundation - Facility & Anomalies
+description=SCP Foundation equipment, keycard doors, anomalies and containment breach events for Build 42.
+tags=Build 42;Items;Clothing/Armor;Misc
+visibility=public
