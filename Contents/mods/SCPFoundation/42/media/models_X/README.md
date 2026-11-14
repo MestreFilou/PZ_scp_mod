@@ -35,6 +35,8 @@ Générés par `tools/build_models.py` (Blender, hors du dépôt) : géométrie,
 | SCP-173 | `skinned/clothes/scp_173.x` | `SCP/SCP_173_Model.png` | statue rigide (os `Bip01_Pelvis`) ; femme : `kate_scp_173.x` |
 | SCP-096 / 939 / 106 / 966 | `skinned/clothes/scp_0xx.x` | `SCP/SCP_0xx_Model.png` | squelette complet ; femme : `kate_scp_0xx.x` |
 | SCP-049 (robe, gants, bottes) | `skinned/clothes/scp_049_robe.x` | `SCP/SCP_049_Model.png` | tissu pondéré depuis `Bob_JudegsRobe.x` (os `Dress*`) ; femme : `kate_scp_049_robe.x` |
+| SCP-049-2 | `skinned/clothes/scp_049_2.x` | `SCP/SCP_049_2_Model.png` | blouse déchirée, poids de `Bob_HospitalGown.x`, masques 12-15 ; femme : `kate_scp_049_2.x` |
+| SCP-035 | `static/clothes/scp_035_mask.x` | `SCP/SCP_035_Model.png` | os de la tête |
 | SCP-049 (capuche + bec) | `static/clothes/scp_049_mask.x` | `SCP/SCP_049_BeakMask.png` | os de la tête |
 | Lunettes de vision nocturne | `static/clothes/scp_nvg.x` | `SCP/SCP_NVG.png` | os de la tête |
 | SCP-714 | `skinned/clothes/scp_714_ring.x` | `SCP/SCP_714_Ring.png` | os `Bip01_L_Finger1` ; femme : `kate_scp_714_ring.x` |
