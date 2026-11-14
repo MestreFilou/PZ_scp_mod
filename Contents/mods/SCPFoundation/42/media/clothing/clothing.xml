@@ -360,4 +360,30 @@
 			<itemGUID>392ebe4a-645d-59d6-aba4-d3d3237f5a5a</itemGUID>
 		</m_items>
 	</m_FemaleOutfits>
+	<m_MaleOutfits>
+		<m_Name>SCP_Scientist</m_Name>
+		<m_Guid>9df097dc-16ff-52c0-86b1-a5f71441cbeb</m_Guid>
+		<m_Top>true</m_Top>
+		<m_Pants>true</m_Pants>
+		<m_AllowPantsHue>true</m_AllowPantsHue>
+		<m_AllowTopTint>true</m_AllowTopTint>
+		<m_AllowTShirtDecal>false</m_AllowTShirtDecal>
+		<m_items>
+			<probability>1.0</probability>
+			<itemGUID>4778b793-87a2-5be8-b870-1c67b650dc7e</itemGUID>
+		</m_items>
+	</m_MaleOutfits>
+	<m_FemaleOutfits>
+		<m_Name>SCP_Scientist</m_Name>
+		<m_Guid>91bdbce4-96ab-5645-b1a5-76604119a686</m_Guid>
+		<m_Top>true</m_Top>
+		<m_Pants>true</m_Pants>
+		<m_AllowPantsHue>true</m_AllowPantsHue>
+		<m_AllowTopTint>true</m_AllowTopTint>
+		<m_AllowTShirtDecal>false</m_AllowTShirtDecal>
+		<m_items>
+			<probability>1.0</probability>
+			<itemGUID>4778b793-87a2-5be8-b870-1c67b650dc7e</itemGUID>
+		</m_items>
+	</m_FemaleOutfits>
 </outfitManager>

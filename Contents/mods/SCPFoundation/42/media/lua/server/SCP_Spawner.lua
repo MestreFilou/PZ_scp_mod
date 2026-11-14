@@ -46,7 +46,7 @@ end
 
 -- Living staff (non-zombie) is out of scope: a "Class-D" or "MTF" spawn
 -- creates a zombie in that outfit, which is what is left of the staff.
-SCP.Spawner.StaffOutfits = { "SCP_ClassD", "SCP_MTF", "SCP_Hazmat" }
+SCP.Spawner.StaffOutfits = { "SCP_ClassD", "SCP_MTF", "SCP_Hazmat", "SCP_Scientist" }
 
 function SCP.Spawner.spawnStaff(x, y, z, count)
     local outfit = SCP.Spawner.StaffOutfits[ZombRand(#SCP.Spawner.StaffOutfits) + 1]

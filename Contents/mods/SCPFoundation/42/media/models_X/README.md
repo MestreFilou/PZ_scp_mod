@@ -12,6 +12,8 @@ Attention : sur `Boilersuit`, `BulletVest`, `Hazmat` et `JacketLong`, le milieu 
 | Gilet NTF | `Vest_BulletSWAT` | `SCP_MTF_Vest.png` |
 | Combinaison NRBC | `HazmatSuit` | `SCP_Hazmat_Suit.png` |
 | Blouse du scientifique | `JacketLong_Doctor` (`Bob_JacketLong` / `Kate_JacketLong`) | `SCP_LabCoat.png` |
+
+La blouse est aussi portée par les zombies scientifiques (tenue `SCP_Scientist`, dans les labos du site).
 | Masque à gaz | `Hat_GasMask` | `SCP_GasMask.png` |
 | SCP-035 | `Hat_HockeyMask` | `SCP_035_Mask.png` |
 | SCP-049 | `Boilersuit` + `Hat_GasMask` | `SCP_049_Robe.png`, `SCP_049_Mask.png` |

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Scientist lab coat: vanilla long jacket model (as JacketLong_Doctor) with an SCP texture.
-     No m_Masks yet: copy them from the vanilla JacketLong_Doctor.xml if the body shows through. -->
+<!-- Scientist lab coat: vanilla long jacket model and masks (as JacketLong_Doctor) with an SCP texture. -->
 <clothingItem>
 	<m_MaleModel>skinned\clothes\bob_jacketlong</m_MaleModel>
 	<m_FemaleModel>skinned\clothes\kate_jacketlong</m_FemaleModel>
@@ -9,5 +8,11 @@
 	<m_AllowRandomHue>false</m_AllowRandomHue>
 	<m_AllowRandomTint>false</m_AllowRandomTint>
 	<m_AttachBone></m_AttachBone>
+	<m_Masks>13</m_Masks>
+	<m_Masks>14</m_Masks>
+	<m_Masks>15</m_Masks>
+	<m_Masks>3</m_Masks>
+	<m_Masks>5</m_Masks>
+	<m_UnderlayMasksFolder>media/textures/Clothes/JacketLong/Masks</m_UnderlayMasksFolder>
 	<textureChoices>SCP\SCP_LabCoat</textureChoices>
 </clothingItem>
