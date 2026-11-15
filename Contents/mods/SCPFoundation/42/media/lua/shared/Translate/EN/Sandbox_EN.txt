@@ -17,4 +17,10 @@ Sandbox_EN = {
     Sandbox_SCP_FacilityX = "X of the SCP site's main gate (0 = placed by an admin)",
     Sandbox_SCP_FacilityY = "Y of the SCP site's main gate (0 = placed by an admin)",
     Sandbox_SCP_FacilityDepth = "SCP site depth (Z level of the underground site)",
+    Sandbox_SCP_StartScenario = "SCP occupations start",
+    Sandbox_SCP_StartScenario_tooltip = "Escape: only the Class-D cells open, level 1-2 keycards are on the dead. Total breach: the first arrival starts a breach, every door opens.",
+    Sandbox_SCP_StartScenario_option1 = "Escape",
+    Sandbox_SCP_StartScenario_option2 = "Total breach",
+    Sandbox_SCP_KeycardDropRate = "Keycards on zombie staff (%)",
+    Sandbox_SCP_KeycardDropRate_tooltip = "100 = normal (rare). 200 = twice as many. 0 = never.",
 }

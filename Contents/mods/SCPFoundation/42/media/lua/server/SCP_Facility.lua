@@ -201,7 +201,8 @@ local function addDoor(sq, north, d)
     end
     if d.level and d.level > 0 then
         door:getModData().SCP_KeyLevel = d.level
-        SCP.Doors.setLocked(door, true)
+        -- Built during a breach (an area loaded late): it stays unlocked like the others.
+        SCP.Doors.setLocked(door, not (world.breach and world.breach.active))
         world.doors = world.doors or {}
         world.doors[SCP.Doors.key(sq)] = d.level
     end
@@ -266,7 +267,10 @@ local function roomContents(room, x, y, z)
         for i = 1, #loot, 2 do
             local itemType = loot[i]
             if not itemType:find("%.") then itemType = "Base." .. itemType end
-            for _ = 1, loot[i + 1] do
+            -- "Escape" start: level 1-2 keycards are only found on dead staff (level 3+ still lie in the locked rooms).
+            local count = loot[i + 1]
+            if SCP.opt("StartScenario") ~= 2 and itemType:match("SCP_Keycard_L[12]$") then count = 0 end
+            for _ = 1, count do
                 local lx = origin.x + ZombRand(room.x0, room.x1 + 1)
                 local ly = origin.y + ZombRand(room.y0, room.y1 + 1)
                 local sq = getCell():getOrCreateGridSquare(lx, ly, z)

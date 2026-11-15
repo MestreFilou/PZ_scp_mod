@@ -17,4 +17,10 @@ Sandbox_FR = {
     Sandbox_SCP_FacilityX = "X de la grande porte du site SCP (0 = placé par un admin)",
     Sandbox_SCP_FacilityY = "Y de la grande porte du site SCP (0 = placé par un admin)",
     Sandbox_SCP_FacilityDepth = "Profondeur du site SCP (niveau Z du souterrain)",
+    Sandbox_SCP_StartScenario = "Départ des métiers SCP",
+    Sandbox_SCP_StartScenario_tooltip = "Évasion : seules les cellules Classe-D s'ouvrent, les cartes niveau 1-2 sont sur les morts. Brèche totale : le premier arrivé déclenche une brèche, toutes les portes s'ouvrent.",
+    Sandbox_SCP_StartScenario_option1 = "Évasion",
+    Sandbox_SCP_StartScenario_option2 = "Brèche totale",
+    Sandbox_SCP_KeycardDropRate = "Cartes d'accès sur les zombies du personnel (%)",
+    Sandbox_SCP_KeycardDropRate_tooltip = "100 = normal (rare). 200 = deux fois plus. 0 = jamais.",
 }
