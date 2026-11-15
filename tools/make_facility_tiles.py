@@ -229,9 +229,9 @@ def wall_lcz():
 
 
 def wall_hcz():
-    a = cb("concretewall", (WALL_W, WALL_H), bright=0.92)
+    a = cb("concretewall", (WALL_W, WALL_H), bright=0.68)      # kept dark, as asked
     rect(a, 0, 0.0, 1, 0.035, "#2a2c2e")
-    rect(a, 0, 0.46, 1, 0.485, "#8f2f24", 0.75)        # red warning band
+    rect(a, 0, 0.46, 1, 0.485, "#7d2a20", 0.8)         # red warning band
     rect(a, 0, 0.955, 1, 1, "#222425")
     grime(a, 30, 0.3)
     drips(a, 5, "#2a2620", 0.25, 33)
@@ -289,7 +289,7 @@ def floor_lcz():       # dark concrete of the Containment Breach hallways
 
 
 def floor_hcz():       # stained steel plate
-    a = cb("dirtymetal", (FLOOR, FLOOR), crop=(0, 0, 0.5, 0.5), bright=0.85)
+    a = cb("dirtymetal", (FLOOR, FLOOR), crop=(0, 0, 0.5, 0.5), bright=0.62)
     for i in (0, 1):
         hline(a, i, 0.012, "#232526")
         vline(a, i, 0.012, "#232526")
