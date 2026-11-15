@@ -67,3 +67,43 @@ if __name__ == '__main__':
         W = build.limit_weights(humanoid(x.verts, 4))
         e = np.abs(W - ref)
         print('  worst bones:', sorted([(round(e[:, i].mean(), 3), b) for i, b in enumerate(build.BONES)], reverse=True)[:6])
+
+
+def unstretch_arms(v, long_wrist_x, hand_scale=0.7):
+    """Models with stretched forearms: map the arm back to normal proportions before weighting."""
+    EL, WR = J('Bip01_L_Forearm'), J('Bip01_L_Hand')
+    u = v.copy()
+    ax = np.abs(u[:, 0])
+    fore = (ax > EL[0]) & (ax <= long_wrist_x)
+    hand = ax > long_wrist_x
+    nx = ax.copy()
+    nx[fore] = EL[0] + (ax[fore] - EL[0]) * (WR[0] - EL[0]) / (long_wrist_x - EL[0])
+    nx[hand] = WR[0] + (ax[hand] - long_wrist_x) * hand_scale
+    u[:, 0] = np.sign(u[:, 0]) * nx
+    return u
+
+
+def keep_only(W, mask, names):
+    """On the masked vertices keep only the bones whose name contains one of names."""
+    for i, b in enumerate(build.BONES):
+        if not any(n in b for n in names):
+            W[mask, i] = 0
+    return W / W.sum(1, keepdims=True)
+
+
+def drop(W, mask, names):
+    for i, b in enumerate(build.BONES):
+        if any(n in b for n in names):
+            W[mask, i] = 0
+    return W / W.sum(1, keepdims=True)
+
+
+def transfer(v, ref_file, k=4):
+    """Copy weights from a reference mesh (nearest vertices, inverse-distance blend)."""
+    import os
+    from scipy.spatial import cKDTree
+    r = np.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), ref_file))
+    d, i = cKDTree(r['v']).query(v, k=k)
+    w = 1.0 / (d + 0.003) ** 2
+    W = (r['W'][i] * w[..., None]).sum(1)
+    return W / W.sum(1, keepdims=True)

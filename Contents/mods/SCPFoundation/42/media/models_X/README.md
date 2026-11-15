@@ -29,8 +29,16 @@ Planches de concept pour les futurs modèles 3D : `art/concepts/` à la racine d
 
 ## Modèles 3D propres (branche `models/creatures-tiles`)
 
-Générés par `tools/build_models.py` (Blender, hors du dépôt) : géométrie, poids sur le squelette de Bob
-(transférés depuis `MaleBody.x`), texture cuite depuis des matériaux procéduraux.
+Deuxième passe (173, 096, 939, 106, 966, robe et masque de 049, masque 035) : générés par les scripts de
+`tools/scp_models/` (un script par SCP, par ex. `python3 tools/scp_models/scp_096.py`, avec `pip install bpy
+scikit-image scipy xatlas pillow`). La forme est sculptée par script, réduite à 2 000-4 000 triangles, dépliée,
+puis la texture est peinte point par point sur le modèle détaillé (côtes, fissures, visage). Le script réécrit le
+`.x` homme, le `.x` femme et la texture en gardant le squelette, les matrices d'os et les noms de fichiers.
+Les poids suivent les os de la pose de liaison (`weights.py`) ; la robe de 049 reprend ceux de l'ancienne robe
+(`ref_robe_weights.npz`, issus de `Bob_JudegsRobe.x`). 096 et 939 ont les avant-bras allongés : la partie
+allongée suit l'os de l'avant-bras, la main suit l'os de la main. Aperçus avant/après : dossier
+`assets/modeles_scp/` des fichiers du projet. Pas encore refaits : 049-2, lunettes de vision nocturne, anneau 714
+(première passe, `tools/build_models.py`, hors du dépôt).
 
 | Objet | Modèle | Texture | Remarque |
 |---|---|---|---|

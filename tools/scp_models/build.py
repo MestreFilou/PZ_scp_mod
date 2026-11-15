@@ -40,7 +40,8 @@ def to_kate(v, W):
     return skin(v, W, {b: np.linalg.inv(KATE[b]) for b in BONES})
 
 
-def make(name, f, lo, hi, tris, color_fn, weight_fn, tex, voxel=0.004, res=512, symmetric=True, static=False):
+def make(name, f, lo, hi, tris, color_fn, weight_fn, tex, voxel=0.004, res=512, symmetric=True, static=None):
+    """static: name of the bone a rigid model is attached to (its vertices are stored in that bone's space)."""
     import render
     render.reset()
     v0, f0 = core.mesh_sdf(f, lo, hi, voxel)
@@ -51,8 +52,17 @@ def make(name, f, lo, hi, tris, color_fn, weight_fn, tex, voxel=0.004, res=512, 
     img = core.bake(v, fc, uv, f, color_fn, res)
     tex_path = os.path.join(MEDIA, 'textures/SCP', tex + '.png')
     Image.fromarray(img).save(tex_path, optimize=True)
+    if static:
+        path = os.path.join(MEDIA, 'models_X', 'static', 'clothes', name + '.x')
+        x = xlib.load(path)
+        vl = (np.c_[v, np.ones(len(v))] @ BOB[static])[:, :3]
+        nl = nrm @ BOB[static][:3, :3]
+        nl /= np.linalg.norm(nl, axis=1, keepdims=True)
+        xlib.save(x, path, vl, fc.tolist(), nl, uv, np.zeros((len(v), len(BONES))), BONES, BOB)
+        print(name, 'hi-res tris', len(f0), '-> tris', len(fc), 'verts', len(v))
+        return dict(v=v, fc=fc, uv=uv, nrm=nrm, W=None, tex=tex_path)
     W = limit_weights(weight_fn(v1))[vmap]
-    sub = 'static' if static else 'skinned'
+    sub = 'skinned'
     for prefix, conv in (('', None), ('kate_', to_kate)):
         path = os.path.join(MEDIA, 'models_X', sub, 'clothes', prefix + name + '.x')
         x = xlib.load(path)
@@ -63,12 +73,13 @@ def make(name, f, lo, hi, tris, color_fn, weight_fn, tex, voxel=0.004, res=512, 
     return dict(v=v, fc=fc, uv=uv, nrm=nrm, W=W, tex=tex_path)
 
 
-def preview(name, m, poses=None, height=1.25, center=(0, 0, 0.5)):
+def preview(name, m, poses=None, height=1.25, center=(0, 0, 0.5), views=None):
     import render
     os.makedirs(OUT, exist_ok=True)
     render.reset(); render.setup_lights()
-    render.add_mesh(name, m['v'], m['fc'].tolist(), m['uv'], m['tex'], normals=m['nrm'])
-    p = render.render_views(os.path.join(OUT, name), render.VIEWS, center=center, height=height)
+    for k, mm in enumerate(m if isinstance(m, list) else [m]):
+        render.add_mesh(name + str(k), mm['v'], mm['fc'].tolist(), mm['uv'], mm['tex'], normals=mm['nrm'])
+    p = render.render_views(os.path.join(OUT, name), views or render.VIEWS, center=center, height=height)
     render.sheet(p, os.path.join(OUT, name + '.png'))
 
 
@@ -121,7 +132,21 @@ WALK = {'Bip01_L_UpperArm': [('z', -70), ('x', -55)], 'Bip01_R_UpperArm': [('z',
 def preview_pose(name, m, rots=WALK, height=1.25, center=(0, 0, 0.5), views=None):
     import render
     render.reset(); render.setup_lights()
-    v = pose_mesh(m['v'], m['W'], rots)
-    render.add_mesh(name, v, m['fc'].tolist(), m['uv'], m['tex'])
+    for k, mm in enumerate(m if isinstance(m, list) else [m]):
+        W = mm['W']
+        if isinstance(W, str):          # rigid model attached to one bone
+            W = np.zeros((len(mm['v']), len(BONES))); W[:, BONES.index(mm['W'])] = 1
+        render.add_mesh(name + str(k), pose_mesh(mm['v'], W, rots), mm['fc'].tolist(), mm['uv'], mm['tex'])
     p = render.render_views(os.path.join(OUT, name + '_pose'), views or [('front', 0, 5), ('iso', 40, 30), ('side', 90, 5), ('back', 215, 25)], center=center, height=height)
     render.sheet(p, os.path.join(OUT, name + '_pose.png'))
+
+
+def quick(name, f, lo, hi, voxel=0.005, height=1.25, center=(0, 0, 0.5), views=None):
+    """Fast clay render of the detailed shape, to iterate on the silhouette."""
+    import render
+    render.reset(); render.setup_lights()
+    v, fc = core.mesh_sdf(f, lo, hi, voxel)
+    os.makedirs(OUT, exist_ok=True)
+    render.add_mesh(name, v, fc.tolist(), np.zeros((len(v), 2)), None, smooth=True)
+    p = render.render_views(os.path.join(OUT, name + '_clay'), views or [('front', 0, 5), ('iso', 40, 30), ('side', 90, 5)], center=center, height=height)
+    render.sheet(p, os.path.join(OUT, name + '_clay.png'))
