@@ -27,7 +27,7 @@ SCP.Facility = SCP.Facility or {}
 local F = SCP.Facility
 local D = F.Data
 
-F.VERSION = 3      -- sites built by an older version are ignored (they keep their old tiles)
+F.VERSION = 4      -- sites built by an older version are ignored (they keep their old tiles)
 
 F.Zones = {
     L = { id = "LCZ" }, H = { id = "HCZ" }, E = { id = "EZ" },
@@ -77,21 +77,32 @@ function F.charAt(level, layer, lx, ly)
     return row:sub(lx + 1, lx + 1)
 end
 
--- The plan level a world z belongs to: D.underground, D.surface or nil.
+-- The plan level a world z belongs to: D.underground, D.lower, D.surface or nil.
 function F.planLevel(z, o)
     z = math.floor(z)
     if z == o.z then return D.underground end
+    if D.lower and z == o.z + D.lower.z then return D.lower end
     if z == 0 then return D.surface end
     return nil
+end
+
+-- World z of a plan level (D.lower.z is counted from the underground level).
+function F.levelZ(level, o)
+    if level == D.surface then return 0 end
+    if level == D.lower then return o.z + level.z end
+    if level == D.underground then return o.z end
+    return level.z or 0
 end
 
 -- Which zone of the site a position is in ({ id = "LCZ" | "HCZ" | "EZ" | "SITE" }),
 -- or nil outside the underground site. Used as "is this inside the site?".
 function F.levelAt(x, y, z)
     local lx, ly, o = F.toLocal(x, y)
-    if not lx or math.floor(z) ~= o.z then return nil end
+    if not lx then return nil end
+    local level = F.planLevel(z, o)
+    if not level or (level ~= D.underground and level ~= D.lower) then return nil end
     for _, d in ipairs({ { 0, 0 }, { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) do
-        local zone = F.Zones[F.charAt(D.underground, "zone", lx + d[1], ly + d[2])]
+        local zone = F.Zones[F.charAt(level, "zone", lx + d[1], ly + d[2])]
         if zone then return zone end
     end
     return F.Zones.SITE
@@ -115,10 +126,10 @@ end
 function F.roomCenter(zoneId, kind)
     local o = F.origin()
     if not o then return nil end
-    for _, level in ipairs({ D.underground, D.surface }) do
+    for _, level in ipairs({ D.underground, D.lower or D.underground, D.surface }) do
         for _, r in ipairs(level.rooms) do
             if r.kind == kind and (zoneId == nil or r.zone == zoneId) then
-                return o.x + r.cx, o.y + r.cy, level == D.surface and 0 or o.z
+                return o.x + r.cx, o.y + r.cy, F.levelZ(level, o)
             end
         end
     end

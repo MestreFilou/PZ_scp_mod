@@ -108,7 +108,7 @@ local function refresh()
     local wanted = {}
     local colors = COLORS[m]
     if colors then
-        local z = surface and 0 or o.z
+        local z = F.levelZ(level, o)
         for _, p in ipairs(level.lights) do
             if math.abs(p.x - lx) < RANGE and math.abs(p.y - ly) < RANGE then
                 local zone = surface and "S" or F.charAt(level, "zone", p.x, p.y)

@@ -238,11 +238,29 @@ C("HCZ", 44, 64, 45, 71)
 C("HCZ", 22, 64, 23, 85)
 C("HCZ", 56, 74, 57, 85)
 
-R("scp106", "HCZ", 11, 51, 11, 10, "SCP-106", level=5, floor="g", style="d")
-R("femur", "HCZ", 23, 51, 10, 5, "Broyeur de fémur", level=5); D(22, 53, level=5); D(28, 50)
-R("storage", "HCZ", 23, 57, 10, 4, "Stockage", level=2); D(33, 58)
+# SCP-106: a giant chamber around a pit, like in the games. A ledge runs
+# round it, a catwalk goes out to a platform in the middle, and the bottom
+# of the pit (where 106 is kept) is on the level below. The femur breaker
+# looks into it.
+R("scp106", "HCZ", 11, 51, 17, 10, "SCP-106", level=5, floor="m", style="d")
+R("femur", "HCZ", 29, 51, 4, 6, "Broyeur de fémur", level=5); D(28, 53, level=5); D(30, 50)
+R("storage", "HCZ", 29, 58, 4, 3, "Stockage", level=2); D(33, 59)
+PIT = (12, 53, 26, 59)
+for y in range(PIT[1], PIT[3] + 1):
+    for x in range(PIT[0], PIT[2] + 1):
+        U.floor[y][x] = " "
+for x in range(21, 27):
+    U.floor[56][x] = "g"           # catwalk from the east ledge ...
+for y in range(55, 58):
+    for x in range(17, 21):
+        U.floor[y][x] = "g"        # ... to the platform in the middle
 R("lab", "HCZ", 37, 51, 9, 10, "Laboratoire", level=2); D(36, 55)
-R("scp049", "HCZ", 48, 51, 13, 8, "SCP-049", level=4, floor="g", style="d"); D(54, 50)
+# SCP-049 is kept one level down: a stair hall leads to its wing.
+R("stairs049", "HCZ", 48, 51, 7, 8, "Escalier SCP-049", level=4); D(51, 50)
+STAIRS049 = (53, 55)               # x, y of the top piece (the bottom one is 2 tiles south)
+for p in range(3):
+    U.floor[STAIRS049[1] + p][STAIRS049[0]] = " "
+R("armory", "HCZ", 56, 51, 5, 8, "Armurerie", level=4); D(58, 50)
 R("scp096", "HCZ", 63, 51, 6, 6, "SCP-096", level=4, floor="g", style="d"); D(69, 53)
 R("scp035", "HCZ", 63, 58, 6, 6, "SCP-035", level=3, floor="g", style="d"); D(69, 60)
 R("scp008", "HCZ", 47, 60, 9, 11, "SCP-008", level=4, style="d"); D(46, 66)
@@ -303,6 +321,27 @@ U.tesla += [dict(x=16, y=48, north=False), dict(x=16, y=49, north=False),
             dict(x=40, y=86, north=False), dict(x=40, y=87, north=False),
             dict(x=70, y=66, north=True), dict(x=71, y=66, north=True),
             dict(x=50, y=72, north=False), dict(x=50, y=73, north=False)]
+
+# ----------------------------------------------------------------------
+# Level below the site (one level under the underground): the SCP-049 wing
+# and the bottom of the SCP-106 pit.
+# ----------------------------------------------------------------------
+
+L = Level("lower", True)
+L.corridor("HCZ", 52, 55, 54, 61)            # from the foot of the stairs
+L.corridor("HCZ", 44, 62, 71, 63)
+L.room("scp049", "HCZ", 56, 51, 14, 10, "SCP-049", level=4, floor="t", style="d"); L.door(55, 57)
+L.room("obs049", "HCZ", 44, 51, 7, 10, "Observation SCP-049", level=3, floor="t"); L.door(51, 55)
+L.room("morgue", "HCZ", 44, 65, 12, 6, "Morgue", level=3, floor="t"); L.door(48, 64)
+L.room("surgery", "HCZ", 58, 65, 12, 6, "Bloc opératoire", level=3, floor="t"); L.door(62, 64)
+# stairs up to the stair hall (bottom at the south)
+L.objects += [dict(kind="stairs", dir="N", piece=p, x=STAIRS049[0], y=STAIRS049[1] + 2 - p) for p in range(3)]
+
+# bottom of the 106 pit: stairs up the west side to the ledge
+L.room("scp106pit", "HCZ", 12, 53, 15, 7, "Fosse de SCP-106", level=5, floor="k", style="d")
+L.regions[-1]["doors"] = [(11, 56)]          # no door: reached by the stairs (keeps validate happy)
+L.objects += [dict(kind="stairs", dir="W", piece=p, x=14 - p, y=58) for p in range(3)]
+L.objects += [dict(kind="sign", sign="scp106", north=True, x=19, y=53)]
 
 # ----------------------------------------------------------------------
 # Surface: a fortified concrete compound reached by a road from town
@@ -603,7 +642,14 @@ ROOMS = {
     "anomalous": dict(loot=["SCP_714_Ring", 1, "SCP_1025_Book", 1], props=["cabinet", "shelf", "labbench"]),
     "scp914": dict(special="scp914", loot=["SCP_Document_Containment", 1], props=["crate"]),
     "scp939": dict(scp="SCP_939", count=3, props=["crate", "crate", "shelf"]),
-    "scp106": dict(scp="SCP_106"),
+    "scp106": dict(),
+    "scp106pit": dict(scp="SCP_106", loot=["SCP_Document_Containment", 1]),
+    "stairs049": dict(props=["locker", "chair", "plant"]),
+    "obs049": dict(loot=["SCP_Document_Containment", 1, "SCP_Keycard_L4", 1], zombies=["SCP_Scientist", 1],
+                   props=["console", "desk", "chair", "chair", "whiteboard", "cabinet"]),
+    "morgue": dict(loot=["Bandage", 2], zombies=["SCP_ClassD", 3], props=["medbed", "medbed", "medbed", "cabinet", "trash"]),
+    "surgery": dict(loot=["Bandage", 3, "Pills", 1], zombies=["SCP_Scientist", 1],
+                    props=["medbed", "labbench", "labbench", "cabinet", "trash"]),
     "scp049": dict(scp="SCP_049", loot=["SCP_Keycard_L5", 1], props=["medbed", "labbench", "desk", "chair", "cabinet", "plant"]),
     "scp096": dict(scp="SCP_096"),
     "scp035": dict(loot=["SCP_035_Mask", 1], props=["cabinet"]),
@@ -617,7 +663,7 @@ ROOMS = {
 }
 
 SIGN_FOR = {"scp173": "scp173", "scp914": "scp914", "scp500": "scp500", "scp939": "scp939", "scp106": "scp106",
-            "scp049": "scp049", "scp096": "scp096", "scp035": "scp035", "scp008": "scp008", "scp079": "scp079",
+            "scp049": "scp049", "stairs049": "scp049", "obs049": "scp049", "scp096": "scp096", "scp035": "scp035", "scp008": "scp008", "scp079": "scp079",
             "scp966": "scp966", "warhead": "warhead", "femur": "femur", "armory": "danger", "generators": "electric",
             "electric": "electric", "bunker": "gatea", "lobby": "gatea", "cafeteria": "cafeteria",
             "medical": "medical", "security": "security", "checkpoint": "security", "guardroom": "security"}
@@ -631,6 +677,10 @@ def dress(level):
 
     for l in level.lifts:
         take(l["x"], l["y"])
+    for o in level.objects:
+        if o["kind"] == "stairs":
+            take(o["x"], o["y"])
+            take(o["x"] - (o["dir"] == "W"), o["y"] - (o["dir"] == "N"))   # the way off the top
 
     for rid, r in enumerate(level.regions):
         if not r or "x0" not in r:
@@ -655,7 +705,8 @@ def dress(level):
                         blocked.add((d["x"] + ox, d["y"] + oy))
 
         def free(x, y):
-            return (x, y) not in used and (x, y) not in blocked and level.reg[y][x] == rid
+            return (x, y) not in used and (x, y) not in blocked and level.reg[y][x] == rid \
+                and level.floor[y][x] != " "
 
         special = spec.get("special")
         top = cx
@@ -803,7 +854,7 @@ def level_lua(level, key, z=None):
         out.append(f"    {name} = {{")
         out += [f"        {lua_str(''.join(row))}," for row in grid]
         out.append("    },")
-    if level is U:
+    if level in (U, L):
         out.append("    zone = {")
         for y in range(H):
             row = "".join(ZONE_CHAR.get((level.region_at(x, y) or {}).get("zone"), " ") for x in range(W))
@@ -875,6 +926,10 @@ D.tiles = {tiles_lua()}
 {level_lua(U, "D.underground")}
 
 {level_lua(S, "D.surface")}
+
+-- One level below the underground (z = underground - 1): the SCP-049 wing
+-- and the bottom of the SCP-106 pit.
+{level_lua(L, "D.lower", -1)}
 
 -- Levels above the surface (z = 1 to 4): upper course of the outer wall,
 -- roofs, the watchtower, barbed wire.
@@ -969,7 +1024,8 @@ def write_plan():
     px = 13
     a = draw_level(U, px, (0, 0, W - 1, 122), "Sous-sol : zone de confinement léger (haut), lourd (milieu), zone d'entrée (bas)")
     b = draw_level(S, px, (4, 82, 75, H - 1), "Surface : route, enceinte, cours, bâtiment de la Porte A, tour de guet")
-    legend = Image.new("RGB", (b.width, a.height - b.height), (16, 17, 19))
+    c = draw_level(L, 10, (8, 49, 73, 72), "Niveau inférieur : aile SCP-049, fond de la fosse de SCP-106")
+    legend = Image.new("RGB", (b.width, a.height - b.height - c.height), (16, 17, 19))
     d = ImageDraw.Draw(legend)
     f = ImageFont.truetype(FONT, 15)
     items = [((250, 250, 250), "mur"), ((40, 220, 90), "porte à carte (N1 à N5 = niveau de carte)"),
@@ -981,7 +1037,8 @@ def write_plan():
         d.rectangle([14, 20 + i * 26, 34, 36 + i * 26], fill=col)
         d.text((44, 19 + i * 26), text, fill=(230, 230, 230), font=f)
     out = Image.new("RGB", (a.width + b.width, a.height), (16, 17, 19))
-    out.paste(a, (0, 0)); out.paste(b, (a.width, 0)); out.paste(legend, (a.width, b.height))
+    out.paste(a, (0, 0)); out.paste(b, (a.width, 0)); out.paste(c, (a.width, b.height))
+    out.paste(legend, (a.width, b.height + c.height))
     out.save(PLAN_OUT)
 
 
@@ -990,8 +1047,10 @@ def build():
     if not getattr(build, "done", False):
         validate(U)
         validate(S)
+        validate(L)
         dress(U)
         dress(S)
+        dress(L)
         build.done = True
     return U, S
 

@@ -199,6 +199,10 @@ def main():
         ("preview_hcz", U, (7, 47, 47, 64), "Confinement lourd : SCP-106, broyeur de fémur, portail Tesla", 0.5, {}),
         ("preview_ez", U, (30, 95, 60, 122), "Zone d'entrée : hall principal, cafétéria, hall de la Porte A", 0.5, {}),
         ("preview_corridor", U, (12, 9, 30, 24), "Détail : couloirs de 2 cases", 0.9, {}),
+        ("preview_106", L.L, (9, 49, 34, 62), "SCP-106 : la grande chambre, sa fosse et le broyeur de fémur", 0.55,
+         dict(above=[(1, U)])),
+        ("preview_049", L.L, (42, 49, 71, 72), "Niveau inférieur : aile de SCP-049 (cellule, observation, morgue, bloc)",
+         0.5, {}),
     ]
     for name, level, crop, title, scale, kw in shots:
         render(level, crop, title, scale, **kw).save(os.path.join(ART, name + ".png"))

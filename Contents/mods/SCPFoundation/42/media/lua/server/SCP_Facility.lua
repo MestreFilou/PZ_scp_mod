@@ -116,7 +116,7 @@ local function key(lx, ly) return lx .. "," .. ly end
 
 local function buildIndex()
     index = {}
-    local all = { underground = D.underground, surface = D.surface }
+    local all = { underground = D.underground, surface = D.surface, lower = D.lower }
     for i, level in ipairs(D.upper or {}) do all["upper" .. i] = level end
     for name, level in pairs(all) do
         local ix = { doors = {}, objects = {}, tesla = {}, lifts = {}, centers = {}, roof = {} }
@@ -356,7 +356,10 @@ local function buildTile(level, ix, lx, ly, x, y, z, surface)
     end
     local k = key(lx, ly)
     local doors = ix.doors[k]
-    if fl == " " and west == "." and north == "." and not post and not doors and not ix.objects[k] then return end
+    -- a hole inside the site (the SCP-106 pit, over a staircase): the square
+    -- must exist, with no floor, so that one can fall or climb through it
+    local hole = fl == " " and level.zone ~= nil and F.charAt(level, "zone", lx, ly) ~= " "
+    if fl == " " and not hole and west == "." and north == "." and not post and not doors and not ix.objects[k] then return end
 
     local sq = getCell():getOrCreateGridSquare(x, y, z)
     if not sq then return end
@@ -443,6 +446,7 @@ local function buildColumn(surfaceSq)
     local x, y = surfaceSq:getX(), surfaceSq:getY()
     local lx, ly = x - o.x, y - o.y
     buildTile(D.underground, index.underground, lx, ly, x, y, o.z, false)
+    if D.lower then buildTile(D.lower, index.lower, lx, ly, x, y, F.levelZ(D.lower, o), false) end
     buildTile(D.surface, index.surface, lx, ly, x, y, 0, true)
     for i, level in ipairs(D.upper or {}) do
         buildTile(level, index["upper" .. i], lx, ly, x, y, level.z, false)
