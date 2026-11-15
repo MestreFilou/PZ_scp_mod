@@ -8,11 +8,14 @@
         Light Containment (north) -> Heavy Containment -> Entrance Zone (south)
 
     narrow 2-tile hallways, keycard checkpoints between the zones, and the
-    Gate A lift up to a walled compound on the surface (bunker + main gate).
+    Gate A lift (a cabin in a shaft) up to a fortified compound on the
+    surface: access road, two-storey concrete wall, entrance court with a
+    watchtower, inner gate, main building over the lift. The levels above
+    the surface (roofs, wall tops, the tower) are in D.upper.
 
-    The site is placed by its main gate: the admin clicks where the gate
-    should be (or sets the FacilityX / FacilityY sandbox options), and the
-    compound and the site extend north of that point.
+    The site is placed by the end of its access road: the admin clicks where
+    the road should meet the town road (or sets the FacilityX / FacilityY
+    sandbox options), and the compound and the site extend north of it.
 
     Every function here takes world coordinates.
 ]]
@@ -24,7 +27,7 @@ SCP.Facility = SCP.Facility or {}
 local F = SCP.Facility
 local D = F.Data
 
-F.VERSION = 2      -- sites built by an older version are ignored (they keep their old tiles)
+F.VERSION = 3      -- sites built by an older version are ignored (they keep their old tiles)
 
 F.Zones = {
     L = { id = "LCZ" }, H = { id = "HCZ" }, E = { id = "EZ" },
@@ -52,7 +55,7 @@ function F.origin()
     return nil
 end
 
--- Origin of a site whose main gate stands at (gateX, gateY).
+-- Origin of a site whose access road ends at (gateX, gateY).
 function F.originForGate(gateX, gateY)
     return { x = gateX - D.anchor.x, y = gateY - D.anchor.y, z = SCP.opt("FacilityDepth"), v = F.VERSION }
 end

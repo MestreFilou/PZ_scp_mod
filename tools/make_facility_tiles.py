@@ -721,6 +721,194 @@ def prop_console(f):
     return finish(img)
 
 
+# ----------------------------------------------------------------------
+# Exterior of the site: fortress walls, watchtower, roofs, road, stairs
+# ----------------------------------------------------------------------
+
+def wall_fort():
+    """Pale poured concrete in tall panels, like the compound walls of the reference."""
+    a = cb("concretewall", (WALL_W, WALL_H), bright=1.55, tint=(0.97, 0.98, 1.0))
+    a[..., :3] = a[..., :3] * 0.55 + 190 * 0.45
+    a[..., :3] += noise(WALL_W, WALL_H, 40, 10, 168)[..., None]
+    for u in (0.0, 0.5, 1.0):
+        vline(a, u, 0.012, "#8e9294")
+    hline(a, 0.5, 0.008, "#9a9ea0")
+    rect(a, 0, 0.0, 1, 0.025, "#b9bcbd")
+    grime(a, 22, 0.22)
+    drips(a, 4, "#7c8082", 0.3, 169)
+    return to_img(a)
+
+
+def wall_window():
+    """Concrete with a long dark window band (watchtower cabin, main building)."""
+    a = np.asarray(wall_fort()).astype(np.float32).copy()
+    rect(a, 0.06, 0.22, 0.94, 0.6, "#1d2a33")
+    g = np.mgrid[0:WALL_H, 0:WALL_W][1] / WALL_W
+    band = (slice(int(0.22 * WALL_H), int(0.6 * WALL_H)), slice(int(0.06 * WALL_W), int(0.94 * WALL_W)))
+    a[band][..., :3] += (np.clip(1 - g[band] * 1.6, 0, 1) * 60)[..., None]          # sky reflection
+    for u in (0.06, 0.35, 0.65, 0.94):
+        vline(a, u, 0.02, "#6f7376")
+    rect(a, 0.04, 0.6, 0.96, 0.63, "#8a8e90")
+    rect(a, 0.04, 0.2, 0.96, 0.22, "#8a8e90")
+    return to_img(a)
+
+
+PARAPET_H = 0.32
+
+
+def tile_parapet(tex, side):
+    """Low concrete wall (roof edge, watchtower deck): it can be climbed over."""
+    img = canvas()
+    low = tex.crop((0, int(tex.size[1] * (1 - PARAPET_H)), tex.size[0], tex.size[1]))
+    cap = cap_tex("#a8acae")
+    t = WALL_T * 1.6
+    h = PARAPET_H
+    if side == "W":
+        face(img, cap, (0, 0, h), (0, 1, h), (t, 0, h))
+        face(img, low, (t, 1, h), (t, 0, h), (t, 1, 0), 0.86)
+    else:
+        face(img, cap, (0, 0, h), (1, 0, h), (0, t, h))
+        face(img, low, (0, t, h), (1, t, h), (0, t, 0), 1.0)
+    return finish(img)
+
+
+def tile_stairs(side, piece):
+    """One third of a concrete staircase (3 steps). side 'N': climbs north,
+    side 'W': climbs west. piece 0 = bottom, 1 = middle, 2 = top."""
+    img = canvas()
+    tread = to_img(base(128, 64, "#a9adaf", 6, 6, 180 + piece))
+    riser = base(128, 64, "#8d9193", 6, 6, 183 + piece)
+    hazard(riser, 0, 0, 1, 0.12, period=20)
+    riser = to_img(riser)
+    side_t = to_img(base(64, 64, "#7d8183", 6, 6, 186))
+    for k in (2, 1, 0):             # far (high) steps first
+        top = (piece * 3 + k + 1) / 9
+        a0, a1 = 1 - (k + 1) / 3, 1 - k / 3
+        if side == "N":
+            box(img, "n", 0.04, a0, 0.96, a1, 0, top, tread, riser, side_t)
+        else:
+            box(img, "w", 0.04, a0, 0.96, a1, 0, top, tread, riser, side_t)
+    return finish(img)
+
+
+def prop_solar(f):
+    img = canvas()
+    pan = base(256, 192, "#1f3550", 4, 8, 190)
+    for k in range(1, 6):
+        vline(pan, k / 6, 0.012, "#9fb2c4")
+    for k in range(1, 4):
+        hline(pan, k / 4, 0.014, "#9fb2c4")
+    for u0, v0, u1, v1 in ((0, 0, 1, 0.03), (0, 0.97, 1, 1), (0, 0, 0.02, 1), (0.98, 0, 1, 1)):
+        rect(pan, u0, v0, u1, v1, "#c9ced2")
+    pan[..., :3] += (np.mgrid[0:192, 0:256][1] / 256.0 * 40)[..., None]
+    leg = to_img(base(16, 64, "#5d6164", 3, 3, 191))
+    if f == "n":     # tilted towards the south
+        for x in (0.15, 0.82):
+            box(img, "n", x, 0.25, x + 0.04, 0.29, 0, 0.42, leg, leg, leg)
+        face(img, to_img(pan), (0.06, 0.2, 0.48), (0.94, 0.2, 0.48), (0.06, 0.88, 0.14))
+    else:            # tilted towards the east
+        for y in (0.15, 0.82):
+            box(img, "n", 0.25, y, 0.29, y + 0.04, 0, 0.42, leg, leg, leg)
+        face(img, to_img(pan), (0.2, 0.94, 0.48), (0.2, 0.06, 0.48), (0.88, 0.94, 0.14), 0.9)
+    return finish(img)
+
+
+def prop_fan(f):
+    """Rooftop ventilation unit: a round fan housing on a concrete base."""
+    img = canvas()
+    slab = to_img(base(64, 64, "#9a9ea0", 5, 5, 192))
+    box(img, "n", 0.04, 0.04, 0.96, 0.96, 0, 0.08, slab, slab, slab)
+    big = Image.new("RGBA", (TW * SS, TH * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(big)
+    cx, cy = proj(0.5, 0.5, 0.08)
+    rx, ry, hgt = 0.4 * 64 * SS * 1.41, 0.4 * 32 * SS * 1.41, 0.22 * 192 * SS
+    d.ellipse([cx - rx, cy - ry, cx + rx, cy + ry], fill=(92, 96, 99, 255))
+    d.rectangle([cx - rx, cy - hgt, cx + rx, cy], fill=(150, 154, 157, 255))
+    d.rectangle([cx + rx * 0.3, cy - hgt, cx + rx, cy], fill=(118, 122, 125, 255))
+    top = cy - hgt
+    d.ellipse([cx - rx, top - ry, cx + rx, top + ry], fill=(40, 42, 44, 255), outline=(175, 178, 180, 255), width=3 * SS)
+    for k in range(6):
+        ang = math.radians(k * 60 + 15)
+        d.line([(cx, top), (cx + math.cos(ang) * rx * 0.9, top + math.sin(ang) * ry * 0.9)],
+               fill=(120, 124, 126, 255), width=4 * SS)
+    d.ellipse([cx - rx * 0.15, top - ry * 0.15, cx + rx * 0.15, top + ry * 0.15], fill=(160, 164, 166, 255))
+    img.alpha_composite(big)
+    return finish(img)
+
+
+def prop_floodlight(f):
+    img = canvas()
+    pole = to_img(base(16, 128, "#4b4f52", 3, 3, 193))
+    box(img, "n", 0.46, 0.46, 0.54, 0.54, 0, 0.92, pole, pole, pole)
+    head = base(64, 32, "#2b2e30", 3, 3, 194)
+    lamp = base(64, 32, "#fff3c4", 3, 3, 195)
+    rect(lamp, 0, 0, 1, 0.12, "#2b2e30")
+    if f == "n":
+        box(img, "n", 0.3, 0.4, 0.7, 0.58, 0.86, 0.98, to_img(head), to_img(lamp), to_img(head))
+    else:
+        box(img, "w", 0.3, 0.4, 0.7, 0.58, 0.86, 0.98, to_img(head), to_img(lamp), to_img(head))
+    return finish(img)
+
+
+def prop_barrier(f):
+    """Concrete road barrier with red and white stripes."""
+    img = canvas()
+    c = base(256, 64, "#b7babb", 6, 6, 196)
+    for k in range(4):
+        rect(c, k * 0.25 + 0.02, 0.15, k * 0.25 + 0.12, 0.55, "#b8322a")
+    top = to_img(base(128, 32, "#aeb1b2", 5, 5, 197))
+    end = to_img(base(32, 64, "#9ea1a2", 5, 5, 198))
+    box(img, f, 0.02, 0.36, 0.98, 0.64, 0, 0.3, top, to_img(c), end)
+    return finish(img)
+
+
+def tile_wire(side):
+    """Coils of barbed wire on top of a wall (stands on the square above the wall)."""
+    img = Image.new("RGBA", (TW * SS, TH * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    for k in range(9):
+        a = (k + 0.5) / 9
+        p = (WALL_T / 2, 1 - a, 0.08) if side == "W" else (a, WALL_T / 2, 0.08)
+        cx, cy = proj(*p)
+        r = 0.07 * 192 * SS
+        d.ellipse([cx - r * 0.8, cy - r, cx + r * 0.8, cy + r], outline=(70, 74, 78, 255), width=2 * SS)
+    for z in (0.02, 0.14):
+        a0 = (WALL_T / 2, 1, z) if side == "W" else (0, WALL_T / 2, z)
+        a1 = (WALL_T / 2, 0, z) if side == "W" else (1, WALL_T / 2, z)
+        d.line([proj(*a0), proj(*a1)], fill=(60, 63, 66, 255), width=SS)
+    return finish(img)
+
+
+def floor_concrete_pale():
+    a = cb("concretefloor", (FLOOR, FLOOR), bright=2.25)
+    a[..., :3] = a[..., :3] * 0.6 + 168 * 0.4
+    for i in (0, 1):
+        hline(a, i, 0.008, "#8d9092")
+        vline(a, i, 0.008, "#8d9092")
+    return to_img(a)
+
+
+def floor_road_line():
+    a = np.asarray(floor_asphalt()).astype(np.float32).copy()
+    rect(a, 0.0, 0.1, 0.035, 0.6, "#e0b52a")
+
+    return to_img(a)
+
+
+def floor_road_stop():
+    a = np.asarray(floor_asphalt()).astype(np.float32).copy()
+    rect(a, 0, 0.4, 1, 0.6, "#e7e7e2")
+    return to_img(a)
+
+
+def floor_roof_pale():
+    a = base(FLOOR, FLOOR, "#a7aaab", 8, 10, 199)
+    for i in (0, 1):
+        hline(a, i, 0.01, "#8b8e90")
+    return to_img(a)
+
+
+
 PROPS = [("locker", prop_locker), ("shelf", prop_shelf), ("desk", prop_desk), ("crate", prop_crate),
          ("barrel", prop_barrel), ("rack", prop_rack), ("bed", prop_bed), ("cabinet", prop_cabinet),
          ("console", prop_console)]
@@ -780,19 +968,27 @@ def prop_props(label):
 
 SHEET = "scp_facility_02"
 COLS = 8
-ROWS = 21
+ROWS = 26
 
 # Where everything is on the sheet (also written into the mod as Lua by tools/make_site_layout.py).
 WALLS = {"a": 0, "b": 8, "c": 16, "d": 56, "e": 64}      # +0 W, +1 N, +2 NW, +3 frame W, +4 frame N
 PERIMETER = 72                                              # +0 W, +1 N, +2 NW
-PILLARS = {"a": 63, "b": 62, "c": 70, "d": 61, "e": 69, "f": 71}
-FLOORS = {"t": 5, "h": 6, "c": 13, "g": 14, "e": 15, "m": 21, "a": 75, "k": 76, "roof": 77}
+PILLARS = {"a": 63, "b": 62, "c": 70, "d": 61, "e": 69, "f": 71, "x": 173, "y": 173}
+FLOORS = {"t": 5, "h": 6, "c": 13, "g": 14, "e": 15, "m": 21, "a": 75, "k": 76, "roof": 77,
+          "p": 186, "r": 187, "s": 188, "o": 189}
 DOORS = {"standard": 24, "heavy": 28, "gate": 80}          # +0 W, +1 N, +2 open W, +3 open N
 FITTINGS = {"pipes": 84, "vent": 86}                        # +0 W, +1 N
 SIGNS = ["ez", "lcz", "hcz", "logo", "danger"]              # 40 + k (W), 48 + k (N)
 SIGNS2 = ["scp173", "scp914", "scp500", "scp939", "scp106", "scp049", "scp096", "scp035", "scp008", "scp079",
           "scp966", "warhead", "femur", "electric", "gatea", "cafeteria", "medical", "security"]   # 96 + k, 120 + k
 PROP0 = 144                                                 # + 2 * k (against north wall), + 1 (against west wall)
+# exterior (tiles 168+)
+FORT = 168                  # pale concrete wall: +0 W, +1 N, +2 NW, +3 frame W, +4 frame N; pillar 173
+WINDOW = 174                # window band wall: +0 W, +1 N, +2 NW
+PARAPET = 177               # low wall: +0 W, +1 N
+STAIRS = {"N": 180, "W": 183}   # + piece (0 bottom, 1 middle, 2 top)
+FLOORS2 = {"p": 186, "r": 187, "s": 188, "o": 189}
+EXTRA = {"solar": 190, "fan": 192, "floodlight": 193, "barrier": 195, "wire": 197}   # n/w pairs except fan
 
 
 def build_tiles():
@@ -882,6 +1078,38 @@ def build_tiles():
     for k, (name, fn) in enumerate(PROPS):
         put(PROP0 + 2 * k, fn("n"), prop_props(name.capitalize()))
         put(PROP0 + 2 * k + 1, fn("w"), prop_props(name.capitalize()))
+
+    # exterior
+    ft = wall_fort()
+    for i0, tex, n in ((FORT, ft, 5), (WINDOW, wall_window(), 3)):
+        put(i0 + 0, tile_wall(tex, "W"), wall_props("W", SHEET, i0 + 0))
+        put(i0 + 1, tile_wall(tex, "N"), wall_props("N", SHEET, i0 + 1))
+        put(i0 + 2, tile_wall(tex, "NW"), wall_props("NW", SHEET, i0 + 2))
+        if n == 5:
+            put(i0 + 3, tile_frame(tex, "W"), wall_props("FW", SHEET, i0 + 3))
+            put(i0 + 4, tile_frame(tex, "N"), wall_props("FN", SHEET, i0 + 4))
+    put(PILLARS["x"], tile_pillar(ft), wall_props("SE", SHEET, 0))
+    for k, side in enumerate(("W", "N")):
+        put(PARAPET + k, tile_parapet(ft, side),
+            [("CustomName", "Low Wall"), ("GroupName", "SCP"), ("collide" + side, ""), ("Hoppable" + side, ""),
+             ("MaterialType", "Cinderblock")])
+    for side in ("N", "W"):
+        for piece in range(3):
+            flag = "stairs" + "BMT"[piece] + side
+            put(STAIRS[side] + piece, tile_stairs(side, piece),
+                [("CustomName", "Concrete Stairs"), ("GroupName", "SCP"), (flag, ""), ("MaterialType", "Concrete")])
+    for key, fn, label in (("p", floor_concrete_pale, "Concrete Yard"), ("r", floor_road_line, "Road"),
+                           ("s", floor_road_stop, "Road"), ("o", floor_roof_pale, "Concrete Roof")):
+        put(FLOORS2[key], tile_floor(fn()), floor_props(label))
+    put(EXTRA["solar"], prop_solar("n"), prop_props("Solar Panel"))
+    put(EXTRA["solar"] + 1, prop_solar("w"), prop_props("Solar Panel"))
+    put(EXTRA["fan"], prop_fan("n"), prop_props("Ventilation Unit"))
+    put(EXTRA["floodlight"], prop_floodlight("n"), prop_props("Floodlight"))
+    put(EXTRA["floodlight"] + 1, prop_floodlight("w"), prop_props("Floodlight"))
+    put(EXTRA["barrier"], prop_barrier("n"), prop_props("Road Barrier"))
+    put(EXTRA["barrier"] + 1, prop_barrier("w"), prop_props("Road Barrier"))
+    put(EXTRA["wire"], tile_wire("W"), sign_props("W", "Barbed Wire"))
+    put(EXTRA["wire"] + 1, tile_wire("N"), sign_props("N", "Barbed Wire"))
     return tiles
 
 

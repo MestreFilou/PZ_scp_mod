@@ -95,3 +95,9 @@ option SCP.FacilityDepth
     type = integer, min = -28, max = -1, default = -2,
     page = SCP, translation = SCP_FacilityDepth,
 }
+
+option SCP.LiftRide
+{
+    type = boolean, default = true,
+    page = SCP, translation = SCP_LiftRide,
+}

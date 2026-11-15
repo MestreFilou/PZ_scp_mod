@@ -4,14 +4,18 @@
     column under it is built:
       - the underground level: floor, walls, door frames, keycard doors,
         corner posts, furniture, machines, signs, loot, staff and SCPs;
-      - on the surface, inside the compound: the ground is cleared and
-        paved, then the perimeter wall, the bunker, the gatehouse and the
-        two big gates (main gate and Gate A) are built;
-      - the bunker roof, one level up.
+      - on the surface: the access road, then inside the compound the
+        ground is cleared and paved, and the two-storey outer wall, the
+        inner walls, the main building over the lift, the guard post, the
+        garage, the power house, the watchtower and the big gates (main
+        gate, inner gate, Gate A, garage) are built;
+      - the levels above (D.upper): roofs, the upper course of the outer
+        wall, the watchtower and its stairs, barbed wire;
+      - the lift shaft on every level between the surface and the site.
     Each surface square remembers it was done, so nothing is built twice.
 
     The site is placed by an admin ("Build the SCP site here": the click is
-    where the main gate goes) or by the FacilityX / FacilityY sandbox options.
+    where the access road starts) or by the FacilityX / FacilityY sandbox options.
 ]]
 
 require "SCP_System"
@@ -67,7 +71,23 @@ do
         end
         F.Fallback[tile(TL.pillars[key])] = name .. "_3"
     end
+    for key, name in pairs({ x = "walls_commercial_03", y = "walls_commercial_03" }) do
+        local i0 = TL.walls[key]
+        F.Fallback[tile(i0)] = name .. "_0"
+        F.Fallback[tile(i0 + 1)] = name .. "_1"
+        F.Fallback[tile(i0 + 2)] = name .. "_2"
+        if key == "x" then
+            F.Fallback[tile(i0 + 3)] = name .. "_10"
+            F.Fallback[tile(i0 + 4)] = name .. "_11"
+        end
+    end
+    F.Fallback[tile(TL.pillars.x)] = "walls_commercial_03_3"
+    -- wooden stairs of the game (north-facing set: bottom, middle, top)
+    for piece = 0, 2 do F.Fallback[tile(TL.stairs.N + piece)] = "carpentry_02_" .. (96 + piece) end
+    for piece = 0, 2 do F.Fallback[tile(TL.stairs.W + piece)] = "carpentry_02_" .. (88 + piece) end
     local floors = {
+        p = "floors_exterior_street_01_16", r = "floors_exterior_street_01_0", s = "floors_exterior_street_01_0",
+        o = "floors_interior_tilesandwood_01_29",
         t = "floors_interior_tilesandwood_01_28", c = "floors_interior_tilesandwood_01_16",
         m = "floors_interior_tilesandwood_01_29", g = "floors_interior_tilesandwood_01_24",
         h = "floors_interior_tilesandwood_01_3", e = "floors_interior_tilesandwood_01_3",
@@ -96,7 +116,9 @@ local function key(lx, ly) return lx .. "," .. ly end
 
 local function buildIndex()
     index = {}
-    for name, level in pairs({ underground = D.underground, surface = D.surface }) do
+    local all = { underground = D.underground, surface = D.surface }
+    for i, level in ipairs(D.upper or {}) do all["upper" .. i] = level end
+    for name, level in pairs(all) do
         local ix = { doors = {}, objects = {}, tesla = {}, lifts = {}, centers = {}, roof = {} }
         local function push(t, k, v)
             t[k] = t[k] or {}
@@ -207,6 +229,20 @@ local function addDoor(sq, north, d)
     end
 end
 
+-- One piece of a staircase (0 bottom, 1 middle, 2 top). The game knows a
+-- staircase by its tile (stairs flags), so AddStairs is tried first and a
+-- plain object with the same tile is the fallback.
+local function addStairs(sq, dir, piece)
+    local north = dir == "N"
+    local sprite = resolve(tile(TL.stairs[dir] + piece))
+    if not spriteOk(sprite) then warnSprite(sprite) return end
+    if sq.AddStairs then
+        local ok = pcall(sq.AddStairs, sq, north, piece, sprite, sprite, nil)
+        if ok then return end
+    end
+    addObject(sq, sprite)
+end
+
 ------------------------------------------------------------------------
 -- Things standing on a tile
 ------------------------------------------------------------------------
@@ -229,6 +265,11 @@ local function placeObject(sq, o)
     elseif k == "sign" then
         local n = (o.north and TL.signN or TL.signW)[o.sign]
         if n then addObject(sq, tile(n), nil, true) end
+    elseif k == "ext" then
+        local i0 = TL.ext[o.ext]
+        if i0 then addObject(sq, tile(i0 + (o.face == "w" and 1 or 0)), nil, true) end
+    elseif k == "stairs" then
+        addStairs(sq, o.dir, o.piece)
     elseif k == "pipes" or k == "vent" then
         addObject(sq, tile(TL.fittings[k] + (o.north and 1 or 0)), nil, true)
     elseif k == "terminal" then
@@ -306,7 +347,7 @@ local function buildTile(level, ix, lx, ly, x, y, z, surface)
     end
     local k = key(lx, ly)
     local doors = ix.doors[k]
-    if fl == " " and west == "." and north == "." and not post and not doors then return end
+    if fl == " " and west == "." and north == "." and not post and not doors and not ix.objects[k] then return end
 
     local sq = getCell():getOrCreateGridSquare(x, y, z)
     if not sq then return end
@@ -316,7 +357,7 @@ local function buildTile(level, ix, lx, ly, x, y, z, surface)
         addFloor(sq, tile(TL.floors[fl] or TL.floors.c), surface)
     end
 
-    if west ~= "." and north ~= "." and west == north and west:lower() == west then
+    if west ~= "." and north ~= "." and west == north and west:lower() == west and not TL.lowWalls[west] then
         addObject(sq, tile(TL.walls[west] + 2))
     else
         if west ~= "." then addObject(sq, wallSprite(west, 0)) end
@@ -354,6 +395,39 @@ end
 -- One surface column -> the site under it, the compound, the roof
 ------------------------------------------------------------------------
 
+-- The lift platform (plan tiles) and its shaft walls on the levels in between.
+local liftRect = nil
+local function getLiftRect()
+    if liftRect then return liftRect end
+    local r = { x0 = 9999, y0 = 9999, x1 = -1, y1 = -1 }
+    for _, l in ipairs(D.surface.lifts) do
+        r.x0, r.y0 = math.min(r.x0, l.x), math.min(r.y0, l.y)
+        r.x1, r.y1 = math.max(r.x1, l.x), math.max(r.y1, l.y)
+    end
+    liftRect = r
+    return r
+end
+F.liftRect = getLiftRect
+
+local function buildShaft(lx, ly, x, y, z)
+    local r = getLiftRect()
+    local inY, inX = ly >= r.y0 and ly <= r.y1, lx >= r.x0 and lx <= r.x1
+    local westWall = inY and (lx == r.x0 or lx == r.x1 + 1)
+    local northWall = inX and (ly == r.y0 or ly == r.y1 + 1)
+    if not westWall and not northWall then return end
+    local sq = getCell():getOrCreateGridSquare(x, y, z)
+    if not sq then return end
+    local i0 = TL.walls.e
+    if westWall and northWall then
+        addObject(sq, tile(i0 + 2))
+    elseif westWall then
+        addObject(sq, tile(i0))
+    else
+        addObject(sq, tile(i0 + 1))
+    end
+    pcall(sq.RecalcAllWithNeighbours, sq, true)
+end
+
 local function buildColumn(surfaceSq)
     if not index then buildIndex() end
     local o = origin
@@ -361,6 +435,10 @@ local function buildColumn(surfaceSq)
     local lx, ly = x - o.x, y - o.y
     buildTile(D.underground, index.underground, lx, ly, x, y, o.z, false)
     buildTile(D.surface, index.surface, lx, ly, x, y, 0, true)
+    for i, level in ipairs(D.upper or {}) do
+        buildTile(level, index["upper" .. i], lx, ly, x, y, level.z, false)
+    end
+    for z = o.z + 1, -1 do buildShaft(lx, ly, x, y, z) end
     if index.surface.roof[key(lx, ly)] then
         local sq = getCell():getOrCreateGridSquare(x, y, 1)
         if sq then
@@ -430,7 +508,7 @@ end
 SCP.on("EveryOneMinute", processSpawns)
 
 ------------------------------------------------------------------------
--- Placement: args.x / args.y is where the main gate goes
+-- Placement: args.x / args.y is where the access road starts
 ------------------------------------------------------------------------
 
 SCP.ServerCommands.PlaceFacility = function(player, args)
@@ -457,7 +535,7 @@ SCP.ServerCommands.PlaceFacility = function(player, args)
     if isServer() then ModData.transmit("SCPFoundation") end
     F.buildLoaded()
     SCP.sendToClient(player, "Notify", { key = "UI_SCP_FacilityPlaced" })
-    SCP.log("SCP site placed, main gate at", args.x, args.y, "underground level", o.z)
+    SCP.log("SCP site placed, access road at", args.x, args.y, "underground level", o.z)
 end
 
 SCP.on("OnInitGlobalModData", function() refreshOrigin() end)

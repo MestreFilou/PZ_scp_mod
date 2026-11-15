@@ -33,11 +33,11 @@ PLAN_OUT = os.path.join(ROOT, "art", "site_plan.png")
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
-W, H = 80, 140
-ANCHOR = (40, 138)      # tile just outside the main gate: where the admin clicks
+W, H = 80, 156
+ANCHOR = (40, 155)      # end of the access road: where it meets the town road, where the admin clicks
 
 # Wall styles (letters used in the edge layers)
-STYLE = {"EZ": "a", "LCZ": "b", "HCZ": "c", "CELL": "d", "BUNKER": "e", "PERIM": "f"}
+STYLE = {"EZ": "a", "LCZ": "b", "HCZ": "c", "CELL": "d", "BUNKER": "e", "PERIM": "f", "FORT": "x"}
 # Floor letters: c concrete, t white tiles, m dark plate, g grating, h hazard threshold,
 # e lift platform, a asphalt, k bunker slab
 ZONE_FLOOR = {"LCZ": "c", "HCZ": "m", "EZ": "t"}
@@ -305,18 +305,92 @@ U.tesla += [dict(x=16, y=48, north=False), dict(x=16, y=49, north=False),
             dict(x=50, y=72, north=False), dict(x=50, y=73, north=False)]
 
 # ----------------------------------------------------------------------
-# Surface level: walled compound, bunker over the lift, main gate
+# Surface: a fortified concrete compound reached by a road from town
+#
+#   road (south) -> main gate in a two-storey wall -> entrance court
+#   (guard post, watchtower in the corner) -> inner gate -> three courts:
+#   garage (west), main building with the Gate A lift (middle),
+#   power house (east). Roofs, the upper course of the walls, the tower
+#   floors and the barbed wire are on the levels above (UPPER).
 # ----------------------------------------------------------------------
 
-S = Level("surface", False)
-YARD = (20, 106, 59, 137)
-BUNKER = (32, 110, 47, 121)
-BOOTH = (45, 131, 48, 134)
+# the lift has walls on three sides (a cabin open to the south), up and down
+for lvl in (U,):
+    for dy in (0, 1):
+        lvl.extra_walls[(LIFT[0], LIFT[1] + dy, False)] = "e"
+        lvl.extra_walls[(LIFT[0] + 2, LIFT[1] + dy, False)] = "e"
+    for dx in (0, 1):
+        lvl.extra_walls[(LIFT[0] + dx, LIFT[1], True)] = "e"
 
-yard = S.new_region(kind="yard", zone="SURFACE", style=STYLE["PERIM"], name="Cour")
-S.fill(yard, *YARD, "a")
-apron = S.new_region(kind="apron", zone="SURFACE", style=STYLE["PERIM"], name="Accès")
-S.fill(apron, 36, 138, 43, 139, "a")
+S = Level("surface", False)
+UPPER = {z: Level(f"upper{z}", False) for z in (1, 2, 3, 4)}
+
+COMPOUND = (8, 84, 71, 139)          # inside of the outer wall
+ROAD = (37, 42)                      # road columns (6 wide); centre line on the west edge of x = 40
+GATE_X = (38, 39, 40, 41)
+INNER_Y = 126                        # north edge of this row: inner wall
+TOWER = (68, 135, 71, 139)           # watchtower inside, in the south-east corner
+BUILDING = (28, 102, 51, 121)        # main building (Gate A hall in the middle)
+GUARD = (30, 133, 35, 138)
+GARAGE = (12, 88, 23, 97)
+POWER = (56, 88, 67, 97)
+
+
+def paint(level, x0, y0, x1, y1, ch):
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            level.floor[y][x] = ch
+
+
+def wall_box(level, x0, y0, x1, y1, style, skip=()):
+    """Walls on the outline of a rectangle (edges of the tiles inside it)."""
+    for y in range(y0, y1 + 1):
+        for edge in ((x0, y, False), (x1 + 1, y, False)):
+            if edge not in skip:
+                level.extra_walls[edge] = style
+    for x in range(x0, x1 + 1):
+        for edge in ((x, y0, True), (x, y1 + 1, True)):
+            if edge not in skip:
+                level.extra_walls[edge] = style
+
+
+def wall_h(level, y, xa, xb, style):
+    for x in range(xa, xb + 1):
+        level.extra_walls[(x, y, True)] = style
+
+
+def wall_v(level, x, ya, yb, style):
+    for y in range(ya, yb + 1):
+        level.extra_walls[(x, y, False)] = style
+
+
+def ext(level, name, x, y, face="n"):
+    level.objects.append(dict(kind="ext", ext=name, face=face, x=x, y=y))
+
+
+# ---- ground level -----------------------------------------------------
+court = S.new_region(kind="yard", zone="SURFACE", style="x", name="Cour d'entrée")
+S.fill(court, COMPOUND[0], INNER_Y, COMPOUND[2], COMPOUND[3], "p")
+west_court = S.new_region(kind="yard", zone="SURFACE", style="x", name="Cour du garage")
+S.fill(west_court, COMPOUND[0], COMPOUND[1], 25, INNER_Y - 1, "p")
+mid_court = S.new_region(kind="yard", zone="SURFACE", style="x", name="Cour centrale")
+S.fill(mid_court, 26, COMPOUND[1], 53, INNER_Y - 1, "p")
+east_court = S.new_region(kind="yard", zone="SURFACE", style="x", name="Cour technique")
+S.fill(east_court, 54, COMPOUND[1], COMPOUND[2], INNER_Y - 1, "p")
+road = S.new_region(kind="road", zone="SURFACE", style="x", name="Route d'accès")
+S.fill(road, ROAD[0], COMPOUND[3] + 1, ROAD[1], H - 1, "a")
+apron = S.new_region(kind="apron", zone="SURFACE", style="x", name="Parvis")
+S.fill(apron, 33, COMPOUND[3] + 1, ROAD[0] - 1, COMPOUND[3] + 3, "a")
+S.fill(apron, ROAD[1] + 1, COMPOUND[3] + 1, 46, COMPOUND[3] + 3, "a", allow_same=True)
+
+# asphalt inside: from the main gate to the Gate A doors, and in front of the garage
+paint(S, ROAD[0], BUILDING[3] + 1, ROAD[1], COMPOUND[3], "a")
+paint(S, 14, GARAGE[3] + 1, 21, 101, "a")
+for y in range(BUILDING[3] + 1, H):
+    if S.floor[y][40] == "a":
+        S.floor[y][40] = "r"
+for x in range(ROAD[0], ROAD[1] + 1):
+    S.floor[146][x] = "s"            # stop line before the checkpoint
 
 
 def carve(level, rect):
@@ -325,48 +399,158 @@ def carve(level, rect):
             level.reg[y][x] = 0
 
 
-carve(S, BUNKER)
-bunker = S.new_region(kind="bunker", zone="SURFACE", style=STYLE["BUNKER"], name="Bunker - Porte A", enclosed=True,
-                      x0=BUNKER[0], y0=BUNKER[1], x1=BUNKER[2], y1=BUNKER[3], level=2, roof=True)
-S.fill(bunker, *BUNKER, "k")
-carve(S, BOOTH)
-booth = S.new_region(kind="gatehouse", zone="SURFACE", style=STYLE["BUNKER"], name="Poste de garde", enclosed=True,
-                     x0=BOOTH[0], y0=BOOTH[1], x1=BOOTH[2], y1=BOOTH[3], level=0, roof=True)
-S.fill(booth, *BOOTH, "k")
+def building(kind, name, rect, level=0, floor="k", **kw):
+    carve(S, rect)
+    rid = S.new_region(kind=kind, zone="SURFACE", style="x", name=name, enclosed=True,
+                       x0=rect[0], y0=rect[1], x1=rect[2], y1=rect[3], level=level, **kw)
+    S.fill(rid, *rect, floor)
+    return rid
+
+
+# main building: Gate A hall in the middle, two wings
+building("bunker", "Hall de la Porte A", (34, 102, 45, 121), level=2)
+building("security", "Sécurité", (28, 102, 33, 111), level=2)
+building("lockers", "Vestiaire FIM", (28, 112, 33, 121), level=3, heavy=False)
+building("medical", "Infirmerie", (46, 102, 51, 111), level=2)
+building("storage", "Réserve", (46, 112, 51, 121), level=2)
+S.edge_door(34, 106, False, level=2)
+S.edge_door(34, 116, False, level=3)
+S.edge_door(46, 106, False, level=2)
+S.edge_door(46, 116, False, level=2)
+for x in GATE_X:   # Gate A: blast doors of the main building
+    S.edge_door(x, BUILDING[3] + 1, True, level=2, heavy=True, gate="A", frame=False)
+for x in (29, 30, 31, 32, 47, 48, 49, 50):     # window bands on the facade
+    S.extra_walls[(x, BUILDING[3] + 1, True)] = "y"
+for y in (104, 105, 108, 109, 114, 115, 118, 119):
+    S.extra_walls[(BUILDING[0], y, False)] = "y"
+    S.extra_walls[(BUILDING[2] + 1, y, False)] = "y"
 
 for dx in (0, 1):
     for dy in (0, 1):
         S.floor[LIFT[1] + dy][LIFT[0] + dx] = "e"
         S.lifts.append(dict(x=LIFT[0] + dx, y=LIFT[1] + dy, link="A"))
+for dy in (0, 1):
+    S.extra_walls[(LIFT[0], LIFT[1] + dy, False)] = "e"
+    S.extra_walls[(LIFT[0] + 2, LIFT[1] + dy, False)] = "e"
+for dx in (0, 1):
+    S.extra_walls[(LIFT[0] + dx, LIFT[1], True)] = "e"
 
-# perimeter wall
-for y in range(YARD[1], YARD[3] + 1):
-    S.extra_walls[(YARD[0], y, False)] = STYLE["PERIM"]
-    S.extra_walls[(YARD[2] + 1, y, False)] = STYLE["PERIM"]
-for x in range(YARD[0], YARD[2] + 1):
-    S.extra_walls[(x, YARD[1], True)] = STYLE["PERIM"]
-    S.extra_walls[(x, YARD[3] + 1, True)] = STYLE["PERIM"]
+building("gatehouse", "Poste de garde", GUARD)
+S.edge_door(GUARD[2] + 1, 135, False, level=0)
+for x in range(GUARD[0] + 1, GUARD[2]):
+    S.extra_walls[(x, GUARD[3] + 1, True)] = "y"
+S.extra_walls[(GUARD[2] + 1, 137, False)] = "y"
 
-GATE_X = (38, 39, 40, 41)
-for x in GATE_X:   # main gate, in the perimeter wall
-    del S.extra_walls[(x, YARD[3] + 1, True)]
-    S.edge_door(x, YARD[3] + 1, True, level=0, heavy=True, gate="MAIN", frame=False)
-for x in GATE_X:   # Gate A: blast door of the bunker
-    S.edge_door(x, BUNKER[3] + 1, True, level=2, heavy=True, gate="A", frame=False)
-S.edge_door(BOOTH[0], BOOTH[1] + 2, False, level=0)
+building("garage", "Garage", GARAGE, floor="a")
+for x in range(16, 20):
+    S.edge_door(x, GARAGE[3] + 1, True, level=0, heavy=True, gate="GARAGE", frame=False)
+building("powerhouse", "Centrale électrique", POWER, level=1)
+S.edge_door(61, POWER[3] + 1, True, level=1)
 
-# signs on the outside walls, and what lies around the yard
-S.objects += [dict(kind="sign", sign="gatea", north=True, x=37, y=BUNKER[3] + 1),
-              dict(kind="sign", sign="logo", north=True, x=42, y=BUNKER[3] + 1),
-              dict(kind="sign", sign="logo", north=True, x=37, y=YARD[3] + 1),
-              dict(kind="sign", sign="danger", north=True, x=42, y=YARD[3] + 1),
-              dict(kind="sign", sign="security", north=False, x=BOOTH[2] + 1, y=BOOTH[1] + 1)]
-for (x, y, prop) in ((49, 112, "crate"), (50, 112, "crate"), (49, 113, "crate"), (51, 113, "barrel"),
-                     (50, 115, "barrel"), (29, 119, "crate"), (30, 120, "crate"), (28, 120, "barrel"),
-                     (23, 108, "crate"), (24, 108, "crate"), (23, 109, "barrel"), (55, 108, "crate"),
-                     (56, 109, "crate"), (56, 108, "barrel"), (22, 134, "crate"), (23, 135, "barrel"),
-                     (50, 133, "barrel"), (51, 134, "barrel"), (33, 126, "crate"), (46, 125, "crate")):
+building("tower", "Tour de guet", TOWER, floor="p")
+S.edge_door(TOWER[0], TOWER[3], False, level=0)
+
+# outer wall (two storeys), inner walls (one storey) and their gates
+wall_box(S, *COMPOUND, "x")
+for x in GATE_X:
+    del S.extra_walls[(x, COMPOUND[3] + 1, True)]
+    S.edge_door(x, COMPOUND[3] + 1, True, level=0, heavy=True, gate="MAIN", frame=False)
+wall_h(S, INNER_Y, COMPOUND[0], COMPOUND[2], "x")
+for x in GATE_X:
+    del S.extra_walls[(x, INNER_Y, True)]
+    S.edge_door(x, INNER_Y, True, level=2, heavy=True, gate="INNER", frame=False)
+wall_v(S, 26, COMPOUND[1], INNER_Y - 1, "x")
+wall_v(S, 54, COMPOUND[1], INNER_Y - 1, "x")
+for y in range(112, 116):
+    del S.extra_walls[(26, y, False)]
+for y in range(98, 102):
+    del S.extra_walls[(54, y, False)]
+# the tower's own walls win over the outer wall where they meet
+for y in range(TOWER[1], TOWER[3] + 1):
+    S.extra_walls.pop((TOWER[2] + 1, y, False), None)
+for x in range(TOWER[0], TOWER[2] + 1):
+    S.extra_walls.pop((x, TOWER[3] + 1, True), None)
+
+# stairs of the watchtower: up along its east side, then along its west side
+S.objects += [dict(kind="stairs", dir="N", piece=p, x=TOWER[2], y=TOWER[3] - 1 - p) for p in range(3)]
+
+# signs, floodlights, barriers
+S.objects += [dict(kind="sign", sign="gatea", north=True, x=37, y=BUILDING[3] + 1),
+              dict(kind="sign", sign="logo", north=True, x=42, y=BUILDING[3] + 1),
+              dict(kind="sign", sign="logo", north=True, x=36, y=INNER_Y),
+              dict(kind="sign", sign="danger", north=True, x=43, y=INNER_Y),
+              dict(kind="sign", sign="security", north=False, x=GUARD[2] + 1, y=134),
+              dict(kind="sign", sign="electric", north=True, x=59, y=POWER[3] + 1)]
+for (x, y) in ((27, 127), (52, 127), (10, 130), (60, 128), (36, 99), (43, 99), (24, 86), (56, 123),
+               (10, 123), (70, 86)):
+    ext(S, "floodlight", x, y)
+for (x, y, f) in ((37, 150, "n"), (38, 150, "n"), (41, 152, "n"), (42, 152, "n"),
+                  (33, 141, "n"), (46, 141, "n")):
+    ext(S, "barrier", x, y, f)
+for (x, y, prop) in ((12, 100, "crate"), (13, 100, "crate"), (12, 101, "barrel"), (24, 118, "crate"),
+                     (24, 119, "barrel"), (22, 110, "crate"), (57, 110, "crate"), (58, 110, "barrel"),
+                     (69, 105, "barrel"), (69, 106, "barrel"), (62, 120, "crate"), (63, 120, "crate"),
+                     (10, 136, "crate"), (11, 137, "barrel"), (57, 133, "crate"), (58, 133, "crate"),
+                     (57, 134, "barrel"), (20, 128, "crate")):
     S.objects.append(dict(kind="prop", prop=prop, face="n" if (x + y) % 2 else "w", x=x, y=y))
+
+# ---- levels above -----------------------------------------------------
+U1, U2, U3 = UPPER[1], UPPER[2], UPPER[3]
+
+# upper course of the outer wall, barbed wire on top
+for edge, style in list(S.extra_walls.items()):
+    x, y, north = edge
+    on_outline = (not north and x in (COMPOUND[0], COMPOUND[2] + 1)) or (north and y in (COMPOUND[1], COMPOUND[3] + 1))
+    if on_outline and style == "x":
+        U1.extra_walls[edge] = "x"
+for x in GATE_X:   # lintel over the main gate
+    U1.extra_walls[(x, COMPOUND[3] + 1, True)] = "x"
+for edge in list(U1.extra_walls):
+    x, y, north = edge
+    in_tower = TOWER[0] <= x <= TOWER[2] + 1 and TOWER[1] <= y <= TOWER[3] + 1
+    if not in_tower:
+        U2.objects.append(dict(kind="ext", ext="wire", face="n" if north else "w", x=x, y=y))
+for y in range(INNER_Y, INNER_Y + 1):
+    for x in range(COMPOUND[0], COMPOUND[2] + 1):
+        if x not in GATE_X:
+            U1.objects.append(dict(kind="ext", ext="wire", face="n", x=x, y=y))
+
+# roofs with a low wall around them
+for rect in (BUILDING, GUARD, GARAGE, POWER):
+    paint(U1, *rect, "o")
+    wall_box(U1, *rect, "p")
+# rooftop of the main building: solar panels and ventilation units, like the reference
+for y in (104, 107, 110):
+    for x in list(range(29, 35)) + list(range(45, 51)):
+        ext(U1, "solar", x, y)
+for (x, y) in ((38, 105), (41, 105), (38, 109), (41, 109), (63, 91), (59, 91)):
+    ext(U1, "fan", x, y)
+for x in range(30, 50, 3):
+    ext(U1, "solar", x, 114)
+    ext(U1, "solar", x + 1, 114)
+
+# watchtower: rooms on z1 and z2, glazed cabin on z3, roof on z4.
+# Flights of stairs go up along the east side, then the west side, then the east side again.
+U4 = UPPER[4]
+T0x, T0y, T1x, T1y = TOWER
+for lvl in (U1, U2, U3):
+    paint(lvl, *TOWER, "p")
+paint(U4, *TOWER, "o")
+for p in range(3):
+    U1.floor[T1y - 1 - p][T1x] = " "           # hole over the first flight
+    U2.floor[T1y - 1 - p][T0x] = " "           # ... the second
+    U3.floor[T1y - 1 - p][T1x] = " "           # ... the third
+U1.objects += [dict(kind="stairs", dir="N", piece=p, x=T0x, y=T1y - 1 - p) for p in range(3)]
+U2.objects += [dict(kind="stairs", dir="N", piece=p, x=T1x, y=T1y - 1 - p) for p in range(3)]
+wall_box(U1, *TOWER, "x")
+wall_box(U2, *TOWER, "x")
+wall_box(U3, *TOWER, "y")
+wall_box(U4, *TOWER, "p")
+ext(U4, "floodlight", T1x, T1y)
+ext(U4, "floodlight", T0x, T0y, "w")
+
+LEVELS_ABOVE = [(z, UPPER[z]) for z in (1, 2, 3, 4)]
+
 
 # ----------------------------------------------------------------------
 # Dressing: specials, props, lights, signs
@@ -567,7 +751,7 @@ def validate(level):
                 continue
             for ox, oy in ((1, 0), (0, 1)):
                 b = level.region_at(x + ox, y + oy)
-                if b and b["enclosed"] and a is not b and not Level.passable(a, b):
+                if level is U and b and b["enclosed"] and a is not b and not Level.passable(a, b):
                     raise SystemExit(f"{level.name}: {a['name']} touches {b['name']} at {x},{y}")
             if x in (0, W - 1) or y in (0, H - 1):
                 raise SystemExit(f"{level.name}: floor on the border at {x},{y}")
@@ -608,9 +792,11 @@ def lua_val(v):
     raise TypeError(v)
 
 
-def level_lua(level, key):
+def level_lua(level, key, z=None):
     west, north = level.walls()
-    out = [f"D.{key} = {{"]
+    out = [f"{key} = {{"]
+    if z is not None:
+        out.append(f"    z = {z},")
     for name, grid in (("floor", level.floor), ("west", west), ("north", north)):
         out.append(f"    {name} = {{")
         out += [f"        {lua_str(''.join(row))}," for row in grid]
@@ -646,8 +832,10 @@ def tiles_lua():
     sign_w.update({n: 96 + k for k, n in enumerate(T.SIGNS2)})
     sign_n.update({n: 120 + k for k, n in enumerate(T.SIGNS2)})
     props = {name: T.PROP0 + 2 * k for k, (name, _) in enumerate(T.PROPS)}
+    walls.update(x=T.FORT, y=T.WINDOW, p=T.PARAPET)
     return lua_val(dict(sheet=T.SHEET + "_", walls=walls, pillars=T.PILLARS, floors=T.FLOORS, doors=T.DOORS,
-                        fittings=T.FITTINGS, signW=sign_w, signN=sign_n, props=props))
+                        fittings=T.FITTINGS, signW=sign_w, signN=sign_n, props=props, stairs=T.STAIRS,
+                        ext=T.EXTRA, lowWalls=dict(p=True)))
 
 
 def write_lua():
@@ -657,10 +845,12 @@ def write_lua():
 
     One character = one tile, rows run north to south.
       floor : ' ' nothing, c concrete, t white tiles, m dark plate, g grating,
-              h door threshold, e lift platform, a asphalt, k bunker slab
+              h door threshold, e lift platform, a asphalt, k bunker slab,
+              p pale concrete, r road centre line, s stop line, o concrete roof
       west / north : what stands on the west / north edge of the tile:
               '.' nothing, a-f a wall (a EZ, b LCZ, c HCZ, d containment cell,
-              e bunker, f perimeter), A-F the same wall with a door frame
+              e bunker, f perimeter), x compound concrete, y window band,
+              p low wall (can be climbed over); capitals: the same wall with a door frame
       zone  : L / H / E (Light Containment, Heavy Containment, Entrance Zone)
 
     D.tiles gives the tile numbers on the scp_facility_02 sheet:
@@ -678,10 +868,14 @@ local D = SCP.Facility.Data
 
 D.tiles = {tiles_lua()}
 
-{level_lua(U, "underground")}
+{level_lua(U, "D.underground")}
 
-{level_lua(S, "surface")}
-"""
+{level_lua(S, "D.surface")}
+
+-- Levels above the surface (z = 1 to 4): upper course of the outer wall,
+-- roofs, the watchtower, barbed wire.
+D.upper = {{}}
+""" + "\n\n".join(level_lua(lvl, f"D.upper[{i + 1}]", z) for i, (z, lvl) in enumerate(LEVELS_ABOVE)) + "\n"
     with open(LUA_OUT, "w", encoding="utf-8") as f:
         f.write(text)
 
@@ -691,7 +885,8 @@ D.tiles = {tiles_lua()}
 # ----------------------------------------------------------------------
 
 FLOOR_RGB = {"c": (150, 150, 146), "t": (214, 214, 208), "m": (92, 96, 100), "g": (60, 64, 70), "h": (226, 178, 30),
-             "e": (240, 200, 40), "a": (70, 72, 76), "k": (128, 130, 126)}
+             "e": (240, 200, 40), "a": (70, 72, 76), "k": (128, 130, 126), "p": (176, 178, 176), "r": (90, 88, 60),
+             "s": (200, 200, 196), "o": (160, 162, 160)}
 ZONE_TINT = {"LCZ": (236, 222, 150), "HCZ": (200, 96, 84), "EZ": (120, 160, 214), "SURFACE": (150, 170, 150)}
 SCP_RGB = (176, 60, 52)
 
@@ -737,7 +932,7 @@ def draw_level(level, px, crop, title, labels=True):
                 if ch.isupper():
                     d.line(line, fill=(40, 220, 90), width=3)
                 else:
-                    d.line(line, fill=(250, 250, 250) if ch != "f" else (230, 160, 60), width=2)
+                    d.line(line, fill=(250, 250, 250) if ch not in "fx" else (230, 160, 60), width=2)
     for dr in level.doors:
         if dr.get("gate"):
             X, Y = ox + dr["x"] * px, oy + dr["y"] * px
@@ -769,15 +964,15 @@ def draw_level(level, px, crop, title, labels=True):
 def write_plan():
     px = 13
     a = draw_level(U, px, (0, 0, W - 1, 122), "Sous-sol : zone de confinement léger (haut), lourd (milieu), zone d'entrée (bas)")
-    b = draw_level(S, px, (16, 102, 63, H - 1), "Surface : enceinte, bunker de la Porte A, grande porte")
+    b = draw_level(S, px, (4, 82, 75, H - 1), "Surface : route, enceinte, cours, bâtiment de la Porte A, tour de guet")
     legend = Image.new("RGB", (b.width, a.height - b.height), (16, 17, 19))
     d = ImageDraw.Draw(legend)
     f = ImageFont.truetype(FONT, 15)
     items = [((250, 250, 250), "mur"), ((40, 220, 90), "porte à carte (N1 à N5 = niveau de carte)"),
-             ((255, 60, 60), "grande porte (4 cases)"), ((240, 200, 40), "ascenseur de la Porte A"),
+             ((255, 60, 60), "grande porte (4 cases)"), ((240, 200, 40), "ascenseur de la Porte A (cabine dans un puits)"),
              ((90, 150, 255), "portail Tesla"), ((176, 60, 52), "cellule de confinement"),
              ((60, 200, 220), "machine / console"), ((120, 86, 50), "mobilier"),
-             ((230, 160, 60), "mur d'enceinte"), ((70, 72, 76), "1 case = 1 tuile ; couloirs de 2 cases")]
+             ((230, 160, 60), "mur d'enceinte (béton)"), ((70, 72, 76), "1 case = 1 tuile ; couloirs de 2 cases")]
     for i, (col, text) in enumerate(items):
         d.rectangle([14, 20 + i * 26, 34, 36 + i * 26], fill=col)
         d.text((44, 19 + i * 26), text, fill=(230, 230, 230), font=f)
