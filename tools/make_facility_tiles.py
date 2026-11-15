@@ -78,6 +78,8 @@ def finish(img):
 
 def hexrgb(h):
     h = h.lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
     return np.array([int(h[i:i + 2], 16) for i in (0, 2, 4)], np.float32)
 
 
@@ -879,6 +881,174 @@ def tile_wire(side):
     return finish(img)
 
 
+def wood_tex(w, h, color, seed):
+    a = base(w, h, color, 6, 6, seed)
+    yy = np.mgrid[0:h, 0:w][0]
+    a[..., :3] += (np.sin(yy / 3.0 + noise(w, h, 8, 3, seed)) * 6)[..., None]
+    return a
+
+
+def prop_chair(f):
+    img = canvas()
+    leg = to_img(base(8, 32, "#2f3235", 2, 2, 210))
+    seat = to_img(base(64, 64, "#3c5a7a", 5, 5, 211))
+    for lx, ly in ((0.32, 0.38), (0.6, 0.38), (0.32, 0.66), (0.6, 0.66)):
+        box(img, f, lx, ly, lx + 0.05, ly + 0.05, 0, 0.2, leg, leg, leg)
+    box(img, f, 0.3, 0.36, 0.68, 0.72, 0.2, 0.25, seat, seat, seat)
+    box(img, f, 0.3, 0.3, 0.68, 0.36, 0.2, 0.5, seat, seat, seat)
+    return finish(img)
+
+
+def prop_table(f):
+    img = canvas()
+    leg = to_img(base(8, 32, "#3a3d40", 2, 2, 212))
+    top = to_img(wood_tex(128, 96, "#b7b2a6", 213))
+    for lx, ly in ((0.12, 0.12), (0.82, 0.12), (0.12, 0.82), (0.82, 0.82)):
+        box(img, f, lx, ly, lx + 0.05, ly + 0.05, 0, 0.27, leg, leg, leg)
+    box(img, f, 0.08, 0.08, 0.92, 0.92, 0.27, 0.31, top, top, top)
+    return finish(img)
+
+
+def prop_sofa(f):
+    img = canvas()
+    c = to_img(base(96, 64, "#5b3a33", 6, 8, 214))
+    d = to_img(base(96, 64, "#4a2f29", 6, 8, 215))
+    box(img, f, 0.05, 0.12, 0.95, 0.62, 0, 0.16, c, d, d)
+    box(img, f, 0.05, 0.08, 0.95, 0.24, 0.16, 0.42, c, c, d)
+    for x in (0.05, 0.85):
+        box(img, f, x, 0.12, x + 0.1, 0.62, 0.16, 0.28, c, d, d)
+    return finish(img)
+
+
+def prop_vending(f):
+    img = canvas()
+    fr = base(256, 384, "#8d1e22", 5, 6, 216)
+    rect(fr, 0.08, 0.06, 0.7, 0.72, "#1a2026")
+    g = np.random.default_rng(217)
+    for r in range(5):
+        for c in range(4):
+            col = ["#e0b020", "#3d9be0", "#d03a2a", "#3ddc6a", "#e8e8e8"][int(g.random() * 5)]
+            rect(fr, 0.12 + c * 0.14, 0.1 + r * 0.12, 0.22 + c * 0.14, 0.18 + r * 0.12, col)
+    rect(fr, 0.76, 0.2, 0.92, 0.3, "#c9ccce")
+    rect(fr, 0.76, 0.34, 0.92, 0.5, "#111111")
+    rect(fr, 0.1, 0.8, 0.68, 0.9, "#0d0d0d")
+    side = to_img(base(64, 128, "#6e1619", 4, 4, 218))
+    box(img, f, 0.1, 0.06, 0.9, 0.5, 0, 0.9, side, to_img(fr), side)
+    return finish(img)
+
+
+def prop_plant(f):
+    img = canvas()
+    pot = to_img(base(32, 32, "#8a5a3c", 4, 4, 219))
+    box(img, "n", 0.38, 0.38, 0.62, 0.62, 0, 0.18, pot, pot, pot)
+    big = Image.new("RGBA", (TW * SS, TH * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(big)
+    g = np.random.default_rng(220 + (1 if f == "w" else 0))
+    cx, cy = proj(0.5, 0.5, 0.18)
+    for _ in range(14):
+        a = g.random() * math.pi * 2
+        r = (0.3 + g.random() * 0.7) * 26 * SS
+        h = (0.2 + g.random() * 0.5) * 120 * SS
+        px, py = cx + math.cos(a) * r, cy - h
+        col = (40 + int(g.random() * 30), 110 + int(g.random() * 60), 40 + int(g.random() * 20), 255)
+        d.line([(cx, cy), (px, py)], fill=(50, 90, 40, 255), width=2 * SS)
+        d.ellipse([px - 9 * SS, py - 5 * SS, px + 9 * SS, py + 5 * SS], fill=col)
+    img.alpha_composite(big)
+    return finish(img)
+
+
+def prop_cooler(f):
+    img = canvas()
+    body = base(128, 192, "#d9dbd7", 4, 4, 221)
+    rect(body, 0.3, 0.25, 0.42, 0.32, "#3d6fd0")
+    rect(body, 0.58, 0.25, 0.7, 0.32, "#d03a2a")
+    side = to_img(base(64, 96, "#c3c5c1", 4, 4, 222))
+    box(img, f, 0.32, 0.12, 0.68, 0.42, 0, 0.5, side, to_img(body), side)
+    big = Image.new("RGBA", (TW * SS, TH * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(big)
+    cx, cy = proj(0.5, 0.27, 0.5)
+    d.rectangle([cx - 18 * SS, cy - 52 * SS, cx + 18 * SS, cy], fill=(120, 180, 230, 200))
+    d.ellipse([cx - 18 * SS, cy - 60 * SS, cx + 18 * SS, cy - 44 * SS], fill=(150, 200, 240, 220))
+    img.alpha_composite(big)
+    return finish(img)
+
+
+def prop_bunkbed(f):
+    img = canvas()
+    frame = to_img(metal_tex(64, 32, "#4a4f54", 223))
+    mat = base(256, 128, "#b9bdb6", 5, 10, 224)
+    rect(mat, 0.0, 0.0, 0.24, 1.0, "#e2e3dd")
+    rect(mat, 0.45, 0.0, 1.0, 1.0, "#55657a", 0.85)
+    side = to_img(base(64, 16, "#a3a79f", 4, 4, 225))
+    for z in (0.0, 0.42):
+        box(img, f, 0.06, 0.06, 0.94, 0.52, z, z + 0.1, frame, frame, frame)
+        box(img, f, 0.08, 0.08, 0.92, 0.5, z + 0.1, z + 0.16, to_img(mat), side, side)
+    for x in (0.06, 0.9):
+        box(img, f, x, 0.48, x + 0.04, 0.52, 0, 0.62, frame, frame, frame)
+    return finish(img)
+
+
+def prop_medbed(f):
+    img = canvas()
+    frame = to_img(metal_tex(64, 32, "#c9ccce", 226))
+    box(img, f, 0.1, 0.06, 0.9, 0.54, 0, 0.24, frame, frame, frame)
+    mat = base(256, 128, "#e8eae6", 3, 5, 227)
+    rect(mat, 0.0, 0.0, 0.24, 1.0, "#ffffff")
+    rect(mat, 0.4, 0.0, 1.0, 1.0, "#8fb3c9", 0.8)
+    side = to_img(base(64, 16, "#d5d8d4", 3, 3, 228))
+    box(img, f, 0.12, 0.08, 0.88, 0.52, 0.24, 0.3, to_img(mat), side, side)
+    rail = to_img(base(16, 16, "#7d8287", 2, 2, 229))
+    box(img, f, 0.12, 0.5, 0.88, 0.53, 0.3, 0.38, rail, rail, rail)
+    return finish(img)
+
+
+def prop_labbench(f):
+    img = canvas()
+    fr = metal_tex(256, 128, "#d8dbd6", 230)
+    for u in (0.04, 0.36, 0.68):
+        rect(fr, u, 0.15, u + 0.28, 0.85, "#c4c8c3")
+        rect(fr, u + 0.11, 0.25, u + 0.17, 0.3, "#3a3d40")
+    top = to_img(base(128, 96, "#1f2326", 3, 3, 231))
+    side = to_img(metal_tex(64, 64, "#c0c4bf", 232))
+    box(img, f, 0.04, 0.12, 0.96, 0.6, 0, 0.32, top, to_img(fr), side)
+    big = Image.new("RGBA", (TW * SS, TH * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(big)
+    for i, (x, col) in enumerate(((0.25, (90, 220, 120, 210)), (0.45, (80, 160, 240, 210)), (0.7, (230, 90, 70, 210)))):
+        p = (x, 0.36, 0.32) if f == "n" else (0.36, x, 0.32)
+        cx, cy = proj(*p)
+        d.rectangle([cx - 4 * SS, cy - 22 * SS, cx + 4 * SS, cy], fill=(220, 235, 240, 180))
+        d.rectangle([cx - 4 * SS, cy - 10 * SS, cx + 4 * SS, cy], fill=col)
+    img.alpha_composite(big)
+    return finish(img)
+
+
+def prop_whiteboard(f):
+    img = canvas()
+    b = base(256, 160, "#f2f3f0", 2, 3, 233)
+    for k in range(5):
+        rect(b, 0.08, 0.15 + k * 0.14, 0.08 + 0.3 + (k * 0.37) % 0.5, 0.18 + k * 0.14, ["#2a4fb0", "#b02a2a", "#222"][k % 3])
+    for u0, v0, u1, v1 in ((0, 0, 1, 0.04), (0, 0.96, 1, 1), (0, 0, 0.02, 1), (0.98, 0, 1, 1)):
+        rect(b, u0, v0, u1, v1, "#9aa0a5")
+    leg = to_img(base(8, 64, "#7d8287", 2, 2, 234))
+    for x in (0.12, 0.84):
+        box(img, f, x, 0.2, x + 0.04, 0.24, 0, 0.32, leg, leg, leg)
+    side = to_img(base(16, 64, "#c9ccce", 2, 2, 235))
+    box(img, f, 0.08, 0.18, 0.92, 0.22, 0.32, 0.84, side, to_img(b), side)
+    return finish(img)
+
+
+def prop_trash(f):
+    img = canvas()
+    t = to_img(metal_tex(64, 64, "#5f6a63", 236))
+    box(img, f, 0.36, 0.36, 0.64, 0.64, 0, 0.26, to_img(base(32, 32, "#1d1f1e", 2, 2, 237)), t, t)
+    return finish(img)
+
+
+PROPS2 = [("chair", prop_chair), ("table", prop_table), ("sofa", prop_sofa), ("vending", prop_vending),
+          ("plant", prop_plant), ("cooler", prop_cooler), ("bunkbed", prop_bunkbed), ("medbed", prop_medbed),
+          ("labbench", prop_labbench), ("whiteboard", prop_whiteboard), ("trash", prop_trash)]
+
+
 def lift_door_tex():
     """Brushed steel sliding lift door, seam in the middle."""
     a = cb("metal", (256, 512), bright=1.25)
@@ -998,7 +1168,7 @@ def prop_props(label):
 
 SHEET = "scp_facility_02"
 COLS = 8
-ROWS = 26
+ROWS = 29
 
 # Where everything is on the sheet (also written into the mod as Lua by tools/make_site_layout.py).
 WALLS = {"a": 0, "b": 8, "c": 16, "d": 56, "e": 64}      # +0 W, +1 N, +2 NW, +3 frame W, +4 frame N
@@ -1020,6 +1190,7 @@ STAIRS = {"N": 180, "W": 183}   # + piece (0 bottom, 1 middle, 2 top)
 FLOORS2 = {"p": 186, "r": 187, "s": 188, "o": 189}
 EXTRA = {"solar": 190, "fan": 192, "floodlight": 193, "barrier": 195, "wire": 197}   # n/w pairs except fan
 LIFT_PANEL = 204            # lift call panel: +0 on a west wall, +1 on a north wall
+PROP2 = 206                 # more furniture (PROPS2): + 2 * k against a north wall, + 1 against a west wall
 
 
 def build_tiles():
@@ -1147,6 +1318,9 @@ def build_tiles():
     put(l0 + 1, tile_gate(lt, "N", False), door_props("N", True, "Lift Door", "SCPLiftDoor"))
     put(l0 + 2, tile_gate(lt, "W", True), door_props("W", False, "Lift Door", "SCPLiftDoor"))
     put(l0 + 3, tile_gate(lt, "N", True), door_props("N", False, "Lift Door", "SCPLiftDoor"))
+    for k, (name, fn) in enumerate(PROPS2):
+        put(PROP2 + 2 * k, fn("n"), prop_props(name.capitalize()))
+        put(PROP2 + 2 * k + 1, fn("w"), prop_props(name.capitalize()))
     pt2 = lift_panel_tex()
     put(LIFT_PANEL, tile_sign(pt2, "W", 0.3, 0.75, 0.3, 0.7), sign_props("W", "Lift Panel"))
     put(LIFT_PANEL + 1, tile_sign(pt2, "N", 0.3, 0.75, 0.3, 0.7), sign_props("N", "Lift Panel"))

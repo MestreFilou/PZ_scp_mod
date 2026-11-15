@@ -561,19 +561,19 @@ LEVELS_ABOVE = [(z, UPPER[z]) for z in (1, 2, 3, 4)]
 # kind -> (loot, zombies outfit/count, scp, count, special)
 T_GUARD = "SCP_ZombieGuard"
 ROOMS = {
-    "classd": dict(loot=["SCP_ClassD_Jumpsuit", 1], props=["bed"]),
+    "classd": dict(loot=["SCP_ClassD_Jumpsuit", 1], props=["bunkbed"]),
     "office": dict(loot=["SCP_Keycard_L1", 1, "SCP_Keycard_L2", 1, "SCP_Document_Containment", 1, "Torch", 1],
-                   props=["desk", "desk", "cabinet", "locker"]),
+                   props=["desk", "desk", "chair", "cabinet", "plant", "whiteboard", "trash"]),
     "director": dict(loot=["SCP_Keycard_L5", 1, "SCP_Document_Containment", 2, "SCP_Document_008", 1],
-                     props=["desk", "cabinet", "cabinet", "shelf", "locker"]),
-    "conference": dict(loot=["SCP_Document_Containment", 1], props=["desk", "desk", "desk", "cabinet"]),
+                     props=["desk", "chair", "sofa", "cabinet", "shelf", "plant", "plant"]),
+    "conference": dict(loot=["SCP_Document_Containment", 1], props=["table", "table", "chair", "chair", "chair", "whiteboard", "plant"]),
     "archive": dict(loot=["SCP_Document_Containment", 2, "SCP_Document_008", 1],
                     props=["shelf", "shelf", "shelf", "cabinet", "cabinet"]),
     "security": dict(loot=["SCP_MTF_Baton", 1, "SCP_MTF_Helmet", 1, "SCP_Keycard_L3", 1, "Torch", 1],
-                     zombies=[T_GUARD, 2], props=["locker", "locker", "desk", "console", "crate"]),
+                     zombies=[T_GUARD, 2], props=["locker", "locker", "desk", "chair", "console", "cooler", "trash"]),
     "guardroom": dict(loot=["SCP_MTF_Baton", 1, "SCP_Keycard_L2", 1, "Torch", 1], zombies=[T_GUARD, 3],
-                      props=["bed", "bed", "bed", "bed", "locker", "locker", "locker"]),
-    "checkpoint": dict(loot=["SCP_Keycard_L3", 1], zombies=[T_GUARD, 1], props=["console", "locker"]),
+                      props=["bunkbed", "bunkbed", "bed", "locker", "locker", "locker", "table", "chair"]),
+    "checkpoint": dict(loot=["SCP_Keycard_L3", 1], zombies=[T_GUARD, 1], props=["console", "chair", "locker"]),
     "armory": dict(loot=["SCP_MTF_Vest", 2, "SCP_MTF_Helmet", 2, "SCP_MTF_Uniform", 2, "SCP_MTF_Knife", 2,
                          "SCP_Keycard_L5", 1],
                    zombies=[T_GUARD, 3], props=["locker", "locker", "locker", "locker", "crate", "crate", "shelf"]),
@@ -586,25 +586,25 @@ ROOMS = {
     "hazmat": dict(loot=["SCP_Hazmat_Suit", 2, "SCP_GasMask", 2, "SCP_GasFilter", 4],
                    props=["locker", "locker", "locker", "shelf", "crate"]),
     "medical": dict(loot=["Bandage", 4, "Pills", 2, "SCP_Keycard_L3", 1],
-                    props=["bed", "bed", "cabinet", "cabinet", "desk"]),
+                    props=["medbed", "medbed", "medbed", "cabinet", "cabinet", "desk", "trash"]),
     "lab": dict(loot=["SCP_LabCoat", 1, "SCP_Hazmat_Suit", 1, "SCP_Document_Containment", 2, "SCP_Keycard_L3", 1],
-                zombies=["SCP_Scientist", 2], props=["desk", "desk", "console", "cabinet", "shelf", "rack"]),
-    "dorm": dict(loot=["Torch", 1], zombies=["SCP_ClassD", 1], props=["bed", "bed", "bed", "locker", "desk"]),
+                zombies=["SCP_Scientist", 2], props=["labbench", "labbench", "labbench", "desk", "chair", "console", "cabinet", "whiteboard"]),
+    "dorm": dict(loot=["Torch", 1], zombies=["SCP_ClassD", 1], props=["bed", "bunkbed", "bed", "locker", "locker", "desk", "chair", "plant"]),
     "showers": dict(loot=["SCP_ClassD_Jumpsuit", 2], zombies=["SCP_ClassD", 2], props=["locker", "locker", "barrel"]),
     "cafeteria": dict(loot=["SCP_Keycard_L1", 1], zombies=["SCP_Scientist", 1], special="scp294",
-                      props=["desk", "desk", "desk", "cabinet"]),
+                      props=["table", "table", "table", "chair", "chair", "vending", "vending", "cooler", "trash", "plant"]),
     "servers": dict(loot=["SCP_Keycard_L4", 1], props=["rack"] * 8 + ["console"]),
     "generators": dict(loot=["SCP_Keycard_L4", 1, "Torch", 1], special="generators", props=["barrel", "barrel", "crate"]),
-    "lobby": dict(loot=["SCP_Keycard_L1", 1], zombies=[T_GUARD, 2], props=["crate", "crate", "console", "locker"]),
+    "lobby": dict(loot=["SCP_Keycard_L1", 1], zombies=[T_GUARD, 2], props=["sofa", "sofa", "plant", "plant", "console", "chair", "cooler", "vending"]),
     "warhead": dict(special="warhead", props=["console", "rack", "rack"]),
     "femur": dict(special="femur", props=["console", "locker"]),
     "scp173": dict(scp="SCP_173"),
     "scp500": dict(loot=["SCP_500_Pill", 1], props=["cabinet"]),
-    "anomalous": dict(loot=["SCP_714_Ring", 1, "SCP_1025_Book", 1], props=["cabinet", "shelf"]),
+    "anomalous": dict(loot=["SCP_714_Ring", 1, "SCP_1025_Book", 1], props=["cabinet", "shelf", "labbench"]),
     "scp914": dict(special="scp914", loot=["SCP_Document_Containment", 1], props=["crate"]),
     "scp939": dict(scp="SCP_939", count=3, props=["crate", "crate", "shelf"]),
     "scp106": dict(scp="SCP_106"),
-    "scp049": dict(scp="SCP_049", loot=["SCP_Keycard_L5", 1], props=["desk", "cabinet", "bed"]),
+    "scp049": dict(scp="SCP_049", loot=["SCP_Keycard_L5", 1], props=["medbed", "labbench", "desk", "chair", "cabinet", "plant"]),
     "scp096": dict(scp="SCP_096"),
     "scp035": dict(loot=["SCP_035_Mask", 1], props=["cabinet"]),
     "scp008": dict(special="scp008", loot=["SCP_008_Sample", 2, "SCP_Document_008", 1, "SCP_GasFilter", 2],
@@ -613,7 +613,7 @@ ROOMS = {
     "scp966": dict(scp="SCP_966", count=2),
     "bunker": dict(zombies=[T_GUARD, 2], props=["crate", "crate", "crate", "barrel", "barrel", "locker", "console"]),
     "gatehouse": dict(loot=["SCP_Keycard_L1", 1, "SCP_Keycard_L2", 1, "Torch", 1], zombies=[T_GUARD, 1],
-                      props=["desk", "locker"]),
+                      props=["desk", "chair", "locker", "cooler"]),
 }
 
 SIGN_FOR = {"scp173": "scp173", "scp914": "scp914", "scp500": "scp500", "scp939": "scp939", "scp106": "scp106",
@@ -834,6 +834,7 @@ def tiles_lua():
     sign_w.update({n: 96 + k for k, n in enumerate(T.SIGNS2)})
     sign_n.update({n: 120 + k for k, n in enumerate(T.SIGNS2)})
     props = {name: T.PROP0 + 2 * k for k, (name, _) in enumerate(T.PROPS)}
+    props.update({name: T.PROP2 + 2 * k for k, (name, _) in enumerate(T.PROPS2)})
     walls.update(x=T.FORT, y=T.WINDOW, p=T.PARAPET)
     extra = dict(T.EXTRA, liftPanel=T.LIFT_PANEL)
     return lua_val(dict(sheet=T.SHEET + "_", walls=walls, pillars=T.PILLARS, floors=T.FLOORS, doors=T.DOORS,

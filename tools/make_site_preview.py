@@ -29,6 +29,7 @@ MACHINES = {"scp914": 1, "scp914In": 0, "scp914Out": 2, "scp294": 3, "terminal":
 WALLS = dict(T.WALLS, f=T.PERIMETER, x=T.FORT, y=T.WINDOW, p=T.PARAPET)
 LOW = {"p"}                     # low walls: no corner tile, no post
 PROPS = {name: T.PROP0 + 2 * k for k, (name, _) in enumerate(T.PROPS)}
+PROPS.update({name: T.PROP2 + 2 * k for k, (name, _) in enumerate(T.PROPS2)})
 SIGN_W = {n: 40 + k for k, n in enumerate(T.SIGNS)}
 SIGN_W.update({n: 96 + k for k, n in enumerate(T.SIGNS2)})
 SIGN_N = {n: 48 + k for k, n in enumerate(T.SIGNS)}
