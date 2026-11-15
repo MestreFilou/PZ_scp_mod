@@ -2,8 +2,8 @@
     Starting occupations: Class-D, Foundation Scientist, MTF Guard.
     Each starts with its gear and, if an SCP site exists, inside it:
       Class-D  -> a Class-D cell (Light Containment)
-      Scientist -> research lab (Entrance Zone)
-      MTF Guard -> security room (Entrance Zone)
+      Scientist -> researchers' office (Entrance Zone), level 3 card
+      MTF Guard -> security room (Entrance Zone), level 4 card
     In single player, if no site exists yet, one is placed on the closest
     open land (no houses) to the spawn point.
 ]]
@@ -21,14 +21,16 @@ P.List = {
         give = {},
     },
     scp_scientist = {
-        room = { "EZ", "lab" },
+        room = { "EZ", "research" },          -- researchers' office (door level 2)
+        card = "SCP_Keycard_L3",              -- opens the labs, the Gate A hall and its own office
         wear = { "SCP_LabCoat" },
-        give = { "SCP_Hazmat_Suit", "SCP_Keycard_L2", "SCP_Document_Containment", "SCP_Document_008", "Torch" },
+        give = { "SCP_Hazmat_Suit", "SCP_Document_Containment", "SCP_Document_008", "Torch" },
     },
     scp_mtf = {
-        room = { "EZ", "security" },
+        room = { "EZ", "security" },          -- security room (door level 2)
+        card = "SCP_Keycard_L4",              -- guards go everywhere but the warhead
         wear = { "SCP_MTF_Uniform", "SCP_MTF_Vest", "SCP_MTF_Helmet" },
-        give = { "SCP_MTF_Baton", "SCP_Keycard_L3", "SCP_GasMask", "SCP_GasFilter", "Torch" },
+        give = { "SCP_MTF_Baton", "SCP_GasMask", "SCP_GasFilter", "Torch" },
     },
 }
 
@@ -126,6 +128,7 @@ SCP.on("OnNewGame", function(player, square)
         local full = t:find("%.") and t or ("Base." .. t)
         pcall(function() player:getInventory():AddItem(full) end)
     end
+    if def.card then player:getInventory():AddItem("Base." .. def.card) end
     player:getModData().SCP_StartRoom = { def.room[1], def.room[2] }
     if not SCP.Facility.origin() and not isClient() then
         local sq = player:getSquare()
@@ -159,6 +162,11 @@ SCP.on("OnTick", function()
                 if sq and sq:getFloor() then
                     SCP.teleport(player, x + 1.5, y + 0.5, z)   -- one tile beside the room's centre
                     md.SCP_StartRoom = nil
+                    -- make sure the keycard is there (it opens the start room's door)
+                    local def = P.List[P.getId(player) or ""]
+                    if def and def.card and not player:getInventory():containsTypeRecurse(def.card) then
+                        player:getInventory():AddItem("Base." .. def.card)
+                    end
                     SCP.say(player, "UI_SCP_StartInSite", 200, 220, 255)
                     -- Class-D wake up in the middle of a containment breach.
                     if start[2] == "classd" then SCP.sendToServer(player, "StartBreach", {}) end
