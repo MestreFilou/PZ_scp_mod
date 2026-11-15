@@ -193,6 +193,13 @@ def draw_level(level, zz, crop, put, grass, open_doors, ground):
                     put(TILES[T.EXTRA[o["ext"]] + (1 if o["face"] == "w" else 0)], x, y, zz)
                 elif k == "liftpanel":
                     put(TILES[T.LIFT_PANEL + (1 if o["north"] else 0)], x, y, zz)
+                elif k == "vprop":
+                    # the game's furniture is not drawn here: the mod's closest tile stands in
+                    stand = L.VPROPS[o["prop"]]["stand"] if "prop" in o else \
+                        ("officechair" if o["s"].startswith("furniture_seating") else None)
+                    face = o.get("face", "n")
+                    if stand:
+                        put(TILES[PROPS[stand] + (0 if face == "n" else 1)], x, y, zz)
                 elif k == "land":
                     put(TILES[LAND[o["land"]] + (0 if o["face"] == "n" else 1)], x, y, zz)
                 elif k == "tree":

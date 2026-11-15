@@ -723,12 +723,84 @@ LEVELS_ABOVE = [(z, UPPER[z]) for z in (1, 2, 3, 4)]
 # Dressing: specials, props, lights, signs
 # ----------------------------------------------------------------------
 
+
+# ----------------------------------------------------------------------
+# The game's own furniture (sprite names, facings and multi-tile parts read
+# from the 42.22 tile definitions). Each entry: face "n" = against a north
+# wall (front looks south), "w" = against a west wall (front looks east);
+# a list of (sprite, dx, dy) pieces (dx east, dy south; several pieces on
+# one tile are stacked: desk, then the computer on it). These are real
+# game objects: desks, cabinets, lockers and fridges can be searched, beds
+# slept in, chairs sat on. "stand" = the mod tile drawn in the previews.
+# ----------------------------------------------------------------------
+
+def _v(sheet, *pieces):
+    return [(f"{sheet}_{i}", dx, dy) for (i, dx, dy) in pieces]
+
+
+OFF1, OFF2 = "location_business_office_generic_01", "location_business_office_generic_02"
+SEAT1, SEAT2, SEAT3 = "furniture_seating_indoor_01", "furniture_seating_indoor_02", "furniture_seating_indoor_03"
+BED, MED = "furniture_bedding_01", "location_community_medical_01"
+SHELF, STOR2 = "furniture_shelving_01", "furniture_storage_02"
+COM, CNT, SINK, FRIDGE = "appliances_com_01", "fixtures_counters_01", "fixtures_sinks_01", "appliances_refrigeration_01"
+
+VPROPS = {
+    # desk (2 tiles) with a computer
+    "desk": dict(stand="workstation",
+                 n=_v(OFF1, (5, 0, 0), (6, 1, 0)) + _v(COM, (72, 0, 0)),
+                 w=_v(OFF1, (1, 0, 0), (0, 0, 1)) + _v(COM, (73, 0, 0))),
+    # the same with its swivel chair in front (the middle of offices)
+    "workstation": dict(stand="workstation",
+                        n=_v(OFF1, (5, 0, 0), (6, 1, 0)) + _v(COM, (72, 0, 0)) + _v(SEAT1, (51, 0, 1)),
+                        w=_v(OFF1, (1, 0, 0), (0, 0, 1)) + _v(COM, (73, 0, 0)) + _v(SEAT1, (48, 1, 0))),
+    "desklamp": dict(stand="desklamp",
+                     n=_v(OFF1, (42, 0, 0), (43, 1, 0)) + _v("lighting_indoor_02", (2, 1, 0)) + _v(OFF2, (20, 0, 0))
+                     + _v(SEAT1, (51, 0, 1)),
+                     w=_v(OFF1, (41, 0, 0), (40, 0, 1)) + _v("lighting_indoor_02", (1, 0, 0)) + _v(OFF2, (23, 0, 1))
+                     + _v(SEAT1, (48, 1, 1))),
+    "cabinet": dict(stand="cabinet", n=_v(OFF1, (16, 0, 0)), w=_v(OFF1, (17, 0, 0))),
+    "locker": dict(stand="locker", n=_v(STOR2, (0, 0, 0)), w=_v(STOR2, (1, 0, 0))),
+    "milocker": dict(stand="locker", n=_v("location_military_generic_01", (22, 0, 0)),
+                     w=_v("location_military_generic_01", (23, 0, 0))),
+    "shelf": dict(stand="shelf", n=_v(SHELF, (26, 0, 0), (27, 1, 0)), w=_v(SHELF, (25, 0, 0), (24, 0, 1))),
+    "bookcase": dict(stand="bookcase", n=_v(SHELF, (40, 0, 0)), w=_v(SHELF, (41, 0, 0))),
+    "bed": dict(stand="bed", n=_v(BED, (35, 0, 0), (34, 0, 1)), w=_v(BED, (32, 0, 0), (33, 1, 0))),
+    "bunkbed": dict(stand="bunkbed", n=_v(BED, (85, 0, 0), (84, 0, 1)), w=_v(BED, (86, 0, 0), (87, 1, 0))),
+    "medbed": dict(stand="medbed", n=_v(BED, (65, 0, 0), (64, 0, 1)), w=_v(BED, (66, 0, 0), (67, 1, 0))),
+    "morguetable": dict(stand="medbed", n=_v(MED, (79, 0, 0), (78, 0, 1)), w=_v(MED, (76, 0, 0), (77, 1, 0))),
+    "sofa": dict(stand="sofa", n=_v(SEAT2, (24, 0, 0), (25, 1, 0)), w=_v(SEAT2, (27, 0, 0), (26, 0, 1))),
+    "armchair": dict(stand="sofa", n=_v(SEAT2, (44, 0, 0)), w=_v(SEAT2, (45, 0, 0))),
+    "chair": dict(stand="chair", n=_v(SEAT3, (69, 0, 0)), w=_v(SEAT3, (68, 0, 0))),
+    "table": dict(stand="table", n=_v("furniture_tables_high_01", (4, 0, 0)), w=_v("furniture_tables_high_01", (5, 0, 0))),
+    "longtable": dict(stand="table", n=_v("furniture_tables_high_02", (16, 0, 0), (17, 1, 0), (18, 2, 0)),
+                      w=_v("furniture_tables_high_02", (21, 0, 0), (20, 0, 1), (19, 0, 2))),
+    "vending": dict(stand="vending", n=_v("location_shop_accessories_01", (17, 0, 0)),
+                    w=_v("location_shop_accessories_01", (16, 0, 0))),
+    "soda": dict(stand="vending", n=_v("location_shop_accessories_01", (19, 0, 0)),
+                 w=_v("location_shop_accessories_01", (18, 0, 0))),
+    "plant": dict(stand="plant", n=_v("vegetation_indoor_01", (12, 0, 0)), w=_v("vegetation_indoor_01", (20, 0, 0))),
+    "cooler": dict(stand="cooler", n=_v(OFF1, (49, 0, 0)), w=_v(OFF1, (48, 0, 0))),
+    "labbench": dict(stand="labbench", n=_v(CNT, (37, 0, 0)), w=_v(CNT, (35, 0, 0))),
+    "microscope": dict(stand="microscope", n=_v(CNT, (77, 0, 0)) + _v(MED, (136, 0, 0)),
+                       w=_v(CNT, (75, 0, 0)) + _v(MED, (137, 0, 0))),
+    "sink": dict(stand="labbench", n=_v(SINK, (33, 0, 0)), w=_v(SINK, (32, 0, 0))),
+    "fridge": dict(stand="cabinet", n=_v(FRIDGE, (40, 0, 0)), w=_v(FRIDGE, (41, 0, 0))),
+    "counter": dict(stand="labbench", n=_v(CNT, (77, 0, 0)), w=_v(CNT, (75, 0, 0))),
+    "medcabinet": dict(stand="cabinet", n=_v(MED, (37, 0, 0)), w=_v(MED, (36, 0, 0))),
+    "whiteboard": dict(stand="whiteboard", wall=True, n=_v(OFF1, (53, 0, 0), (54, 1, 0), (55, 2, 0)),
+                       w=_v(OFF1, (52, 0, 0), (51, 0, 1), (50, 0, 2))),
+    "corkboard": dict(stand=None, wall=True, n=_v(OFF1, (7, 0, 0)), w=_v(OFF1, (15, 0, 0))),
+    "trash": dict(stand="trash", n=_v("trashcontainers_01", (18, 0, 0)), w=_v("trashcontainers_01", (19, 0, 0))),
+    "secconsole": dict(stand="console", n=_v("security_01", (0, 0, 0)), w=_v("security_01", (1, 0, 0))),
+}
+
 # kind -> (loot, zombies outfit/count, scp, count, special)
 T_GUARD = "SCP_ZombieGuard"
+VANILLA = True          # False: only the mod's own furniture tiles
 ROOMS = {
     "classd": dict(loot=["SCP_ClassD_Jumpsuit", 1], props=["bunkbed"]),
     "office": dict(loot=["SCP_Keycard_L1", 1, "SCP_Keycard_L2", 1, "SCP_Document_Containment", 1, "Torch", 1],
-                   props=["bookcase", "printer", "filingboxes", "cabinet", "plant", "whiteboard", "coffee", "trash"],
+                   props=["bookcase", "printer", "cabinet", "cabinet", "plant", "corkboard", "coffee", "trash", "filingboxes"],
                    islands=(4, "workstation")),
     "research": dict(loot=["SCP_LabCoat", 1, "SCP_Keycard_L2", 1, "SCP_Keycard_L3", 1, "SCP_Document_Containment", 2,
                            "Torch", 1],
@@ -737,21 +809,23 @@ ROOMS = {
                             "plant", "plant", "cabinet", "filingboxes", "trash", "cooler"],
                      islands=(12, "workstation")),
     "director": dict(loot=["SCP_Keycard_L5", 1, "SCP_Document_Containment", 2, "SCP_Document_008", 1],
-                     props=["bookcase", "bookcase", "sofa", "cabinet", "coffee", "plant", "plant", "filingboxes"],
+                     props=["bookcase", "bookcase", "sofa", "armchair", "cabinet", "coffee", "plant", "plant", "corkboard"],
                      islands=(1, "desklamp")),
-    "conference": dict(loot=["SCP_Document_Containment", 1], props=["table", "table", "chair", "chair", "chair", "whiteboard", "plant"]),
+    "conference": dict(loot=["SCP_Document_Containment", 1], props=["whiteboard", "longtable", "chair", "chair", "chair",
+                                                                     "plant", "coffee", "cabinet"],
+                       islands=(1, "longtable")),
     "archive": dict(loot=["SCP_Document_Containment", 2, "SCP_Document_008", 1],
                     props=["shelf", "bookcase", "shelf", "bookcase", "cabinet", "cabinet", "filingboxes", "filingboxes"],
                     islands=(1, "desklamp")),
     "security": dict(loot=["SCP_MTF_Baton", 1, "SCP_MTF_Helmet", 1, "SCP_Keycard_L3", 1, "Torch", 1],
-                     zombies=[T_GUARD, 2], props=["locker", "locker", "console", "cooler", "trash", "rack"],
+                     zombies=[T_GUARD, 2], props=["secconsole", "locker", "locker", "cooler", "trash", "rack", "corkboard"],
                      islands=(2, "workstation")),
     "guardroom": dict(loot=["SCP_MTF_Baton", 1, "SCP_Keycard_L2", 1, "Torch", 1], zombies=[T_GUARD, 3],
-                      props=["bunkbed", "bunkbed", "bed", "locker", "locker", "locker", "table", "chair"]),
+                      props=["bunkbed", "bunkbed", "bunkbed", "milocker", "milocker", "milocker", "table", "chair", "trash"]),
     "checkpoint": dict(loot=["SCP_Keycard_L3", 1], zombies=[T_GUARD, 1], props=["console", "chair", "locker"]),
     "armory": dict(loot=["SCP_MTF_Vest", 2, "SCP_MTF_Helmet", 2, "SCP_MTF_Uniform", 2, "SCP_MTF_Knife", 2,
                          "SCP_Keycard_L5", 1],
-                   zombies=[T_GUARD, 3], props=["locker", "locker", "locker", "locker", "crate", "crate", "shelf"]),
+                   zombies=[T_GUARD, 3], props=["milocker", "milocker", "milocker", "milocker", "shelf", "crate", "crate", "shelf"]),
     "lockers": dict(loot=["SCP_MTF_Uniform", 1, "SCP_MTF_Helmet", 1, "SCP_GasMask", 1, "SCP_GasFilter", 2],
                     zombies=[T_GUARD, 2], props=["locker"] * 7),
     "storage": dict(loot=["SCP_GasMask", 1, "SCP_GasFilter", 3, "SCP_Hazmat_Suit", 1, "SCP_Keycard_L2", 1, "Torch", 1],
@@ -761,17 +835,18 @@ ROOMS = {
     "hazmat": dict(loot=["SCP_Hazmat_Suit", 2, "SCP_GasMask", 2, "SCP_GasFilter", 4],
                    props=["locker", "locker", "locker", "shelf", "crate"]),
     "medical": dict(loot=["Bandage", 4, "Pills", 2, "SCP_Keycard_L3", 1],
-                    props=["medbed", "medbed", "medbed", "cabinet", "cabinet", "desk", "trash"]),
+                    props=["medbed", "medbed", "medbed", "medcabinet", "medcabinet", "sink", "fridge", "desk", "trash", "plant"]),
     "lab": dict(loot=["SCP_LabCoat", 1, "SCP_Hazmat_Suit", 1, "SCP_Document_Containment", 2, "SCP_Keycard_L3", 1],
-                zombies=["SCP_Scientist", 2], props=["labbench", "labbench", "microscope", "microscope", "console", "cabinet", "whiteboard", "trash"],
+                zombies=["SCP_Scientist", 2], props=["labbench", "sink", "microscope", "microscope", "fridge", "console", "cabinet", "whiteboard", "trash"],
                 islands=(2, "workstation")),
-    "dorm": dict(loot=["Torch", 1], zombies=["SCP_ClassD", 1], props=["bed", "bunkbed", "bed", "locker", "locker", "desk", "chair", "plant"]),
+    "dorm": dict(loot=["Torch", 1], zombies=["SCP_ClassD", 1], props=["bed", "bunkbed", "bed", "locker", "locker", "desk", "armchair", "plant", "trash"]),
     "showers": dict(loot=["SCP_ClassD_Jumpsuit", 2], zombies=["SCP_ClassD", 2], props=["locker", "locker", "barrel"]),
     "cafeteria": dict(loot=["SCP_Keycard_L1", 1], zombies=["SCP_Scientist", 1], special="scp294",
-                      props=["table", "table", "table", "chair", "chair", "vending", "vending", "cooler", "trash", "plant"]),
+                      props=["counter", "counter", "fridge", "sink", "vending", "soda", "cooler", "trash", "plant", "corkboard"],
+                      islands=(6, "longtable")),
     "servers": dict(loot=["SCP_Keycard_L4", 1], props=["rack"] * 8 + ["console"]),
     "generators": dict(loot=["SCP_Keycard_L4", 1, "Torch", 1], special="generators", props=["barrel", "barrel", "crate"]),
-    "lobby": dict(loot=["SCP_Keycard_L1", 1], zombies=[T_GUARD, 2], props=["sofa", "sofa", "plant", "plant", "console", "chair", "cooler", "vending"]),
+    "lobby": dict(loot=["SCP_Keycard_L1", 1], zombies=[T_GUARD, 2], props=["sofa", "sofa", "armchair", "plant", "plant", "secconsole", "cooler", "vending", "soda"]),
     "lobbyb": dict(loot=["SCP_Keycard_L2", 1, "Torch", 1], zombies=[T_GUARD, 2],
                    props=["crate", "crate", "crate", "barrel", "barrel", "console", "chair", "locker", "shelf"]),
     "warhead": dict(special="warhead", props=["console", "rack", "rack"]),
@@ -785,11 +860,14 @@ ROOMS = {
     "scp106pit": dict(scp="SCP_106", loot=["SCP_Document_Containment", 1]),
     "stairs049": dict(props=["locker", "chair", "plant"]),
     "obs049": dict(loot=["SCP_Document_Containment", 1, "SCP_Keycard_L4", 1], zombies=["SCP_Scientist", 1],
-                   props=["console", "desk", "chair", "chair", "whiteboard", "cabinet"]),
-    "morgue": dict(loot=["Bandage", 2], zombies=["SCP_ClassD", 3], props=["medbed", "medbed", "medbed", "cabinet", "trash"]),
+                   props=["secconsole", "desk", "chair", "whiteboard", "cabinet", "fridge", "coffee"],
+                   islands=(1, "workstation")),
+    "morgue": dict(loot=["Bandage", 2], zombies=["SCP_ClassD", 3],
+                   props=["morguetable", "morguetable", "morguetable", "fridge", "fridge", "sink", "medcabinet", "trash"]),
     "surgery": dict(loot=["Bandage", 3, "Pills", 1], zombies=["SCP_Scientist", 1],
-                    props=["medbed", "labbench", "labbench", "cabinet", "trash"]),
-    "scp049": dict(scp="SCP_049", loot=["SCP_Keycard_L5", 1], props=["medbed", "labbench", "desk", "chair", "cabinet", "plant"]),
+                    props=["medbed", "counter", "sink", "medcabinet", "medcabinet", "microscope", "trash"],
+                    islands=(1, "morguetable")),
+    "scp049": dict(scp="SCP_049", loot=["SCP_Keycard_L5", 1], props=["bed", "bookcase", "desklamp", "armchair", "medcabinet", "microscope", "plant", "corkboard"]),
     "scp096": dict(scp="SCP_096"),
     "scp035": dict(loot=["SCP_035_Mask", 1], props=["cabinet"]),
     "scp008": dict(special="scp008", loot=["SCP_008_Sample", 2, "SCP_Document_008", 1, "SCP_GasFilter", 2],
@@ -798,7 +876,7 @@ ROOMS = {
     "scp966": dict(scp="SCP_966", count=2),
     "bunker": dict(zombies=[T_GUARD, 2], props=["crate", "crate", "crate", "barrel", "barrel", "locker", "console"]),
     "gatehouse": dict(loot=["SCP_Keycard_L1", 1, "SCP_Keycard_L2", 1, "Torch", 1], zombies=[T_GUARD, 1],
-                      props=["desk", "chair", "locker", "cooler"]),
+                      props=["desk", "secconsole", "locker", "cooler", "trash"]),
 }
 
 SIGN_FOR = {"scp173": "scp173", "scp914": "scp914", "scp500": "scp500", "scp939": "scp939", "scp106": "scp106",
@@ -865,35 +943,48 @@ def dress(level):
                 gx = x0 + 1 + i * 3
                 level.objects.append(dict(kind="generator", x=gx, y=y0, n=i + 1)); take(gx, y0)
 
+        def place(prop, face, x, y):
+            """Puts one piece of furniture with its corner on (x, y) if all its tiles are free."""
+            v = VPROPS.get(prop) if VANILLA else None
+            if not v:
+                if not free(x, y):
+                    return False
+                level.objects.append(dict(kind="prop", prop=prop, face=face, x=x, y=y)); take(x, y)
+                return True
+            cells = {(x + dx, y + dy) for (_, dx, dy) in v[face]}
+            if not all(free(cx_, cy_) for cx_, cy_ in cells):
+                return False
+            for k, (sprite, dx, dy) in enumerate(v[face]):
+                o = dict(kind="vprop", s=sprite, x=x + dx, y=y + dy)
+                if k == 0:
+                    o.update(prop=prop, face=face)    # the previews draw the mod's tile there
+                level.objects.append(o)
+            for c in cells:
+                take(*c)
+            return True
+
         # furniture along the north and west walls (the two walls that face the camera)
         slots = [(x, y0, "n") for x in range(x0, x1 + 1)] + [(x0, y, "w") for y in range(y0 + 1, y1 + 1)]
         rng.shuffle(slots)
         for prop in spec.get("props", []):
-            while slots:
-                x, y, face = slots.pop()
-                if free(x, y):
-                    level.objects.append(dict(kind="prop", prop=prop, face=face, x=x, y=y)); take(x, y)
+            tries = list(slots)
+            for (x, y, face) in tries:
+                if place(prop, face, x, y):
+                    slots.remove((x, y, face))
                     break
 
         # desks in the middle of the room, each with its chair on its south side,
-        # in rows two tiles apart with an aisle every third column
+        # in rows with an aisle between the desks
         count, desk = spec.get("islands", (0, None))
+        step = 3 if VANILLA else 2
         for y in range(y0 + 2, y1, 3):
-            for x in range(x0 + 2, x1):
-                if count <= 0 or (x - x0) % 3 == 1:
-                    continue
-                if free(x, y) and free(x, y + 1) and y + 1 <= y1:
-                    level.objects.append(dict(kind="prop", prop=desk, face="n", x=x, y=y)); take(x, y)
-                    level.objects.append(dict(kind="prop", prop="officechair", face="n", x=x, y=y + 1))
-                    take(x, y + 1)
+            for x in range(x0 + 2, x1, step):
+                if count > 0 and place(desk, "n", x, y):
                     count -= 1
         if count > 0 and spec.get("islands") and x1 - x0 >= 2 and y1 - y0 >= 2:
             # small room: one desk in the middle
             for x, y in ((cx + 1, cy), (cx - 1, cy), (cx + 1, cy - 1), (cx - 1, cy - 1), (cx, cy - 1)):
-                if y + 1 <= y1 and free(x, y) and free(x, y + 1):
-                    level.objects.append(dict(kind="prop", prop=desk, face="n", x=x, y=y)); take(x, y)
-                    level.objects.append(dict(kind="prop", prop="officechair", face="n", x=x, y=y + 1))
-                    take(x, y + 1)
+                if place(desk, "n", x, y):
                     break
 
         # room sign, on the room's own north wall

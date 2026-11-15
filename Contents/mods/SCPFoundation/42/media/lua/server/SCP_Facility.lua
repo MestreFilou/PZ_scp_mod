@@ -329,9 +329,52 @@ local function addContainer(obj, name)
     end
 end
 
+-- A few things in the game's furniture, by container type (item, chance in %).
+local FURNITURE_LOOT = {
+    desk = { { "Base.SheetPaper2", 60 }, { "Base.Pen", 50 }, { "Base.Pencil", 40 }, { "Base.Notebook", 25 },
+             { "SCP_Document_Containment", 8 }, { "SCP_Keycard_L1", 6 } },
+    filingcabinet = { { "Base.SheetPaper2", 70 }, { "Base.Notebook", 20 }, { "SCP_Document_Containment", 15 },
+                      { "SCP_Document_008", 4 } },
+    shelves = { { "Base.Book", 40 }, { "Base.Notebook", 25 }, { "SCP_Document_Containment", 6 } },
+    metal_shelves = { { "Base.Torch", 15 }, { "Base.Battery", 25 }, { "SCP_GasFilter", 10 }, { "Base.DuctTape", 15 } },
+    locker = { { "SCP_LabCoat", 10 }, { "Base.WaterBottle", 20 }, { "Base.Torch", 10 } },
+    militarylocker = { { "SCP_MTF_Helmet", 15 }, { "SCP_MTF_Baton", 15 }, { "SCP_GasMask", 10 }, { "SCP_Keycard_L2", 8 } },
+    medicine = { { "Base.Bandage", 60 }, { "Base.Pills", 30 }, { "Base.AlcoholWipes", 30 }, { "SCP_500_Pill", 1 } },
+    sidetable = { { "Base.Bandage", 30 }, { "Base.Pills", 20 }, { "Base.SheetPaper2", 30 } },
+    fridge = { { "Base.WaterBottle", 50 }, { "Base.Pop", 30 }, { "Base.Sandwich", 15 } },
+    counter = { { "Base.Mugl", 30 }, { "Base.SheetPaper2", 20 } },
+}
+
+-- One piece of the game's own furniture. Its containers come from the
+-- sprite's properties, the way the game places a moveable.
+local function placeVanilla(sq, sprite)
+    local obj = addObject(sq, sprite, nil, true)
+    if not obj then return end
+    pcall(obj.createContainersFromSpriteProperties, obj)
+    local n = 0
+    pcall(function() n = obj:getContainerCount() end)
+    for i = 0, n - 1 do
+        local c = obj:getContainerByIndex(i)
+        if c then
+            pcall(c.setExplored, c, true)
+            local list = FURNITURE_LOOT[c:getType()]
+            for _, e in ipairs(list or {}) do
+                if ZombRand(100) < e[2] then
+                    local item = e[1]
+                    if not item:find("%.") then item = "Base." .. item end
+                    local sm = getScriptManager and getScriptManager()
+                    if not sm or sm:FindItem(item) then pcall(c.AddItem, c, item) end
+                end
+            end
+        end
+    end
+end
+
 local function placeObject(sq, o)
     local k = o.kind
-    if k == "prop" then
+    if k == "vprop" then
+        placeVanilla(sq, o.s)
+    elseif k == "prop" then
         addObject(sq, tile(TL.props[o.prop] + (o.face == "w" and 1 or 0)), nil, true)
     elseif k == "sign" then
         local n = (o.north and TL.signN or TL.signW)[o.sign]
