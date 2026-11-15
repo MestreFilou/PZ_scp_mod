@@ -62,3 +62,8 @@ The SCP Foundation universe itself is CC BY-SA 3.0 (http://scp-wiki.wikidot.com/
 | `SCP_TeslaZap.ogg` | `SFX/Room/Tesla/Shock.ogg` |
 
 Generated placeholders (made for this mod, no third-party rights): `SCP_BreachVoice.ogg`, `SCP_PillSwallow.ogg`, `SCP207_Open.ogg`, `SCP018_Bounce.ogg`.
+
+## Sounds made for this mod
+
+`SCP_ShockMaul_Hit1.ogg` to `SCP_ShockMaul_Hit3.ogg`, `SCP_ShockMaul_Swing.ogg`, `SCP_ShockMaul_Charge.ogg`
+and `SCP_ShockMaul_Empty.ogg` are synthesised by `tools/make_weapon_sounds.py` (no recordings used).

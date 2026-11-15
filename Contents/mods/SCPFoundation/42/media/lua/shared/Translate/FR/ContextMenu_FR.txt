@@ -53,4 +53,5 @@ ContextMenu_FR = {
     ContextMenu_SCP_458 = "Ouvrir la boîte et manger une part",
     ContextMenu_SCP_427 = "Ouvrir / fermer le médaillon",
     ContextMenu_SCP_018 = "Lancer la balle",
+    ContextMenu_SCP_ShockMaul = "Recharger avec une pile",
 }

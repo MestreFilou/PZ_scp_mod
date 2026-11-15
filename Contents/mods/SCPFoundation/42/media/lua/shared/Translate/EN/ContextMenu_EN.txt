@@ -53,4 +53,5 @@ ContextMenu_EN = {
     ContextMenu_SCP_458 = "Open the box and eat a slice",
     ContextMenu_SCP_427 = "Open / close the locket",
     ContextMenu_SCP_018 = "Throw the ball",
+    ContextMenu_SCP_ShockMaul = "Recharge with a battery",
 }

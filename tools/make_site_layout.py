@@ -909,7 +909,7 @@ ROOMS = {
                             "SCP_109_Canteen", 1], zombies=[T_GUARD, 3],
                       props=["bunkbed", "bunkbed", "bunkbed", "milocker", "milocker", "milocker", "table", "chair", "trash"]),
     "checkpoint": dict(loot=["SCP_Keycard_L3", 1], zombies=[T_GUARD, 1], props=["console", "chair", "locker"]),
-    "armory": dict(loot=["SCP_MTF_Vest", 2, "SCP_MTF_Helmet", 2, "SCP_MTF_Uniform", 2, "SCP_MTF_Knife", 2,
+    "armory": dict(loot=["SCP_MTF_Vest", 2, "SCP_MTF_Helmet", 2, "SCP_MTF_Uniform", 2, "SCP_MTF_Knife", 2, "SCP_ShockMaul", 1, "Base.Battery", 2,
                          "SCP_Keycard_L5", 1, "Base.AssaultRifle", 2, "Base.556Clip", 3, "Base.556Box", 2, "Base.Pistol", 2, "Base.9mmClip", 2, "Base.Bullets9mmBox", 2, "Base.Shotgun", 1, "Base.ShotgunShellsBox", 2],
                    zombies=[T_GUARD, 3], props=["milocker", "milocker", "milocker", "milocker", "shelf", "crate", "crate", "shelf"]),
     "lockers": dict(loot=["SCP_MTF_Uniform", 1, "SCP_MTF_Helmet", 1, "SCP_GasMask", 1, "SCP_GasFilter", 2,

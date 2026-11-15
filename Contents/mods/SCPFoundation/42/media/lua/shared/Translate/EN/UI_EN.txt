@@ -141,4 +141,8 @@ UI_EN = {
     UI_SCP_427_Mutate = "Your flesh is changing!",
     UI_SCP_018_Throw = "The ball bounces faster and faster!",
     UI_SCP_018_Ouch = "The ball hits you!",
+    UI_SCP_ShockMaul_Charge = "Shock maul: %1 / %2 charges",
+    UI_SCP_ShockMaul_Low = "The maul is almost empty.",
+    UI_SCP_ShockMaul_Empty = "The maul is empty. Recharge it with a battery.",
+    UI_SCP_ShockMaul_NoBattery = "You need a battery with some power left.",
 }

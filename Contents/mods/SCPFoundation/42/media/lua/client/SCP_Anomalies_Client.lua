@@ -81,7 +81,18 @@ local function onFillInventoryMenu(playerNum, context, items)
         if type(entry) == "table" and entry.items then item = entry.items[1] end
         local info = item and item.getFullType and SCP.Anomalies.ACTIONS[item:getFullType()]
         if info then
-            context:addOption(getText(info.text), item, onUse, playerNum, info)
+            local option = context:addOption(getText(info.text), item, onUse, playerNum, info)
+            if info.needsBattery then
+                local player = getSpecificPlayer(playerNum)
+                local charge = SCP.Anomalies.maulCharge(item)
+                local tip = ISToolTip:new()
+                tip:initialise()
+                tip.description = getText("UI_SCP_ShockMaul_Charge", charge, SCP.Anomalies.MAUL_MAX)
+                option.toolTip = tip
+                if charge >= SCP.Anomalies.MAUL_MAX or not SCP.Anomalies.batteryWithPower(player) then
+                    option.notAvailable = true
+                end
+            end
             return
         end
     end

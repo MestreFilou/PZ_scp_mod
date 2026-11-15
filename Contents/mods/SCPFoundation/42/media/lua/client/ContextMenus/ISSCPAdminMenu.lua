@@ -68,7 +68,7 @@ local function onFillWorldMenu(playerNum, context, worldobjects, test)
         for _, t in ipairs({ "SCP_500_Pill", "SCP_GasMask", "SCP_GasFilter", "SCP_Hazmat_Suit", "SCP_LabCoat",
             "SCP_MTF_Helmet", "SCP_MTF_Vest", "SCP_MTF_Uniform", "SCP_ClassD_Jumpsuit", "SCP_035_Mask",
             "SCP_714_Ring", "SCP_NVG", "SCP_1025_Book", "SCP_008_Sample", "SCP_Document_008",
-            "SCP_207", "SCP_268", "SCP_330", "SCP_005_Key", "SCP_109_Canteen", "SCP_458_PizzaBox", "SCP_427", "SCP_018" }) do
+            "SCP_207", "SCP_268", "SCP_330", "SCP_005_Key", "SCP_109_Canteen", "SCP_458_PizzaBox", "SCP_427", "SCP_018", "SCP_ShockMaul", "Battery" }) do
             inv:AddItem("Base." .. t)
         end
         -- A flashlight with batteries (item names differ between builds).

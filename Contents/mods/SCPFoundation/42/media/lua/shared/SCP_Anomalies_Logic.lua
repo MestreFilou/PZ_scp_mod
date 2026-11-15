@@ -12,6 +12,8 @@
                flesh starts to change (heavy damage).
       SCP-018  super ball: thrown, it bounces faster and faster for a few
                seconds and hurts whatever it hits, its thrower included.
+    Also here: recharging the shock maul with a battery (its hits are in
+    client/SCP_ShockMaul_Client.lua).
     The use actions are in client/SCP_Anomalies_Client.lua; SCP.Anomalies.use
     runs on the side that owns the player (single player, or the server).
 ]]
@@ -178,6 +180,43 @@ local function updateBalls()
 end
 SCP.on("OnTick", updateBalls)
 
+-- Shock maul: the charge lives in the weapon's mod data (full when found).
+A.MAUL_MAX = 20
+function A.maulCharge(item)
+    local md = item:getModData()
+    if md.SCP_Charge == nil then md.SCP_Charge = A.MAUL_MAX end
+    return md.SCP_Charge
+end
+
+local function batteryWithPower(player)
+    local list = player:getInventory():getAllTypeRecurse("Base.Battery")
+    local best, bestUses = nil, 0
+    for i = 0, list:size() - 1 do
+        local b = list:get(i)
+        local uses = try(b, "getCurrentUsesFloat") or try(b, "getUsedDelta") or 0
+        if uses > bestUses then best, bestUses = b, uses end
+    end
+    return best, bestUses
+end
+A.batteryWithPower = batteryWithPower
+
+effects["Base.SCP_ShockMaul"] = function(player, item)
+    local battery, uses = batteryWithPower(player)
+    if not battery then
+        SCP.say(player, "UI_SCP_ShockMaul_NoBattery", 200, 200, 200)
+        return
+    end
+    local md = item:getModData()
+    local missing = A.MAUL_MAX - A.maulCharge(item)
+    local gain = math.min(missing, math.max(1, math.floor(uses * A.MAUL_MAX + 0.5)))
+    md.SCP_Charge = md.SCP_Charge + gain
+    local left = math.max(0, uses - gain / A.MAUL_MAX)
+    if try(battery, "setCurrentUsesFloat", left) == nil then try(battery, "setUsedDelta", left) end
+    try(battery, "syncItemFields")
+    try(item, "syncItemModData")
+    SCP.say(player, "UI_SCP_ShockMaul_Charge", 140, 200, 255, md.SCP_Charge, A.MAUL_MAX)
+end
+
 -- What each anomaly's action is called, its animation and length (ticks).
 A.ACTIONS = {
     ["Base.SCP_207"] = { text = "ContextMenu_SCP_207", anim = "Drink", time = 60, sound = "SCP_207_Open" },
@@ -187,6 +226,8 @@ A.ACTIONS = {
     ["Base.SCP_458_PizzaBox"] = { text = "ContextMenu_SCP_458", anim = "Eat", time = 120 },
     ["Base.SCP_427"] = { text = "ContextMenu_SCP_427", anim = "Loot", time = 20 },
     ["Base.SCP_018"] = { text = "ContextMenu_SCP_018", anim = "Loot", time = 15 },
+    ["Base.SCP_ShockMaul"] = { text = "ContextMenu_SCP_ShockMaul", anim = "Loot", time = 90, sound = "SCP_ShockMaul_Charge",
+                               needsBattery = true },
 }
 
 function A.use(player, item)

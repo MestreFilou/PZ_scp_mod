@@ -39,4 +39,5 @@ ItemName_FR = {
     ItemName_Base.SCP_458_PizzaBox = "SCP-458 (Boîte à pizza sans fin)",
     ItemName_Base.SCP_427 = "SCP-427 (Médaillon lovecraftien)",
     ItemName_Base.SCP_018 = "SCP-018 (Super balle)",
+    ItemName_Base.SCP_ShockMaul = "Masse à choc de confinement",
 }

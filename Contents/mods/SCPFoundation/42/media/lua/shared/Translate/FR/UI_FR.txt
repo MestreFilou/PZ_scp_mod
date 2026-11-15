@@ -141,4 +141,8 @@ UI_FR = {
     UI_SCP_427_Mutate = "Ta chair se déforme !",
     UI_SCP_018_Throw = "La balle rebondit de plus en plus vite !",
     UI_SCP_018_Ouch = "La balle te frappe !",
+    UI_SCP_ShockMaul_Charge = "Masse à choc : %1 / %2 charges",
+    UI_SCP_ShockMaul_Low = "La masse est presque vide.",
+    UI_SCP_ShockMaul_Empty = "La masse est vide. Recharge-la avec une pile.",
+    UI_SCP_ShockMaul_NoBattery = "Il te faut une pile qui n'est pas vide.",
 }

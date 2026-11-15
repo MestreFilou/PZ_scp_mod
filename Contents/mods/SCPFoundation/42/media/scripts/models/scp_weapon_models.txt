@@ -1,0 +1,15 @@
+/* SCP Foundation - models of the mod's own weapons (made by tools/make_weapon_models.py).
+   Same axes as the game's weapons: long side along +Y, grip at the origin. */
+module Base
+{
+    model SCP_ShockMaul
+    {
+        mesh = static/weapons/SCP_ShockMaul,
+        texture = weapons/SCP_ShockMaul,
+        attachment world
+        {
+            offset = 0.0000 0.5500 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+        }
+    }
+}
