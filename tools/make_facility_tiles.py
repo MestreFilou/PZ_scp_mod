@@ -1205,6 +1205,151 @@ def prop_desklamp(f):
     return finish(img)
 
 
+# ----------------------------------------------------------------------
+# Surroundings: fence, gravel, dirt, vegetation (tiles 248+)
+# ----------------------------------------------------------------------
+
+def tile_fence(side):
+    """Chain-link fence, 1 storey, with three strands of barbed wire on top and a post at each end."""
+    img = Image.new("RGBA", (TW * SS, TH * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    H = 0.82
+    def P(a, z):
+        return proj(WALL_T / 2, 1 - a, z) if side == "W" else proj(a, WALL_T / 2, z)
+    mesh = (150, 156, 160, 150)
+    n = 14
+    for k in range(n + 1):           # diagonal mesh
+        a = k / n
+        d.line([P(a, 0.02), P(min(1, a + 0.25), H)], fill=mesh, width=SS)
+        d.line([P(a, 0.02), P(max(0, a - 0.25), H)], fill=mesh, width=SS)
+    for z in (0.02, H):
+        d.line([P(0, z), P(1, z)], fill=(110, 116, 120, 255), width=2 * SS)
+    for z in (H + 0.05, H + 0.1, H + 0.15):
+        d.line([P(0, z), P(1, z)], fill=(70, 74, 78, 255), width=SS)
+    for a in (0.0, 1.0):
+        d.line([P(a, 0), P(a, H + 0.16)], fill=(80, 86, 90, 255), width=3 * SS)
+    return finish(img)
+
+
+def tile_fence_post():
+    img = Image.new("RGBA", (TW * SS, TH * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.line([proj(0, 0, 0), proj(0, 0, 0.98)], fill=(80, 86, 90, 255), width=3 * SS)
+    return finish(img)
+
+
+def floor_gravel():
+    g = np.random.default_rng(301)
+    a = base(FLOOR, FLOOR, "#8e8a80", 22, 10, 302)
+    for _ in range(900):
+        u, v = g.random(), g.random()
+        c = ["#6f6b62", "#a9a59b", "#7d786d", "#b8b3a8"][int(g.random() * 4)]
+        rect(a, u, v, min(1, u + 0.012), min(1, v + 0.012), c)
+    return to_img(a)
+
+
+def floor_dirt():
+    a = base(FLOOR, FLOOR, "#6e5a40", 16, 22, 303)
+    g = np.random.default_rng(304)
+    for _ in range(140):      # tufts of grass
+        u, v = g.random(), g.random()
+        rect(a, u, v, min(1, u + 0.03), min(1, v + 0.02), ["#4f6b34", "#5d7a3a", "#435c2c"][int(g.random() * 3)], 0.9)
+    return to_img(a)
+
+
+def prop_bush(f):
+    img = Image.new("RGBA", (TW * SS, TH * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    g = np.random.default_rng(305 + (f == "w"))
+    for _ in range(46):
+        x, y = 0.2 + g.random() * 0.6, 0.2 + g.random() * 0.6
+        z = g.random() * 0.32
+        cx, cy = proj(x, y, z)
+        r = (8 + g.random() * 10) * SS
+        col = (40 + int(g.random() * 40), 80 + int(g.random() * 60), 30 + int(g.random() * 25), 255)
+        d.ellipse([cx - r, cy - r * 0.8, cx + r, cy + r * 0.8], fill=col)
+    return finish(img)
+
+
+def prop_pine(f):
+    """Small conifer (a stand-in when the game's own trees cannot be used)."""
+    img = Image.new("RGBA", (TW * SS, TH * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    bx, by = proj(0.5, 0.5, 0)
+    d.rectangle([bx - 4 * SS, by - 30 * SS, bx + 4 * SS, by], fill=(84, 60, 40, 255))
+    g = np.random.default_rng(307 + (f == "w"))
+    tiers = 5
+    for t in range(tiers):
+        z0 = 0.14 + t * 0.15
+        w = (46 - t * 8) * SS
+        _, ty = proj(0.5, 0.5, z0)
+        _, tt = proj(0.5, 0.5, z0 + 0.28)
+        base_col = (34 + t * 4, 70 + t * 6, 40 + t * 2, 255)
+        d.polygon([(bx - w, ty), (bx + w, ty), (bx, tt)], fill=base_col)
+        d.polygon([(bx, ty), (bx + w, ty), (bx, tt)], fill=tuple(int(c * 0.78) for c in base_col[:3]) + (255,))
+    return finish(img)
+
+
+def prop_rocks(f):
+    img = Image.new("RGBA", (TW * SS, TH * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    g = np.random.default_rng(309 + (f == "w"))
+    for _ in range(5):
+        x, y = 0.25 + g.random() * 0.5, 0.25 + g.random() * 0.5
+        cx, cy = proj(x, y, 0)
+        r = (10 + g.random() * 14) * SS
+        v = 110 + int(g.random() * 40)
+        d.ellipse([cx - r, cy - r * 0.9, cx + r, cy + r * 0.3], fill=(v, v, v - 6, 255))
+        d.ellipse([cx - r * 0.6, cy - r * 0.85, cx + r * 0.3, cy - r * 0.2], fill=(v + 25, v + 25, v + 20, 255))
+    return finish(img)
+
+
+def prop_sandbags(f):
+    img = canvas()
+    bag = base(64, 32, "#a8946a", 6, 8, 311)
+    rect(bag, 0, 0.45, 1, 0.55, "#8f7c56")
+    t = to_img(bag)
+    for row, z in enumerate((0, 0.08, 0.16)):
+        off = 0.08 * (row % 2)
+        for k in range(3):
+            x0 = 0.06 + off + k * 0.3
+            if x0 + 0.28 <= 1.0:
+                box(img, f, x0, 0.32, x0 + 0.28, 0.6, z, z + 0.08, t, t, t)
+    return finish(img)
+
+
+def prop_warnsign(f):
+    """Free-standing 'Restricted area' sign on two posts."""
+    img = canvas()
+    tex = label_tex(["RESTRICTED", "AREA"], bg=(232, 232, 226, 255), fg=(170, 30, 25, 255), bar=(170, 30, 25, 255))
+    leg = to_img(base(8, 64, "#5a5e62", 2, 2, 312))
+    for x in (0.25, 0.71):
+        box(img, f, x, 0.48, x + 0.04, 0.52, 0, 0.42, leg, leg, leg)
+    side = to_img(base(16, 64, "#c9ccce", 2, 2, 313))
+    box(img, f, 0.16, 0.47, 0.84, 0.5, 0.36, 0.66, side, tex, side)
+    return finish(img)
+
+
+def prop_camonet(f):
+    """Camouflage net on poles, a little above head height."""
+    img = Image.new("RGBA", (TW * SS, TH * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    for (x, y) in ((0.05, 0.05), (0.95, 0.95)):
+        d.line([proj(x, y, 0), proj(x, y, 0.62)], fill=(70, 60, 45, 255), width=2 * SS)
+    g = np.random.default_rng(314 + (f == "w"))
+    for _ in range(120):
+        x, y = g.random(), g.random()
+        cx, cy = proj(x, y, 0.62 - 0.06 * abs(x - y))
+        r = (5 + g.random() * 7) * SS
+        col = [(70, 82, 48), (96, 90, 60), (52, 62, 38), (110, 104, 74)][int(g.random() * 4)] + (235,)
+        d.ellipse([cx - r, cy - r * 0.6, cx + r, cy + r * 0.6], fill=col)
+    return finish(img)
+
+
+LAND = [("bush", prop_bush), ("pine", prop_pine), ("rocks", prop_rocks), ("sandbags", prop_sandbags),
+        ("warnsign", prop_warnsign), ("camonet", prop_camonet)]
+
+
 PROPS2 = [("chair", prop_chair), ("table", prop_table), ("sofa", prop_sofa), ("vending", prop_vending),
           ("plant", prop_plant), ("cooler", prop_cooler), ("bunkbed", prop_bunkbed), ("medbed", prop_medbed),
           ("labbench", prop_labbench), ("whiteboard", prop_whiteboard), ("trash", prop_trash),
@@ -1332,7 +1477,7 @@ def prop_props(label):
 
 SHEET = "scp_facility_02"
 COLS = 8
-ROWS = 31
+ROWS = 34
 
 # Where everything is on the sheet (also written into the mod as Lua by tools/make_site_layout.py).
 WALLS = {"a": 0, "b": 8, "c": 16, "d": 56, "e": 64}      # +0 W, +1 N, +2 NW, +3 frame W, +4 frame N
@@ -1341,7 +1486,10 @@ PILLARS = {"a": 63, "b": 62, "c": 70, "d": 61, "e": 69, "f": 71, "x": 173, "y": 
 FLOORS = {"t": 5, "h": 6, "c": 13, "g": 14, "e": 15, "m": 21, "a": 75, "k": 76, "roof": 77,
           "p": 186, "r": 187, "s": 188, "o": 189}
 DOORS = {"standard": 24, "heavy": 28, "gate": 80, "lift": 200}   # +0 W, +1 N, +2 open W, +3 open N
-FITTINGS = {"pipes": 84, "vent": 86}                        # +0 W, +1 N
+FITTINGS = {"pipes": 84, "vent": 86}
+FENCE = 248                 # chain-link fence: +0 W, +1 N, +2 post (corner)
+FLOORS3 = {"v": 251, "u": 252}   # gravel, dirt with grass
+LAND0 = 254                 # LAND props: + 2 * k (n), + 1 (w)                        # +0 W, +1 N
 SIGNS = ["ez", "lcz", "hcz", "logo", "danger"]              # 40 + k (W), 48 + k (N)
 SIGNS2 = ["scp173", "scp914", "scp500", "scp939", "scp106", "scp049", "scp096", "scp035", "scp008", "scp079",
           "scp966", "warhead", "femur", "electric", "gatea", "cafeteria", "medical", "security",
@@ -1486,6 +1634,19 @@ def build_tiles():
     for k, (name, fn) in enumerate(PROPS2):
         put(PROP2 + 2 * k, fn("n"), prop_props(name.capitalize()))
         put(PROP2 + 2 * k + 1, fn("w"), prop_props(name.capitalize()))
+    for k, side in enumerate(("W", "N")):
+        put(FENCE + k, tile_fence(side),
+            [("CustomName", "Fence"), ("GroupName", "SCP"), ("Wall" + side + "Trans", ""), ("wall", ""),
+             ("TallHoppable" + side, ""), ("MaterialType", "Metal")])
+    put(FENCE + 2, tile_fence_post(), [("CustomName", "Fence Post"), ("GroupName", "SCP"), ("MaterialType", "Metal")])
+    put(FLOORS3["v"], tile_floor(floor_gravel()), floor_props("Gravel"))
+    put(FLOORS3["u"], tile_floor(floor_dirt()), floor_props("Dirt"))
+    for k, (name, fn) in enumerate(LAND):
+        lp = [("CustomName", name.capitalize()), ("GroupName", "SCP")]
+        if name in ("sandbags", "rocks", "pine", "warnsign"):
+            lp.append(("solidtrans", ""))
+        put(LAND0 + 2 * k, fn("n"), lp)
+        put(LAND0 + 2 * k + 1, fn("w"), lp)
     pt2 = lift_panel_tex()
     put(LIFT_PANEL, tile_sign(pt2, "W", 0.3, 0.75, 0.3, 0.7), sign_props("W", "Lift Panel"))
     put(LIFT_PANEL + 1, tile_sign(pt2, "N", 0.3, 0.75, 0.3, 0.7), sign_props("N", "Lift Panel"))

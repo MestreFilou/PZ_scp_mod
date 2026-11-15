@@ -563,6 +563,103 @@ for (x, y, prop) in ((12, 100, "crate"), (13, 100, "crate"), (12, 101, "barrel")
                      (57, 134, "barrel"), (20, 128, "crate")):
     S.objects.append(dict(kind="prop", prop=prop, face="n" if (x + y) % 2 else "w", x=x, y=y))
 
+# ---- surroundings: blend the site into the countryside ------------------
+#   - a gravel patrol strip along the outside of the outer wall and the hangar
+#   - a chain-link fence with barbed wire further out, crossed by the two roads
+#   - between fence and wall the ground is kept but cleared ('n'), with
+#     sandbags, floodlights and warning signs
+#   - outside the fence: a forest edge (trees thinning out away from the
+#     fence, bushes, rocks), dirt shoulders along the roads
+FENCE_RECT = (3, 79, 97, 145)        # tiles inside the fence
+land_rng = random.Random(1999)
+
+
+def ground(x, y, ch, only_empty=True):
+    if 0 < x < W - 1 and 0 < y < H and (not only_empty or S.floor[y][x] == " ") and not S.reg[y][x]:
+        S.floor[y][x] = ch
+
+
+# cleared ground inside the fence
+for y in range(FENCE_RECT[1], FENCE_RECT[3] + 1):
+    for x in range(FENCE_RECT[0], FENCE_RECT[2] + 1):
+        ground(x, y, "n")
+# gravel strips
+for y in range(COMPOUND[1] - 2, COMPOUND[3] + 3):
+    for x in range(COMPOUND[0] - 2, COMPOUND[2] + 3):
+        if S.floor[y][x] == "n":
+            S.floor[y][x] = "v"
+for y in range(HANGAR[1] - 2, HANGAR[3] + 1):
+    for x in range(HANGAR[0] - 2, HANGAR[2] + 3):
+        if S.floor[y][x] == "n":
+            S.floor[y][x] = "v"
+# path between the compound strip and the hangar strip
+for y in range(110, 112):
+    for x in range(COMPOUND[2] + 3, HANGAR[0] - 2):
+        if S.floor[y][x] == "n":
+            S.floor[y][x] = "v"
+# dirt shoulders along the roads, outside the compound
+for y in range(COMPOUND[3] + 4, H):
+    for x in (ROAD[0] - 1, ROAD[1] + 1):
+        if S.floor[y][x] in " n":
+            S.floor[y][x] = "u"
+for y in range(HANGAR[3] + 5, H):
+    for x in (ROADB[0] - 1, ROADB[1] + 1):
+        if S.floor[y][x] in " n":
+            S.floor[y][x] = "u"
+
+# the fence (open where the roads cross it)
+road_cols = set(range(ROAD[0] - 1, ROAD[1] + 2)) | set(range(ROADB[0] - 1, ROADB[1] + 2))
+fx0, fy0, fx1, fy1 = FENCE_RECT
+for x in range(fx0, fx1 + 1):
+    S.extra_walls[(x, fy0, True)] = "q"
+    if x not in road_cols:
+        S.extra_walls[(x, fy1 + 1, True)] = "q"
+for y in range(fy0, fy1 + 1):
+    S.extra_walls[(fx0, y, False)] = "q"
+    S.extra_walls[(fx1 + 1, y, False)] = "q"
+for x in (ROAD[0] - 2, ROAD[1] + 2, ROADB[0] - 2, ROADB[1] + 2):
+    ext(S, "floodlight", x, fy1)
+    S.objects.append(dict(kind="land", land="warnsign", face="n", x=x, y=fy1 + 1))
+# barrier across Gate B road at the fence
+for x in (ROADB[0], ROADB[0] + 1, ROADB[1] - 1, ROADB[1]):
+    ext(S, "barrier", x, fy1 + 2)
+
+# sandbag posts and floodlights in the cleared zone, signs on the fence
+for (x, y) in ((5, 82), (5, 141), (95, 82), (95, 141), (50, 81), (20, 81), (76, 130)):
+    S.objects.append(dict(kind="land", land="sandbags", face="n", x=x, y=y))
+for (x, y) in ((5, 100), (5, 120), (95, 100), (95, 125), (30, 80), (65, 80), (88, 80)):
+    ext(S, "floodlight", x, y)
+for x in range(fx0 + 6, fx1, 12):
+    S.objects.append(dict(kind="land", land="warnsign", face="n", x=x, y=fy0 - 1))
+for y in range(fy0 + 8, fy1, 14):
+    S.objects.append(dict(kind="land", land="warnsign", face="w", x=fx0 - 1, y=y))
+for (x, y) in ((76, 113), (77, 113), (76, 114)):
+    S.objects.append(dict(kind="land", land="camonet", face="n", x=x, y=y))
+
+# forest edge outside the fence: thick near it, thinning out
+def dist_to_fence(x, y):
+    dx = max(fx0 - x, 0, x - fx1)
+    dy = max(fy0 - y, 0, y - fy1)
+    return max(dx, dy)
+
+
+taken_land = {(o["x"], o["y"]) for o in S.objects}
+for y in range(1, H - 1):
+    for x in range(1, W - 1):
+        if S.floor[y][x] != " " or S.reg[y][x] or (x, y) in taken_land:
+            continue
+        d = dist_to_fence(x, y)
+        if d < 2:
+            continue
+        p_tree = 0.32 if d <= 8 else 0.16
+        r = land_rng.random()
+        if r < p_tree:
+            S.objects.append(dict(kind="tree", n=land_rng.randrange(1000), x=x, y=y))
+        elif r < p_tree + 0.06:
+            S.objects.append(dict(kind="land", land="bush", face=land_rng.choice("nw"), x=x, y=y))
+        elif r < p_tree + 0.075:
+            S.objects.append(dict(kind="land", land="rocks", face=land_rng.choice("nw"), x=x, y=y))
+
 # ---- levels above -----------------------------------------------------
 U1, U2, U3 = UPPER[1], UPPER[2], UPPER[3]
 
@@ -941,6 +1038,10 @@ def level_lua(level, key, z=None):
     return "\n".join(out)
 
 
+TREE_SPRITES = ["e_americanholly_1_", "e_canadianhemlock_1_", "e_virginiapine_1_", "e_riverbirch_1_",
+                "e_redmaple_1_", "e_dogwood_1_"]
+
+
 def tiles_lua():
     walls = dict(T.WALLS, f=T.PERIMETER)
     sign_w = {n: 40 + k for k, n in enumerate(T.SIGNS)}
@@ -949,11 +1050,15 @@ def tiles_lua():
     sign_n.update({n: 120 + k for k, n in enumerate(T.SIGNS2)})
     props = {name: T.PROP0 + 2 * k for k, (name, _) in enumerate(T.PROPS)}
     props.update({name: T.PROP2 + 2 * k for k, (name, _) in enumerate(T.PROPS2)})
-    walls.update(x=T.FORT, y=T.WINDOW, p=T.PARAPET)
+    walls.update(x=T.FORT, y=T.WINDOW, p=T.PARAPET, q=T.FENCE)
+    land = {name: T.LAND0 + 2 * k for k, (name, _) in enumerate(T.LAND)}
+    # the game's own trees, tried in this order; the mod's pine when none is found
+    trees = TREE_SPRITES
     extra = dict(T.EXTRA, liftPanel=T.LIFT_PANEL)
-    return lua_val(dict(sheet=T.SHEET + "_", walls=walls, pillars=T.PILLARS, floors=T.FLOORS, doors=T.DOORS,
+    floors = dict(T.FLOORS, **T.FLOORS3)
+    return lua_val(dict(sheet=T.SHEET + "_", walls=walls, pillars=T.PILLARS, floors=floors, doors=T.DOORS,
                         fittings=T.FITTINGS, signW=sign_w, signN=sign_n, props=props, stairs=T.STAIRS,
-                        ext=extra, lowWalls=dict(p=True)))
+                        ext=extra, lowWalls=dict(p=True, q=True), land=land, trees=trees))
 
 
 def write_lua():
@@ -1008,7 +1113,8 @@ D.upper = {{}}
 
 FLOOR_RGB = {"c": (150, 150, 146), "t": (214, 214, 208), "m": (92, 96, 100), "g": (60, 64, 70), "h": (226, 178, 30),
              "e": (240, 200, 40), "a": (70, 72, 76), "k": (128, 130, 126), "p": (176, 178, 176), "r": (90, 88, 60),
-             "s": (200, 200, 196), "o": (160, 162, 160)}
+             "s": (200, 200, 196), "o": (160, 162, 160),
+             "n": (58, 80, 50), "v": (140, 136, 126), "u": (110, 92, 64)}
 ZONE_TINT = {"LCZ": (236, 222, 150), "HCZ": (200, 96, 84), "EZ": (120, 160, 214), "SURFACE": (150, 170, 150)}
 SCP_RGB = (176, 60, 52)
 
@@ -1038,9 +1144,9 @@ def draw_level(level, px, crop, title, labels=True):
                 col = tuple((a * 3 + b) // 4 for a, b in zip(col, t))
             d.rectangle([ox + x * px, oy + y * px, ox + x * px + px - 1, oy + y * px + px - 1], fill=col)
     for o in level.objects:
-        if o["kind"] in ("sign", "pipes", "vent"):
+        if o["kind"] in ("sign", "pipes", "vent") or not (x0 <= o["x"] <= x1 and y0 <= o["y"] <= y1):
             continue
-        col = (120, 86, 50) if o["kind"] == "prop" else (60, 200, 220)
+        col = {"prop": (120, 86, 50), "tree": (24, 46, 26), "land": (90, 120, 60)}.get(o["kind"], (60, 200, 220))
         d.rectangle([ox + o["x"] * px + 2, oy + o["y"] * px + 2, ox + o["x"] * px + px - 3, oy + o["y"] * px + px - 3], fill=col)
     for t in level.tesla:
         d.rectangle([ox + t["x"] * px + 1, oy + t["y"] * px + 1, ox + t["x"] * px + px - 2, oy + t["y"] * px + px - 2],
@@ -1054,7 +1160,8 @@ def draw_level(level, px, crop, title, labels=True):
                 if ch.isupper():
                     d.line(line, fill=(40, 220, 90), width=3)
                 else:
-                    d.line(line, fill=(250, 250, 250) if ch not in "fx" else (230, 160, 60), width=2)
+                    d.line(line, fill=(250, 250, 250) if ch not in "fxq" else
+                            (230, 160, 60) if ch != "q" else (170, 176, 180), width=2)
     for dr in level.doors:
         if dr.get("gate"):
             X, Y = ox + dr["x"] * px, oy + dr["y"] * px
@@ -1086,8 +1193,8 @@ def draw_level(level, px, crop, title, labels=True):
 def write_plan():
     px = 13
     a = draw_level(U, px, (0, 0, W - 1, 122), "Sous-sol : zone de confinement léger (haut), lourd (milieu), zone d'entrée (bas)")
-    b = draw_level(S, px, (4, 82, 75, H - 1), "Surface : route, enceinte, cours, bâtiment de la Porte A, tour de guet")
-    c = draw_level(L, 10, (8, 49, 73, 72), "Niveau inférieur : aile SCP-049, fond de la fosse de SCP-106")
+    b = draw_level(S, px, (0, 76, W - 1, H - 1), "Surface : enceinte, Porte A, hangar de la Porte B, clôture, lisière de forêt")
+    c = draw_level(L, 9, (8, 49, 73, 72), "Niveau inférieur : aile SCP-049, fond de la fosse de SCP-106")
     legend = Image.new("RGB", (b.width, a.height - b.height - c.height), (16, 17, 19))
     d = ImageDraw.Draw(legend)
     f = ImageFont.truetype(FONT, 15)

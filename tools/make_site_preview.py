@@ -26,8 +26,15 @@ OLD = Image.open(os.path.join(ART, "scp_facility_01_tilesheet.png")).convert("RG
 OLD_TILES = {i: OLD.crop(((i % 8) * 128, (i // 8) * 256, (i % 8) * 128 + 128, (i // 8) * 256 + 256)) for i in range(16)}
 MACHINES = {"scp914": 1, "scp914In": 0, "scp914Out": 2, "scp294": 3, "terminal": 4, "generator": 5, "warhead": 6,
             "femur": 6}
-WALLS = dict(T.WALLS, f=T.PERIMETER, x=T.FORT, y=T.WINDOW, p=T.PARAPET)
-LOW = {"p"}                     # low walls: no corner tile, no post
+WALLS = dict(T.WALLS, f=T.PERIMETER, x=T.FORT, y=T.WINDOW, p=T.PARAPET, q=T.FENCE)
+FLOOR_TILES = dict(T.FLOORS, **T.FLOORS3)
+LAND = {name: T.LAND0 + 2 * k for k, (name, _) in enumerate(T.LAND)}
+LOW = {"p", "q"}
+# the game's trees are about two storeys tall: the preview draws the pine twice as big
+TREE_BIG = []
+for _k in (0, 1):
+    _t = TILES[LAND["pine"] + _k]
+    TREE_BIG.append(_t.resize((_t.width * 2, _t.height * 2), Image.LANCZOS))                     # low walls: no corner tile, no post
 PROPS = {name: T.PROP0 + 2 * k for k, (name, _) in enumerate(T.PROPS)}
 PROPS.update({name: T.PROP2 + 2 * k for k, (name, _) in enumerate(T.PROPS2)})
 SIGN_W = {n: 40 + k for k, n in enumerate(T.SIGNS)}
@@ -74,8 +81,13 @@ def render(level, crop, title, scale=0.5, open_doors=(), roofs=False, dim=1.0, a
             d.line([(0, yy), (img.width, yy)], fill=col)
     grass = [grass_tile(i) for i in range(5)]
 
-    def put(tile, x, y, z=0):
-        img.alpha_composite(tile, (ox + (x - y) * 64 - (x0 - y0) * 64, oy + (x + y - x0 - y0) * 32 - z * 192))
+    def put(tile, x, y, z=0, dx=0, dy=0):
+        px = ox + (x - y) * 64 - (x0 - y0) * 64 + dx
+        py = oy + (x + y - x0 - y0) * 32 - z * 192 + dy
+        if px < 0 or py < 0:
+            tile = tile.crop((max(0, -px), max(0, -py), tile.width, tile.height))
+            px, py = max(0, px), max(0, py)
+        img.alpha_composite(tile, (px, py))
 
     for zz, lvl in [(0, level)] + [(z, l) for z, l in above if z not in hide]:
         draw_level(lvl, zz, crop, put, grass, open_doors, ground=(zz == 0))
@@ -143,8 +155,11 @@ def draw_level(level, zz, crop, put, grass, open_doors, ground):
                 continue
             fl = level.floor[y][x]
             rock = fl == " "
-            if not rock:
-                put(TILES[T.FLOORS[fl]], x, y, zz)
+            if fl == "n":
+                if ground:
+                    put(grass[(x * 31 + y * 17) % 5], x, y, zz)
+            elif not rock:
+                put(TILES[FLOOR_TILES[fl]], x, y, zz)
             elif ground and level is L.S:
                 put(grass[(x * 31 + y * 17) % 5], x, y, zz)
             wc, nc = west[y][x], north[y][x]
@@ -178,6 +193,10 @@ def draw_level(level, zz, crop, put, grass, open_doors, ground):
                     put(TILES[T.EXTRA[o["ext"]] + (1 if o["face"] == "w" else 0)], x, y, zz)
                 elif k == "liftpanel":
                     put(TILES[T.LIFT_PANEL + (1 if o["north"] else 0)], x, y, zz)
+                elif k == "land":
+                    put(TILES[LAND[o["land"]] + (0 if o["face"] == "n" else 1)], x, y, zz)
+                elif k == "tree":
+                    put(TREE_BIG[o["n"] % 2], x, y, zz, -64, -224)
                 elif k == "stairs":
                     put(TILES[T.STAIRS[o["dir"]] + o["piece"]], x, y, zz)
                 elif k in MACHINES:
@@ -188,9 +207,9 @@ def main():
     U, S = L.build()
     above = L.LEVELS_ABOVE
     shots = [
-        ("rendu_exterieur_site", S, (-6, 74, 104, 160),
-         "Site SCP vu de l'extérieur : route, enceinte en béton, tour de guet, cours, bâtiment de la Porte A, hangar de la Porte B",
-         0.3, dict(above=above, sky=True, frame=(4, 80, 96, 158))),
+        ("rendu_exterieur_site", S, (-4, 66, 103, 158),
+         "Site SCP vu de l'extérieur : route, enceinte en béton, tour de guet, bâtiment de la Porte A, hangar de la Porte B, clôture et lisière de forêt",
+         0.3, dict(above=above, sky=True, frame=(-2, 70, 101, 156))),
         ("preview_gateb", S, (74, 98, 98, 128), "Porte B : hangar et monte-charge (toit retiré), sa propre route", 0.5,
          dict(above=above, hide=(1, 2, 3, 4), open_doors=("B",))),
         ("preview_surface_open", S, (24, 98, 56, 141), "Bâtiment de la Porte A, toit retiré : la cabine d'ascenseur",

@@ -207,6 +207,67 @@ local function clearSquare(sq)
     end
 end
 
+-- Removes only plants (trees, bushes, tall grass) from a square: used for
+-- the cleared ground between the fence and the wall, and under the fence.
+local function isPlant(o)
+    if instanceof(o, "IsoTree") then return true end
+    local sp = o:getSprite() and o:getSprite():getName()
+    if not sp then return false end
+    return sp:find("^e_") or sp:find("^vegetation_") or sp:find("^f_bushes") or sp:find("^d_plants")
+        or sp:find("^d_generic") or sp:find("^blends_grass")
+end
+
+local function clearPlants(sq)
+    local floor = sq:getFloor()
+    local objs = sq:getObjects()
+    for i = objs:size() - 1, 0, -1 do
+        local o = objs:get(i)
+        if o ~= floor and isPlant(o) then
+            if isServer() then
+                pcall(sq.transmitRemoveItemFromSquare, sq, o)
+            else
+                pcall(sq.RemoveTileObject, sq, o)
+            end
+        end
+    end
+end
+
+-- Natural ground with nothing on it (where a tree may be planted).
+local function bareGrass(sq)
+    local floor = sq:getFloor()
+    local sp = floor and floor:getSprite() and floor:getSprite():getName()
+    if not sp or not sp:find("^blends_natural") then return false end
+    return sq:getObjects():size() <= 1 and not (sq.getBuilding and sq:getBuilding())
+end
+
+local treeSprites = nil
+local function getTreeSprites()
+    if treeSprites then return treeSprites end
+    treeSprites = {}
+    for _, prefix in ipairs(TL.trees or {}) do
+        for _, i in ipairs({ 3, 2, 1, 0 }) do
+            if spriteOk(prefix .. i) then
+                table.insert(treeSprites, prefix .. i)
+                break
+            end
+        end
+    end
+    return treeSprites
+end
+
+local function plantTree(sq, n)
+    local list = getTreeSprites()
+    if #list > 0 and IsoTree then
+        local sprite = list[(n % #list) + 1]
+        local ok, tree = pcall(IsoTree.new, sq, sprite)
+        if ok and tree then
+            sq:AddTileObject(tree)
+            return
+        end
+    end
+    addObject(sq, tile(TL.land.pine + (n % 2)), nil, true)
+end
+
 local function addDoor(sq, north, d)
     local base = d.lift and TL.doors.lift or d.gate and TL.doors.gate or (d.heavy and TL.doors.heavy or TL.doors.standard)
     local sprite = resolve(tile(base + (north and 1 or 0)))
@@ -277,6 +338,13 @@ local function placeObject(sq, o)
     elseif k == "ext" then
         local i0 = TL.ext[o.ext]
         if i0 then addObject(sq, tile(i0 + (o.face == "w" and 1 or 0)), nil, true) end
+    elseif k == "land" then
+        local i0 = TL.land and TL.land[o.land]
+        if i0 and (o.land ~= "bush" and o.land ~= "rocks" or bareGrass(sq)) then
+            addObject(sq, tile(i0 + (o.face == "w" and 1 or 0)), nil, true)
+        end
+    elseif k == "tree" then
+        if bareGrass(sq) then plantTree(sq, o.n or 0) end
     elseif k == "stairs" then
         addStairs(sq, o.dir, o.piece)
     elseif k == "pipes" or k == "vent" then
@@ -364,9 +432,13 @@ local function buildTile(level, ix, lx, ly, x, y, z, surface)
     local sq = getCell():getOrCreateGridSquare(x, y, z)
     if not sq then return end
 
-    if fl ~= " " then
+    if fl == "n" then
+        clearPlants(sq)                 -- cleared ground: keep it, take the plants away
+    elseif fl ~= " " then
         if surface then clearSquare(sq) end
         addFloor(sq, tile(TL.floors[fl] or TL.floors.c), surface)
+    elseif surface and (west ~= "." or north ~= ".") then
+        clearPlants(sq)                 -- the fence line outside the cleared zone
     end
 
     if west ~= "." and north ~= "." and west == north and west:lower() == west and not TL.lowWalls[west] then
