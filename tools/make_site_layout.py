@@ -33,7 +33,7 @@ PLAN_OUT = os.path.join(ROOT, "art", "site_plan.png")
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
-W, H = 80, 156
+W, H = 100, 156
 ANCHOR = (40, 155)      # end of the access road: where it meets the town road, where the admin clicks
 
 # Wall styles (letters used in the edge layers)
@@ -311,10 +311,6 @@ R("storage", "EZ", 48, 113, 10, 6, "Quai de livraison", level=2); D(52, 112)
 R("director", "EZ", 60, 113, 9, 6, "Bureau du directeur", level=4, heavy=False); D(64, 112)
 
 LIFT = (39, 116)   # 2x2 platform, same tiles on the surface
-for dx in (0, 1):
-    for dy in (0, 1):
-        U.floor[LIFT[1] + dy][LIFT[0] + dx] = "e"
-        U.lifts.append(dict(x=LIFT[0] + dx, y=LIFT[1] + dy, link="A"))
 
 # Tesla gates (a line across a hallway)
 U.tesla += [dict(x=16, y=48, north=False), dict(x=16, y=49, north=False),
@@ -353,19 +349,31 @@ L.objects += [dict(kind="sign", sign="scp106", north=True, x=19, y=53)]
 #   floors and the barbed wire are on the levels above (UPPER).
 # ----------------------------------------------------------------------
 
-def lift_cabin(level, gate, label):
-    """Walls on three sides of the lift, sliding doors on the south side,
-    and the call panel inside on the west wall."""
-    for dy in (0, 1):
-        level.extra_walls[(LIFT[0], LIFT[1] + dy, False)] = "e"
-        level.extra_walls[(LIFT[0] + 2, LIFT[1] + dy, False)] = "e"
-    for dx in (0, 1):
-        level.extra_walls[(LIFT[0] + dx, LIFT[1], True)] = "e"
-        level.edge_door(LIFT[0] + dx, LIFT[1] + 2, True, level=0, gate=gate, frame=False, lift=True)
-    level.objects.append(dict(kind="liftpanel", north=False, x=LIFT[0], y=LIFT[1] + 1, level=label, link="A"))
+def lift_cabin(level, gate, label, at=LIFT, size=2, link="A"):
+    """Platform, walls on three sides of the lift, sliding doors on the south
+    side, and the call panel inside on the west wall."""
+    for dx in range(size):
+        for dy in range(size):
+            level.floor[at[1] + dy][at[0] + dx] = "e"
+            level.lifts.append(dict(x=at[0] + dx, y=at[1] + dy, link=link))
+    for dy in range(size):
+        level.extra_walls[(at[0], at[1] + dy, False)] = "e"
+        level.extra_walls[(at[0] + size, at[1] + dy, False)] = "e"
+    for dx in range(size):
+        level.extra_walls[(at[0] + dx, at[1], True)] = "e"
+        level.edge_door(at[0] + dx, at[1] + size, True, level=0, gate=gate, frame=False, lift=True)
+    level.objects.append(dict(kind="liftpanel", north=False, x=at[0], y=at[1] + size - 1, level=label, link=link))
 
+
+# Gate B: a 3x3 freight lift at the far east end of the Entrance Zone, up to
+# a hangar outside the compound with its own road (the second way out).
+LIFTB = (85, 108)
+C("EZ", 72, 110, 79, 111)
+R("lobbyb", "EZ", 81, 104, 11, 12, "Hall de la Porte B", level=3)
+D(80, 110, level=3, heavy=True); D(80, 111, level=3, heavy=True)
 
 lift_cabin(U, "LIFT_EZ", "SITE")
+lift_cabin(U, "LIFTB_EZ", "SITE", at=LIFTB, size=3, link="B")
 
 S = Level("surface", False)
 UPPER = {z: Level(f"upper{z}", False) for z in (1, 2, 3, 4)}
@@ -470,11 +478,31 @@ for y in (104, 105, 108, 109, 114, 115, 118, 119):
     S.extra_walls[(BUILDING[0], y, False)] = "y"
     S.extra_walls[(BUILDING[2] + 1, y, False)] = "y"
 
-for dx in (0, 1):
-    for dy in (0, 1):
-        S.floor[LIFT[1] + dy][LIFT[0] + dx] = "e"
-        S.lifts.append(dict(x=LIFT[0] + dx, y=LIFT[1] + dy, link="A"))
 lift_cabin(S, "LIFT_SURFACE", "SURFACE")
+
+# Gate B hangar, east of the compound, with its own road to the south
+HANGAR = (80, 102, 93, 117)
+GATEB_X = (85, 86, 87, 88)
+ROADB = (84, 89)
+building("lobbyb", "Hangar de la Porte B", HANGAR, level=3, heavy=False)
+lift_cabin(S, "LIFTB_SURFACE", "SURFACE", at=LIFTB, size=3, link="B")
+wall_box(S, *HANGAR, "x")
+for x in GATEB_X:
+    del S.extra_walls[(x, HANGAR[3] + 1, True)]
+    S.edge_door(x, HANGAR[3] + 1, True, level=3, heavy=True, gate="B", frame=False)
+for x in (81, 82, 83, 90, 91, 92):
+    S.extra_walls[(x, HANGAR[3] + 1, True)] = "y"
+for y in (104, 105, 110, 111):
+    S.extra_walls[(HANGAR[0], y, False)] = "y"
+    S.extra_walls[(HANGAR[2] + 1, y, False)] = "y"
+apron_b = S.new_region(kind="apron", zone="SURFACE", style="x", name="Parvis de la Porte B")
+S.fill(apron_b, HANGAR[0], HANGAR[3] + 1, HANGAR[2], HANGAR[3] + 4, "a")
+road_b = S.new_region(kind="road", zone="SURFACE", style="x", name="Route de la Porte B")
+S.fill(road_b, ROADB[0], HANGAR[3] + 5, ROADB[1], H - 1, "a")
+for y in range(HANGAR[3] + 5, H):
+    S.floor[y][87] = "r"
+S.objects += [dict(kind="sign", sign="gateb", north=True, x=84, y=HANGAR[3] + 1),
+              dict(kind="sign", sign="logo", north=True, x=89, y=HANGAR[3] + 1)]
 
 building("gatehouse", "Poste de garde", GUARD)
 S.edge_door(GUARD[2] + 1, 135, False, level=0)
@@ -522,7 +550,7 @@ S.objects += [dict(kind="sign", sign="gatea", north=True, x=37, y=BUILDING[3] + 
               dict(kind="sign", sign="danger", north=True, x=43, y=INNER_Y),
               dict(kind="sign", sign="security", north=False, x=GUARD[2] + 1, y=134),
               dict(kind="sign", sign="electric", north=True, x=59, y=POWER[3] + 1)]
-for (x, y) in ((27, 127), (52, 127), (10, 130), (60, 128), (36, 99), (43, 99), (24, 86), (56, 123),
+for (x, y) in ((80, 119), (93, 119), (27, 127), (52, 127), (10, 130), (60, 128), (36, 99), (43, 99), (24, 86), (56, 123),
                (10, 123), (70, 86)):
     ext(S, "floodlight", x, y)
 for (x, y, f) in ((37, 150, "n"), (38, 150, "n"), (41, 152, "n"), (42, 152, "n"),
@@ -557,14 +585,15 @@ for y in range(INNER_Y, INNER_Y + 1):
             U1.objects.append(dict(kind="ext", ext="wire", face="n", x=x, y=y))
 
 # roofs with a low wall around them
-for rect in (BUILDING, GUARD, GARAGE, POWER):
+for rect in (BUILDING, GUARD, GARAGE, POWER, HANGAR):
     paint(U1, *rect, "o")
     wall_box(U1, *rect, "p")
 # rooftop of the main building: solar panels and ventilation units, like the reference
 for y in (104, 107, 110):
     for x in list(range(29, 35)) + list(range(45, 51)):
         ext(U1, "solar", x, y)
-for (x, y) in ((38, 105), (41, 105), (38, 109), (41, 109), (63, 91), (59, 91)):
+for (x, y) in ((38, 105), (41, 105), (38, 109), (41, 109), (63, 91), (59, 91), (82, 104), (91, 104),
+               (82, 114), (91, 114)):
     ext(U1, "fan", x, y)
 for x in range(30, 50, 3):
     ext(U1, "solar", x, 114)
@@ -635,6 +664,8 @@ ROOMS = {
     "servers": dict(loot=["SCP_Keycard_L4", 1], props=["rack"] * 8 + ["console"]),
     "generators": dict(loot=["SCP_Keycard_L4", 1, "Torch", 1], special="generators", props=["barrel", "barrel", "crate"]),
     "lobby": dict(loot=["SCP_Keycard_L1", 1], zombies=[T_GUARD, 2], props=["sofa", "sofa", "plant", "plant", "console", "chair", "cooler", "vending"]),
+    "lobbyb": dict(loot=["SCP_Keycard_L2", 1, "Torch", 1], zombies=[T_GUARD, 2],
+                   props=["crate", "crate", "crate", "barrel", "barrel", "console", "chair", "locker", "shelf"]),
     "warhead": dict(special="warhead", props=["console", "rack", "rack"]),
     "femur": dict(special="femur", props=["console", "locker"]),
     "scp173": dict(scp="SCP_173"),
@@ -665,7 +696,7 @@ ROOMS = {
 SIGN_FOR = {"scp173": "scp173", "scp914": "scp914", "scp500": "scp500", "scp939": "scp939", "scp106": "scp106",
             "scp049": "scp049", "stairs049": "scp049", "obs049": "scp049", "scp096": "scp096", "scp035": "scp035", "scp008": "scp008", "scp079": "scp079",
             "scp966": "scp966", "warhead": "warhead", "femur": "femur", "armory": "danger", "generators": "electric",
-            "electric": "electric", "bunker": "gatea", "lobby": "gatea", "cafeteria": "cafeteria",
+            "electric": "electric", "bunker": "gatea", "lobby": "gatea", "lobbyb": "gateb", "cafeteria": "cafeteria",
             "medical": "medical", "security": "security", "checkpoint": "security", "guardroom": "security"}
 
 
@@ -688,7 +719,7 @@ def dress(level):
         spec = ROOMS.get(r["kind"], {})
         x0, y0, x1, y1 = r["x0"], r["y0"], r["x1"], r["y1"]
         cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
-        if r["kind"] in ("bunker", "lobby"):
+        if r["kind"] in ("bunker", "lobby", "lobbyb"):
             cx, cy = x0 + 2, cy   # keep the lift platform clear
         r["cx"], r["cy"] = cx, cy
         take(cx, cy)

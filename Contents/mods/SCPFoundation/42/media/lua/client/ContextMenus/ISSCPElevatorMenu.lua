@@ -1,6 +1,6 @@
 --[[
-    The Gate A lift, between the main building on the surface and the
-    Entrance Zone. Step into the cabin (sliding doors), right click the
+    The lifts between the surface and the Entrance Zone: Gate A (main
+    building) and Gate B (freight lift, up to the hangar east of the compound). Step into the cabin (sliding doors), right click the
     call panel on its wall (or the platform) -> pick the floor. The doors
     close, the cabin moves, the doors of the other floor open.
 
@@ -44,12 +44,14 @@ local function findElevatorObject(worldobjects)
     return nil
 end
 
--- Lift platform in plan tiles: x0, y0, x1, y1.
-local function platform()
+-- Platform of one lift (link "A" = Gate A, "B" = Gate B) in plan tiles: x0, y0, x1, y1.
+local function platform(link)
     local r = { x0 = 9999, y0 = 9999, x1 = -1, y1 = -1 }
     for _, l in ipairs(D.surface.lifts) do
-        r.x0, r.y0 = math.min(r.x0, l.x), math.min(r.y0, l.y)
-        r.x1, r.y1 = math.max(r.x1, l.x), math.max(r.y1, l.y)
+        if (l.link or "A") == (link or "A") then
+            r.x0, r.y0 = math.min(r.x0, l.x), math.min(r.y0, l.y)
+            r.x1, r.y1 = math.max(r.x1, l.x), math.max(r.y1, l.y)
+        end
     end
     return r
 end
@@ -102,8 +104,11 @@ local function restoreFloors(removed)
     end
 end
 
--- Sliding doors of the lift on one floor (gate ids from the site plan).
-local DOOR_GATE = { SURFACE = "LIFT_SURFACE", SITE = "LIFT_EZ" }
+-- Sliding doors of each lift on each floor (gate ids from the site plan).
+local DOOR_GATE = {
+    A = { SURFACE = "LIFT_SURFACE", SITE = "LIFT_EZ" },
+    B = { SURFACE = "LIFTB_SURFACE", SITE = "LIFTB_EZ" },
+}
 
 local function setLiftDoors(gateId, open)
     local md = ModData.get("SCPFoundation")
@@ -138,7 +143,8 @@ end
 local function startRide(player, dest)
     local o = F.origin()
     if not o then return end
-    local r = platform()
+    local link = dest.link or "A"
+    local r = platform(link)
     -- stand in the middle of the platform (the corner the four tiles share)
     local x, y = o.x + (r.x0 + r.x1 + 1) / 2, o.y + (r.y0 + r.y1 + 1) / 2
     local z0 = math.floor(player:getZ() + 0.5)
@@ -151,9 +157,9 @@ local function startRide(player, dest)
     local dist = math.abs(dest.z - z0)
     ride = {
         player = player, dest = dest, x = x, y = y, z0 = z0, z1 = dest.z, z = z0,
-        speed = math.max(SPEED, dist / MAX_TIME), wait = START_DELAY, removed = nil,
-        fromGate = DOOR_GATE[dest.label == "SURFACE" and "SITE" or "SURFACE"],
-        toGate = DOOR_GATE[dest.label == "SURFACE" and "SURFACE" or "SITE"],
+        speed = math.max(SPEED, dist / MAX_TIME), wait = START_DELAY, removed = nil, link = link,
+        fromGate = DOOR_GATE[link][dest.label == "SURFACE" and "SITE" or "SURFACE"],
+        toGate = DOOR_GATE[link][dest.label == "SURFACE" and "SURFACE" or "SITE"],
     }
     freeze(player, true)
     SCP.teleport(player, x, y, z0)
@@ -180,7 +186,7 @@ local function updateRide()
         r.wait = r.wait - dt
         SCP.teleport(p, r.x, r.y, r.z0)
         if r.wait <= 0 then
-            r.removed = liftTopFloor(F.origin(), platform())
+            r.removed = liftTopFloor(F.origin(), platform(r.link))
             p:playSound("SCP_LiftMoving")
         end
         return

@@ -188,9 +188,11 @@ def main():
     U, S = L.build()
     above = L.LEVELS_ABOVE
     shots = [
-        ("rendu_exterieur_site", S, (-6, 74, 86, 160),
-         "Site SCP vu de l'extérieur : route, enceinte en béton, tour de guet, cours, bâtiment de la Porte A",
-         0.3, dict(above=above, sky=True, frame=(4, 80, 76, 158))),
+        ("rendu_exterieur_site", S, (-6, 74, 104, 160),
+         "Site SCP vu de l'extérieur : route, enceinte en béton, tour de guet, cours, bâtiment de la Porte A, hangar de la Porte B",
+         0.3, dict(above=above, sky=True, frame=(4, 80, 96, 158))),
+        ("preview_gateb", S, (74, 98, 98, 128), "Porte B : hangar et monte-charge (toit retiré), sa propre route", 0.5,
+         dict(above=above, hide=(1, 2, 3, 4), open_doors=("B",))),
         ("preview_surface_open", S, (24, 98, 56, 141), "Bâtiment de la Porte A, toit retiré : la cabine d'ascenseur",
          0.5, dict(above=above, hide=(1, 2, 3, 4), open_doors=("A", "MAIN", "INNER"))),
         ("preview_tower", S, (60, 128, 75, 144), "Tour de guet : escaliers, cabine vitrée, barbelés", 0.6,

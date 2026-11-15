@@ -29,6 +29,9 @@ Légende : [x] fait (non testé en jeu sauf mention), [ ] à faire.
 - [x] Ascenseur de la Porte A : cabine dans un puits, descente visible niveau par niveau (option `LiftRide`, désactivable : retour au fondu)
 - [ ] Vérifier en jeu : la descente de l'ascenseur (pas de chute ni de dégâts, le sol du haut revient), les escaliers de la tour (tuiles d'escalier du mod, sinon escaliers en bois du jeu), les murets du toit qu'on peut enjamber
 - [ ] Vraies fenêtres (ouvrables, cassables) dans la tour et le bâtiment : aujourd'hui ce sont des murs avec une bande vitrée dessinée
+- [x] Lot 2 (retours de Lucas) : mobilier plus varié (chaises, tables, canapés, distributeurs, plantes, lits superposés, lits médicaux, paillasses), grande chambre de SCP-106 (corniche, passerelle, plateforme centrale, fosse dont le fond est un niveau plus bas, escalier pour remonter, broyeur de fémur à côté), SCP-049 un niveau plus bas (escalier depuis la zone lourde : cellule, observation, morgue, bloc opératoire), Porte B (monte-charge 3x3 au bout est de la zone d'entrée vers un hangar hors de l'enceinte avec sa route). Version 4 du site. Aperçus : `art/preview_106.png`, `preview_049.png`, `preview_gateb.png`
+- [ ] Vérifier en jeu : tomber dans la fosse de 106 (dégâts d'un étage), l'escalier de la fosse et celui de 049 (niveau sous le site), le monte-charge de la Porte B
+- [ ] Reste des retours : dimension de poche en labyrinthe avec sortie, 096 assis puis très rapide et mortel (bruit de démembrement), morsure de 939 (animation + son), site sur la carte de sélection
 - Plan et aperçus : `art/site_plan.png`, `art/preview_*.png`. Pour modifier le plan : `tools/make_site_layout.py`, puis `tools/make_site_preview.py`.
 - Note : un site construit avec l'ancienne version reste en place avec ses anciennes tuiles mais n'est plus géré ; il faut une nouvelle partie (ou construire le nouveau site ailleurs).
 

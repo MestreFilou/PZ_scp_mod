@@ -1180,7 +1180,8 @@ DOORS = {"standard": 24, "heavy": 28, "gate": 80, "lift": 200}   # +0 W, +1 N, +
 FITTINGS = {"pipes": 84, "vent": 86}                        # +0 W, +1 N
 SIGNS = ["ez", "lcz", "hcz", "logo", "danger"]              # 40 + k (W), 48 + k (N)
 SIGNS2 = ["scp173", "scp914", "scp500", "scp939", "scp106", "scp049", "scp096", "scp035", "scp008", "scp079",
-          "scp966", "warhead", "femur", "electric", "gatea", "cafeteria", "medical", "security"]   # 96 + k, 120 + k
+          "scp966", "warhead", "femur", "electric", "gatea", "cafeteria", "medical", "security",
+          "gateb"]   # 96 + k, 120 + k
 PROP0 = 144                                                 # + 2 * k (against north wall), + 1 (against west wall)
 # exterior (tiles 168+)
 FORT = 168                  # pale concrete wall: +0 W, +1 N, +2 NW, +3 frame W, +4 frame N; pillar 173
@@ -1266,7 +1267,7 @@ def build_tiles():
     yellow = dict(bg=(232, 186, 28, 255), bar=(20, 20, 20, 255))
     blue = dict(bg=(36, 86, 150, 255), fg=(240, 244, 248, 255), bar=(240, 244, 248, 255))
     labels = {"warhead": (["ALPHA", "WARHEAD"], yellow), "femur": (["FEMUR", "BREAKER"], yellow),
-              "electric": (["ELECTRICAL", "CENTER"], yellow), "gatea": (["GATE A"], blue),
+              "electric": (["ELECTRICAL", "CENTER"], yellow), "gatea": (["GATE A"], blue), "gateb": (["GATE B"], blue),
               "cafeteria": (["CAFETERIA"], blue), "medical": (["MEDICAL", "BAY"], blue),
               "security": (["SECURITY"], blue)}
     for k, name in enumerate(SIGNS2):

@@ -407,37 +407,43 @@ end
 -- One surface column -> the site under it, the compound, the roof
 ------------------------------------------------------------------------
 
--- The lift platform (plan tiles) and its shaft walls on the levels in between.
-local liftRect = nil
-local function getLiftRect()
-    if liftRect then return liftRect end
-    local r = { x0 = 9999, y0 = 9999, x1 = -1, y1 = -1 }
+-- The lift platforms (plan tiles, one rectangle per lift: A, B) and their
+-- shaft walls on the levels in between.
+local liftRects = nil
+local function getLiftRects()
+    if liftRects then return liftRects end
+    liftRects = {}
     for _, l in ipairs(D.surface.lifts) do
+        local link = l.link or "A"
+        local r = liftRects[link] or { x0 = 9999, y0 = 9999, x1 = -1, y1 = -1 }
         r.x0, r.y0 = math.min(r.x0, l.x), math.min(r.y0, l.y)
         r.x1, r.y1 = math.max(r.x1, l.x), math.max(r.y1, l.y)
+        liftRects[link] = r
     end
-    liftRect = r
-    return r
+    return liftRects
 end
-F.liftRect = getLiftRect
+F.liftRect = function(link) return getLiftRects()[link or "A"] end
 
 local function buildShaft(lx, ly, x, y, z)
-    local r = getLiftRect()
-    local inY, inX = ly >= r.y0 and ly <= r.y1, lx >= r.x0 and lx <= r.x1
-    local westWall = inY and (lx == r.x0 or lx == r.x1 + 1)
-    local northWall = inX and (ly == r.y0 or ly == r.y1 + 1)
-    if not westWall and not northWall then return end
-    local sq = getCell():getOrCreateGridSquare(x, y, z)
-    if not sq then return end
-    local i0 = TL.walls.e
-    if westWall and northWall then
-        addObject(sq, tile(i0 + 2))
-    elseif westWall then
-        addObject(sq, tile(i0))
-    else
-        addObject(sq, tile(i0 + 1))
+    for _, r in pairs(getLiftRects()) do
+        local inY, inX = ly >= r.y0 and ly <= r.y1, lx >= r.x0 and lx <= r.x1
+        local westWall = inY and (lx == r.x0 or lx == r.x1 + 1)
+        local northWall = inX and (ly == r.y0 or ly == r.y1 + 1)
+        if westWall or northWall then
+            local sq = getCell():getOrCreateGridSquare(x, y, z)
+            if not sq then return end
+            local i0 = TL.walls.e
+            if westWall and northWall then
+                addObject(sq, tile(i0 + 2))
+            elseif westWall then
+                addObject(sq, tile(i0))
+            else
+                addObject(sq, tile(i0 + 1))
+            end
+            pcall(sq.RecalcAllWithNeighbours, sq, true)
+            return
+        end
     end
-    pcall(sq.RecalcAllWithNeighbours, sq, true)
 end
 
 local function buildColumn(surfaceSq)

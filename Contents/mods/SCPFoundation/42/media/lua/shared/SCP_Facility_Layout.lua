@@ -157,7 +157,8 @@ function F.liftDestinations(info)
     local level = toSurface and D.surface or D.underground
     for _, l in ipairs(level.lifts) do
         if l.link == info.link then
-            return { { label = toSurface and "SURFACE" or "EZ", x = o.x + l.x, y = o.y + l.y, z = toSurface and 0 or o.z } }
+            return { { label = toSurface and "SURFACE" or "EZ", link = l.link or "A",
+                       x = o.x + l.x, y = o.y + l.y, z = toSurface and 0 or o.z } }
         end
     end
     return {}
