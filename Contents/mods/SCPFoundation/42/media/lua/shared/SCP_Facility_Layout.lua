@@ -122,6 +122,25 @@ function F.roomCenter(zoneId, kind)
     return nil
 end
 
+-- Every room of a kind in a zone, in world coordinates:
+-- { { x0, y0, x1, y1, cx, cy, z, room }, ... }. Empty when no site exists.
+function F.roomsOf(zoneId, kind)
+    local list = {}
+    local o = F.origin()
+    if not o then return list end
+    for _, level in ipairs({ D.underground, D.surface }) do
+        for _, r in ipairs(level.rooms) do
+            if r.kind == kind and (zoneId == nil or r.zone == zoneId) then
+                list[#list + 1] = {
+                    x0 = o.x + r.x0, y0 = o.y + r.y0, x1 = o.x + r.x1, y1 = o.y + r.y1,
+                    cx = o.x + r.cx, cy = o.y + r.cy, z = level == D.surface and 0 or o.z, room = r,
+                }
+            end
+        end
+    end
+    return list
+end
+
 -- Tesla gates
 local teslaTiles = nil
 function F.isTesla(x, y, z)

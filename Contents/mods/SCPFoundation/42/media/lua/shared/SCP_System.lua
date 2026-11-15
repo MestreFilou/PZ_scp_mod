@@ -42,6 +42,8 @@ local defaults = {
     FacilityX = 0,
     FacilityY = 0,
     FacilityDepth = -2,
+    StartScenario = 1,
+    KeycardDropRate = 100,
 }
 
 function SCP.opt(name)

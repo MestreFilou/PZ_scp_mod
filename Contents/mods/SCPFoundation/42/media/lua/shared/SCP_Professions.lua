@@ -1,19 +1,20 @@
 --[[
     Starting occupations: Class-D, Foundation Scientist, MTF Guard.
-    Each starts with its gear and, if an SCP site exists, inside it:
-      Class-D  -> a Class-D cell (Light Containment)
-      Scientist -> research lab (Entrance Zone)
-      MTF Guard -> security room (Entrance Zone)
+    Each one has its own start scenario (see server/SCP_StartScenario.lua
+    and client/SCP_StartScenario_Client.lua):
+      Class-D   -> a random Class-D cell (Light Containment), jumpsuit only
+      Scientist -> the research lab of the Entrance Zone
+      MTF Guard -> the gatehouse on the surface, by the main gate
     In single player, if no site exists yet, one is placed with its main
     gate just north of the spawn point.
 ]]
 
 require "SCP_System"
-require "SCP_Facility_Layout"
 
 SCP.Professions = SCP.Professions or {}
 local P = SCP.Professions
 
+-- room = { zone, room kind } from SCP_Facility_Data.lua
 P.List = {
     scp_classd = {
         room = { "LCZ", "classd" },
@@ -26,7 +27,7 @@ P.List = {
         give = { "SCP_Hazmat_Suit", "SCP_Keycard_L2", "SCP_Document_Containment", "SCP_Document_008", "Torch" },
     },
     scp_mtf = {
-        room = { "EZ", "security" },
+        room = { "SURFACE", "gatehouse" },
         wear = { "SCP_MTF_Uniform", "SCP_MTF_Vest", "SCP_MTF_Helmet" },
         give = { "SCP_MTF_Baton", "SCP_Keycard_L3", "SCP_GasMask", "SCP_GasFilter", "Torch" },
     },
@@ -49,57 +50,3 @@ function P.getId(player)
     end
     return nil
 end
-
-local function wear(player, fullType)
-    local item = player:getInventory():AddItem("Base." .. fullType)
-    if item then pcall(function() player:setWornItem(item:getBodyLocation(), item) end) end
-end
-
--- New character: gear, then a trip to the site once it is built.
-SCP.on("OnNewGame", function(player, square)
-    local id = P.getId(player)
-    if not id then return end
-    local def = P.List[id]
-    for _, t in ipairs(def.wear) do wear(player, t) end
-    for _, t in ipairs(def.give) do
-        local full = t:find("%.") and t or ("Base." .. t)
-        pcall(function() player:getInventory():AddItem(full) end)
-    end
-    player:getModData().SCP_StartRoom = { def.room[1], def.room[2] }
-    if not SCP.Facility.origin() and not isClient() then
-        local sq = player:getSquare()
-        -- The main gate goes a little north of the spawn point; the compound and the site extend north of it.
-        SCP.sendToServer(player, "PlaceFacility", { x = sq:getX(), y = sq:getY() - 12 })
-    end
-end)
-
--- Move the new character into the site once its room is built.
-local nextCheck = 0
-SCP.on("OnTick", function()
-    local t = getTimestampMs()
-    if t < nextCheck then return end
-    nextCheck = t + 500
-    for _, player in ipairs(SCP.localPlayers()) do
-        local md = player:getModData()
-        local start = md.SCP_StartRoom
-        if start then
-            local x, y, z = SCP.Facility.roomCenter(start[1], start[2])
-            if not x then
-                md.SCP_StartRoom = nil -- no site: start on the surface
-            else
-                local sq = getCell():getGridSquare(x, y, z)
-                if sq and sq:getFloor() then
-                    SCP.teleport(player, x + 1.5, y + 0.5, z)   -- one tile beside the room's centre
-                    md.SCP_StartRoom = nil
-                    SCP.say(player, "UI_SCP_StartInSite", 200, 220, 255)
-                    -- Class-D wake up in the middle of a containment breach.
-                    if start[2] == "classd" then SCP.sendToServer(player, "StartBreach", {}) end
-                elseif not md.SCP_StartWarp then
-                    -- Load the area above the site so it gets built.
-                    md.SCP_StartWarp = true
-                    SCP.teleport(player, x + 0.5, y + 0.5, 0)
-                end
-            end
-        end
-    end
-end)
