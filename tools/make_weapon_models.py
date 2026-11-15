@@ -126,9 +126,17 @@ def to_file(v):
     return (y, -x, z)     # "x"
 
 
+# The game's handgun model (M9) is upside down compared with its rifles:
+# top towards -Z. Ours follow it, turned half a turn around the long axis.
+UPSIDE_DOWN = {"SCP_SecPistol"}
+
+
 def write_x(mesh, name, tex):
     verts, norms, uvs, faces, nfaces, mats = [], [], [], [], [], []
+    flip = name in UPSIDE_DOWN
     for vs, sw, uv in mesh.faces:
+        if flip:
+            vs = [np.array([-v[0], v[1], -v[2]]) for v in vs]
         n = normal(vs)
         base = len(verts)
         for p, (u, w) in zip(vs, face_uvs(vs, uv)):

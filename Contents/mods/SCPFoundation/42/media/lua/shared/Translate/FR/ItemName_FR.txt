@@ -40,4 +40,7 @@ ItemName_FR = {
     ItemName_Base.SCP_427 = "SCP-427 (Médaillon lovecraftien)",
     ItemName_Base.SCP_018 = "SCP-018 (Super balle)",
     ItemName_Base.SCP_ShockMaul = "Masse à choc de confinement",
+    ItemName_Base.SCP_Epsilon = "Carabine Epsilon (5.56)",
+    ItemName_Base.SCP_RiotShotgun = "Fusil à pompe anti-émeute de la Fondation",
+    ItemName_Base.SCP_SecPistol = "Pistolet de service de la Fondation (9 mm)",
 }
