@@ -43,24 +43,84 @@ function P.getId(player)
     if desc.getCharacterProfession then prof = desc:getCharacterProfession() end   -- B42.13+
     if not prof and desc.getProfession then prof = desc:getProfession() end         -- older builds
     if not prof then return nil end
-    local id = tostring(prof):lower()   -- e.g. "scpfoundation:scp_classd"
-    for key in pairs(P.List) do
-        if id:find(key, 1, true) then return key end
+    -- e.g. "scpfoundation:scp_classd"; the object may also give it through a getter
+    local names = { tostring(prof) }
+    for _, getter in ipairs({ "getName", "getType", "getId", "toString" }) do
+        if prof[getter] then
+            local ok, v = pcall(prof[getter], prof)
+            if ok and v then names[#names + 1] = tostring(v) end
+        end
+    end
+    for _, n in ipairs(names) do
+        local id = n:lower()
+        for key in pairs(P.List) do
+            if id:find(key, 1, true) then return key end
+        end
     end
     return nil
 end
 
+-- What a new character keeps from the clothes picked at creation: underwear, socks, shoes.
+local KEEP = { "underwear", "socks", "shoes", "bra", "underpants" }
+
+local function keep(location)
+    location = tostring(location or ""):lower()
+    for _, k in ipairs(KEEP) do
+        if location:find(k, 1, true) then return true end
+    end
+    return false
+end
+
+-- Takes off (and throws away) the clothes the character was created with.
+local function undress(player)
+    local worn = player:getWornItems()
+    if not worn then return end
+    local remove = {}
+    for i = 0, worn:size() - 1 do
+        local w = worn:get(i)
+        local item = w and w:getItem()
+        local loc = w and w.getLocation and w:getLocation()
+        if item and not keep(loc) then remove[#remove + 1] = item end
+    end
+    for _, item in ipairs(remove) do
+        pcall(player.removeWornItem, player, item)
+        pcall(function() player:getInventory():Remove(item) end)
+    end
+end
+
 local function wear(player, fullType)
     local item = player:getInventory():AddItem("Base." .. fullType)
-    if item then pcall(function() player:setWornItem(item:getBodyLocation(), item) end) end
+    if not item then return end
+    local loc = item.getBodyLocation and item:getBodyLocation()
+    local ok = loc and pcall(player.setWornItem, player, loc, item)
+    if not ok and item.getCanBeEquipped then
+        loc = item:getCanBeEquipped()
+        if loc and loc ~= "" then pcall(player.setWornItem, player, loc, item) end
+    end
+end
+
+-- Puts the occupation's outfit on (also used by the start scenarios).
+function P.dress(player, id)
+    local def = P.List[id]
+    if not def then return end
+    undress(player)
+    for _, t in ipairs(def.wear) do wear(player, t) end
+    pcall(player.resetModelNextFrame, player)
+    pcall(sendClothing, player)
 end
 
 -- New character: gear, then a trip to the site once it is built.
 SCP.on("OnNewGame", function(player, square)
     local id = P.getId(player)
-    if not id then return end
+    if not id then
+        local desc = player:getDescriptor()
+        local prof = desc and desc.getCharacterProfession and desc:getCharacterProfession()
+        SCP.log("new character, not an SCP occupation:", tostring(prof))
+        return
+    end
     local def = P.List[id]
-    for _, t in ipairs(def.wear) do wear(player, t) end
+    P.dress(player, id)
+    SCP.log("new character, occupation", id)
     for _, t in ipairs(def.give) do
         local full = t:find("%.") and t or ("Base." .. t)
         pcall(function() player:getInventory():AddItem(full) end)
