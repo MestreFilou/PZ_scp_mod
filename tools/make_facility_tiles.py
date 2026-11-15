@@ -465,6 +465,47 @@ def tile_door(tex, side, opened):
     return finish(img)
 
 
+def tile_door_frame(tex, side, f):
+    """Sliding door, a fraction f of the way open (it slides towards DOOR_B)."""
+    img = canvas()
+    edge = to_img(base(16, 128, "#3a3e42", 3, 3))
+    d = 0.055
+    a = DOOR_A + f * (DOOR_B - DOOR_A)
+    part = tex.crop((0, 0, max(2, int(DOOR_W * (1 - f))), DOOR_H))
+    if side == "W":
+        face(img, edge, (d - 0.03, a, DOOR_TOP), (d, a, DOOR_TOP), (d - 0.03, a, 0), 0.8)
+        face(img, part, (d, DOOR_B, DOOR_TOP), (d, a, DOOR_TOP), (d, DOOR_B, 0), 0.88)
+    else:
+        face(img, edge, (a, d - 0.03, DOOR_TOP), (a, d, DOOR_TOP), (a, d - 0.03, 0), 0.75)
+        face(img, part, (a, d, DOOR_TOP), (DOOR_B, d, DOOR_TOP), (a, d, 0), 1.0)
+    return finish(img)
+
+
+def tile_gate_frame(tex, side, f, split=False):
+    """Big gate rising into the ceiling (or, split, a lift door opening from
+    its middle seam), a fraction f of the way open."""
+    img = canvas()
+    d1 = 0.1
+    W, H = tex.size
+    if split:
+        h = (1 - f) / 2
+        left = tex.crop((0, 0, max(2, int(W * h)), H))
+        right = tex.crop((W - max(2, int(W * h)), 0, W, H))
+        spans = [(0.0, h, left), (1 - h, 1.0, right)]
+        for a, b, part in spans:
+            if side == "W":
+                face(img, part, (d1, 1 - a, 1), (d1, 1 - b, 1), (d1, 1 - a, 0), 0.86)
+            else:
+                face(img, part, (a, d1, 1), (b, d1, 1), (a, d1, 0), 1.0)
+    else:
+        part = tex.crop((0, int(H * f), W, H))
+        if side == "W":
+            face(img, part, (d1, 1, 1), (d1, 0, 1), (d1, 1, f), 0.86)
+        else:
+            face(img, part, (0, d1, 1), (1, d1, 1), (0, d1, f), 1.0)
+    return finish(img)
+
+
 def tile_floor(tex):
     img = canvas()
     face(img, tex, (0, 0, 0), (1, 0, 0), (0, 1, 0))
@@ -1477,7 +1518,7 @@ def prop_props(label):
 
 SHEET = "scp_facility_02"
 COLS = 8
-ROWS = 34
+ROWS = 37
 
 # Where everything is on the sheet (also written into the mod as Lua by tools/make_site_layout.py).
 WALLS = {"a": 0, "b": 8, "c": 16, "d": 56, "e": 64}      # +0 W, +1 N, +2 NW, +3 frame W, +4 frame N
@@ -1504,6 +1545,11 @@ FLOORS2 = {"p": 186, "r": 187, "s": 188, "o": 189}
 EXTRA = {"solar": 190, "fan": 192, "floodlight": 193, "barrier": 195, "wire": 197}   # n/w pairs except fan
 LIFT_PANEL = 204            # lift call panel: +0 on a west wall, +1 on a north wall
 PROP2 = 206                 # more furniture (PROPS2): + 2 * k against a north wall, + 1 against a west wall
+# Door animation frames (decoration only, shown for a moment by
+# lua/client/SCP_DoorAnim_Client.lua): ANIM0 + 6 * kind + 3 * side + (frame - 1),
+# kind in DOOR_ANIM_KINDS order, side 0 W / 1 N, frame 1 (a quarter open) to 3 (three quarters).
+ANIM0 = 272
+DOOR_ANIM_KINDS = ["standard", "heavy", "gate", "lift"]
 
 
 def build_tiles():
@@ -1647,6 +1693,16 @@ def build_tiles():
             lp.append(("solidtrans", ""))
         put(LAND0 + 2 * k, fn("n"), lp)
         put(LAND0 + 2 * k + 1, fn("w"), lp)
+    anim_tex = {"standard": door_standard(), "heavy": door_containment(), "gate": gt, "lift": lt}
+    for k, kind in enumerate(DOOR_ANIM_KINDS):
+        for si, side in enumerate(("W", "N")):
+            for frame in (1, 2, 3):
+                f = frame / 4
+                if kind in ("standard", "heavy"):
+                    img = tile_door_frame(anim_tex[kind], side, f)
+                else:
+                    img = tile_gate_frame(anim_tex[kind], side, f, split=(kind == "lift"))
+                put(ANIM0 + 6 * k + 3 * si + frame - 1, img, [("CustomName", "Door"), ("GroupName", "SCP")])
     pt2 = lift_panel_tex()
     put(LIFT_PANEL, tile_sign(pt2, "W", 0.3, 0.75, 0.3, 0.7), sign_props("W", "Lift Panel"))
     put(LIFT_PANEL + 1, tile_sign(pt2, "N", 0.3, 0.75, 0.3, 0.7), sign_props("N", "Lift Panel"))

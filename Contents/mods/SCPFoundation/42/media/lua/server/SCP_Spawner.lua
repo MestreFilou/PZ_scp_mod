@@ -21,8 +21,15 @@ local HEALTH = {
 }
 
 -- Creature models exist for both skeletons (scp_0xx.x for Bob, kate_scp_0xx.x for Kate).
+-- Chance (%) of the female skeleton: the doctor, the old man, 096 and the
+-- statue have one look only.
+local FEMALE = {
+    [SCP.Types.SCP049] = 0, [SCP.Types.SCP106] = 0, [SCP.Types.SCP096] = 0,
+    [SCP.Types.SCP173] = 0, [SCP.Types.SCP049_2] = 50,
+}
+
 local function addZombies(x, y, z, count, outfit)
-    local female = 50
+    local female = FEMALE[outfit] or 50
     local ok, list = pcall(addZombiesInOutfit, x, y, z, count, outfit, female)
     if ok and list then return list end
     ok, list = pcall(addZombiesInOutfit, x, y, z, count, outfit, female, false, false, false, false, 1.0)

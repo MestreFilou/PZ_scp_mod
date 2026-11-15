@@ -95,6 +95,7 @@ UI_EN = {
     UI_SCP_Warhead_NeedL5 = "Level 5 keycard required.",
     UI_SCP_Warhead_Felt = "The ground shakes. The SCP site is gone.",
     UI_SCP_StartInSite = "You wake up inside the SCP site...",
+    UI_SCP_StartTransfer = "Transfer to the site",
     UI_prof_scp_classd = "Class-D Personnel",
     UI_prof_scp_scientist = "Foundation Scientist",
     UI_prof_scp_mtf = "MTF Guard",

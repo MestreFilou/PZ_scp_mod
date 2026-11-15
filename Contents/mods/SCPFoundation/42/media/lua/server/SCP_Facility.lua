@@ -713,7 +713,17 @@ SCP.ServerCommands.PlaceFacility = function(player, args)
         end
         world.points = keep
     end
-    local o = F.originForGate(args.x, args.y)
+    local gx, gy = args.x, args.y
+    if args.search then
+        -- automatic placement (new game): the closest open land, away from houses
+        local fx, fy = F.findSite(args.x, args.y)
+        if fx then
+            gx, gy = fx, fy
+        else
+            SCP.log("no free place found for the site near", args.x, args.y, ": placed at the spawn point")
+        end
+    end
+    local o = F.originForGate(gx, gy)
     o.spawned = {}
     world.facility = o
     world.gates = {}
@@ -721,7 +731,7 @@ SCP.ServerCommands.PlaceFacility = function(player, args)
     if isServer() then ModData.transmit("SCPFoundation") end
     F.buildLoaded()
     SCP.sendToClient(player, "Notify", { key = "UI_SCP_FacilityPlaced" })
-    SCP.log("SCP site placed, access road at", args.x, args.y, "underground level", o.z)
+    SCP.log("SCP site placed, access road at", gx, gy, "underground level", o.z)
 end
 
 local started = false

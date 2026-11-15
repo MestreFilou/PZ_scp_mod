@@ -4,8 +4,8 @@
       Class-D  -> a Class-D cell (Light Containment)
       Scientist -> research lab (Entrance Zone)
       MTF Guard -> security room (Entrance Zone)
-    In single player, if no site exists yet, one is placed with its main
-    gate just north of the spawn point.
+    In single player, if no site exists yet, one is placed on the closest
+    open land (no houses) to the spawn point.
 ]]
 
 require "SCP_System"
@@ -130,7 +130,14 @@ SCP.on("OnNewGame", function(player, square)
     if not SCP.Facility.origin() and not isClient() then
         local sq = player:getSquare()
         -- The main gate goes a little north of the spawn point; the compound and the site extend north of it.
-        SCP.sendToServer(player, "PlaceFacility", { x = sq:getX(), y = sq:getY() - 12 })
+        -- The server looks for open land close to the spawn point.
+        SCP.sendToServer(player, "PlaceFacility", { x = sq:getX(), y = sq:getY() - 12, search = true })
+    end
+    -- Go straight above the start room, so its area loads and gets built.
+    local x, y = SCP.Facility.roomCenter(def.room[1], def.room[2])
+    if x then
+        player:getModData().SCP_StartWarp = true
+        SCP.teleport(player, x + 0.5, y + 0.5, 0)
     end
 end)
 

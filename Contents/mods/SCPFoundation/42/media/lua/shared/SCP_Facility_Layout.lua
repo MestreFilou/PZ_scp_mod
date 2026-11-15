@@ -60,6 +60,100 @@ function F.originForGate(gateX, gateY)
     return { x = gateX - D.anchor.x, y = gateY - D.anchor.y, z = SCP.opt("FacilityDepth"), v = F.VERSION }
 end
 
+------------------------------------------------------------------------
+-- Where to put a new site: open land (forest, fields), no building above
+-- or below ground anywhere on the footprint. Uses the map's lot data, so
+-- it also works on areas that are not loaded yet.
+------------------------------------------------------------------------
+
+local BAD_ZONES = { townzone = true, trailerpark = true, water = true, waterzone = true, parkingstall = true }
+local GOOD_ZONES = { forest = true, deepforest = true, vegitation = true, farmland = true, farm = true }
+
+local function zoneInfo(mg, x, y)
+    local ok, zones = pcall(mg.getZonesAt, mg, x, y, 0)
+    if not ok or not zones then return false, false, false end
+    local bad, good, road = false, false, false
+    for i = 0, zones:size() - 1 do
+        local t = tostring(zones:get(i):getType() or ""):lower()
+        if BAD_ZONES[t] then bad = true end
+        if GOOD_ZONES[t] then good = true end
+        if t == "nav" then road = true end
+    end
+    return bad, good, road
+end
+
+local function roomAt(mg, x, y, z)
+    local ok, r = pcall(mg.getRoomAt, mg, x, y, z)
+    return ok and r ~= nil
+end
+
+local function onMap(mg, x, y)
+    if not mg.isValidChunk then return true end
+    local ok, v = pcall(mg.isValidChunk, mg, math.floor(x / 8), math.floor(y / 8))
+    return not ok or v
+end
+
+-- Is the site free if its access road ends at (gx, gy)? step: sampling step in tiles.
+local function siteFree(mg, gx, gy, depth, step)
+    local x0, y0 = gx - D.anchor.x - 4, gy - D.anchor.y - 4
+    local x1, y1 = x0 + D.width + 8, y0 + D.height + 8
+    local good, total = 0, 0
+    for x = x0, x1, step do
+        for y = y0, y1, step do
+            if not onMap(mg, x, y) then return false end
+            if roomAt(mg, x, y, 0) or roomAt(mg, x, y, -1) or roomAt(mg, x, y, depth) then return false end
+            local bad, isGood = zoneInfo(mg, x, y)
+            if bad then return false end
+            total = total + 1
+            if isGood then good = good + 1 end
+        end
+    end
+    return true, good / math.max(1, total)
+end
+
+-- A road close to the end of the access road (south of the site)?
+local function roadNear(mg, gx, gy)
+    for d = 0, 40, 4 do
+        for _, dx in ipairs({ 0, -8, 8 }) do
+            local _, _, road = zoneInfo(mg, gx + dx, gy + d)
+            if road then return true end
+        end
+    end
+    return false
+end
+
+-- The closest good place to (x, y): returns gateX, gateY (where the access
+-- road ends), or nil when nothing fits within maxDist tiles.
+function F.findSite(x, y, maxDist)
+    local world = getWorld()
+    local mg = world and world.getMetaGrid and world:getMetaGrid()
+    if not mg or not mg.getRoomAt then return nil end
+    local depth = SCP.opt("FacilityDepth") or -2
+    maxDist = maxDist or 1500
+    local best, bestScore, foundAt, found = nil, -1, nil, 0
+    for r = 0, maxDist, 50 do
+        -- keep looking a little farther than the first fit, for a greener spot near a road
+        if foundAt and (r > foundAt + 200 or found >= 24) then break end
+        local n = r == 0 and 1 or math.max(8, math.floor(2 * math.pi * r / 50))
+        for i = 0, n - 1 do
+            local a = 2 * math.pi * i / n
+            local gx, gy = math.floor(x + math.cos(a) * r), math.floor(y + math.sin(a) * r)
+            -- quick look first, then the whole footprint
+            if siteFree(mg, gx, gy, depth, 12) then
+                local ok, green = siteFree(mg, gx, gy, depth, 4)
+                if ok then
+                    found = found + 1
+                    local score = green + (roadNear(mg, gx, gy) and 1 or 0) - r / maxDist
+                    if score > bestScore then best, bestScore = { gx, gy }, score end
+                    foundAt = foundAt or r
+                end
+            end
+        end
+    end
+    if best then return best[1], best[2] end
+    return nil
+end
+
 -- Tile of the plan under a world position, or nil outside the footprint.
 function F.toLocal(x, y)
     local o = F.origin()

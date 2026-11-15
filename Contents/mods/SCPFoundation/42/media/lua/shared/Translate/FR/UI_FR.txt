@@ -95,6 +95,7 @@ UI_FR = {
     UI_SCP_Warhead_NeedL5 = "Carte de niveau 5 requise.",
     UI_SCP_Warhead_Felt = "Le sol tremble. Le site SCP n'existe plus.",
     UI_SCP_StartInSite = "Vous vous réveillez dans le site SCP...",
+    UI_SCP_StartTransfer = "Transfert vers le site",
     UI_prof_scp_classd = "Personnel de Classe-D",
     UI_prof_scp_scientist = "Scientifique de la Fondation",
     UI_prof_scp_mtf = "Garde NTF",
