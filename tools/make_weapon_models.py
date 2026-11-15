@@ -352,59 +352,82 @@ def shock_maul():
     return "SCP_ShockMaul", m, sw
 
 
+def tilt(deg, pivot):
+    """Rotation around the x axis (tilts a part forward/back) about pivot."""
+    c, sn = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+    px, py, pz = pivot
+    def f(v):
+        y, z = v[1] - py, v[2] - pz
+        return np.array([v[0], py + y * c - z * sn, pz + y * sn + z * c])
+    return f
+
+
 def assault_rifle():
-    """SCP_Epsilon: compact bullpup-style rifle of the task forces."""
+    """SCP_Epsilon: the task forces' carbine (origin at the pistol grip)."""
     m = Mesh()
     S = dict(body=0, dark=1, steel=2, grip=3, glow=4, logo=5, tan=6)
-    m.box((0, 0.05, 0.03), (0.05, 0.42, 0.08), S["body"])             # receiver
-    m.box((0, 0.30, 0.035), (0.045, 0.16, 0.06), S["tan"])            # handguard
-    m.cyl((0, 0.47, 0.045), 0.011, 0.22, S["steel"], n=8)             # barrel
-    m.cyl((0, 0.59, 0.045), 0.017, 0.05, S["dark"], n=8)              # muzzle brake
-    m.box((0, -0.24, 0.02), (0.045, 0.18, 0.09), S["dark"])           # stock
-    m.box((0, -0.335, 0.02), (0.05, 0.02, 0.11), S["grip"])           # butt pad
-    m.box((0, 0.0, -0.05), (0.035, 0.04, 0.09), S["grip"], )          # pistol grip
-    m.box((0, 0.11, -0.055), (0.03, 0.06, 0.11), S["dark"])           # magazine
-    m.box((0, 0.05, 0.085), (0.02, 0.32, 0.012), S["dark"])           # top rail
-    m.box((0, 0.06, 0.112), (0.034, 0.10, 0.04), S["dark"])           # optic
-    m.box((0, 0.112, 0.112), (0.028, 0.004, 0.028), S["glow"])        # optic lens
-    m.box((0.026, 0.12, 0.03), (0.002, 0.07, 0.04), S["logo"])
-    sw = [("panel", (52, 56, 62), (70, 76, 84)), ("plain", (30, 31, 34)), ("metal", (95, 98, 104)),
-          ("grip", (26, 26, 28), (44, 44, 48)), ("glow", (230, 60, 60)), ("logo", (52, 56, 62), (220, 220, 220)),
+    m.box((0, 0.06, 0.035), (0.046, 0.30, 0.07), S["body"])            # upper receiver
+    m.box((0, 0.03, 0.000), (0.040, 0.16, 0.03), S["dark"])            # lower receiver
+    m.box((0, 0.27, 0.035), (0.052, 0.14, 0.058), S["tan"])            # handguard
+    for k in range(3):                                                  # handguard vents
+        m.box((0.027, 0.23 + k * 0.035, 0.035), (0.002, 0.018, 0.02), S["dark"])
+    m.cyl((0, 0.40, 0.045), 0.010, 0.14, S["steel"], n=8)              # barrel
+    m.cyl((0, 0.48, 0.045), 0.016, 0.04, S["dark"], n=8)               # muzzle brake
+    m.box((0, 0.36, 0.075), (0.008, 0.012, 0.03), S["dark"])           # front sight
+    m.box((0, -0.10, 0.04), (0.03, 0.06, 0.035), S["dark"])            # buffer tube
+    m.box((0, -0.17, 0.025), (0.042, 0.10, 0.075), S["dark"], rot=tilt(-8, (0, -0.12, 0.04)))   # stock
+    m.box((0, -0.225, 0.02), (0.046, 0.015, 0.09), S["grip"])          # butt pad
+    m.box((0, -0.005, -0.045), (0.032, 0.035, 0.085), S["grip"], rot=tilt(-18, (0, 0, -0.01)))  # pistol grip
+    m.box((0, 0.065, -0.06), (0.026, 0.05, 0.10), S["dark"], rot=tilt(12, (0, 0.065, -0.01)))  # magazine
+    m.box((0, 0.035, -0.022), (0.006, 0.045, 0.006), S["dark"])        # trigger guard
+    m.box((0, 0.10, 0.074), (0.022, 0.30, 0.01), S["dark"])            # top rail
+    m.box((0, 0.06, 0.098), (0.034, 0.075, 0.038), S["dark"])          # red dot sight
+    m.box((0, 0.098, 0.098), (0.026, 0.003, 0.026), S["glow"])         # its lens
+    m.box((0.0235, 0.08, 0.035), (0.002, 0.05, 0.04), S["logo"])       # Foundation mark
+    sw = [("panel", (58, 62, 70), (76, 82, 92)), ("plain", (30, 31, 34)), ("metal", (95, 98, 104)),
+          ("grip", (26, 26, 28), (44, 44, 48)), ("glow", (230, 60, 60)), ("logo", (58, 62, 70), (225, 225, 225)),
           ("plain", (120, 108, 82))]
     return "SCP_Epsilon", m, sw
 
 
 def pistol():
-    """SCP_SecPistol: the guards' service pistol."""
+    """SCP_SecPistol: the guards' service pistol (origin at the grip)."""
     m = Mesh()
-    S = dict(slide=0, frame=1, steel=2, grip=3, logo=4)
-    m.box((0, 0.06, 0.03), (0.028, 0.19, 0.032), S["slide"])
-    m.box((0, 0.05, 0.005), (0.026, 0.16, 0.022), S["frame"])
-    m.cyl((0, 0.16, 0.03), 0.007, 0.02, S["steel"], n=6)
-    m.box((0, -0.005, -0.045), (0.026, 0.045, 0.10), S["grip"], rot=None)
-    m.box((0, 0.03, -0.012), (0.006, 0.04, 0.02), S["frame"])         # trigger guard
-    m.box((0.0145, 0.06, 0.03), (0.001, 0.05, 0.02), S["logo"])
-    sw = [("metal", (38, 40, 44)), ("plain", (30, 30, 32)), ("metal", (130, 130, 135)),
-          ("grip", (34, 30, 28), (52, 46, 42)), ("logo", (38, 40, 44), (210, 210, 210))]
+    S = dict(slide=0, frame=1, steel=2, grip=3, logo=4, glow=5)
+    m.box((0, 0.06, 0.032), (0.026, 0.17, 0.03), S["slide"])
+    for k in range(4):                                                  # slide serrations
+        m.box((0.0135, 0.0 + k * 0.008, 0.034), (0.002, 0.003, 0.02), S["frame"])
+    m.box((0, 0.055, 0.008), (0.024, 0.15, 0.02), S["frame"])
+    m.cyl((0, 0.15, 0.03), 0.006, 0.012, S["steel"], n=6)
+    m.box((0, 0.13, 0.05), (0.004, 0.008, 0.008), S["glow"])           # front sight dot
+    m.box((0, -0.01, 0.05), (0.014, 0.008, 0.008), S["glow"])          # rear sight
+    m.box((0, -0.005, -0.04), (0.026, 0.038, 0.085), S["grip"], rot=tilt(-15, (0, 0, 0.0)))
+    m.box((0, 0.03, -0.012), (0.006, 0.04, 0.006), S["frame"])         # trigger guard
+    m.box((0.0135, 0.07, 0.032), (0.001, 0.03, 0.02), S["logo"])
+    sw = [("metal", (40, 42, 46)), ("plain", (30, 30, 32)), ("metal", (130, 130, 135)),
+          ("grip", (34, 30, 28), (52, 46, 42)), ("logo", (40, 42, 46), (215, 215, 215)), ("glow", (120, 255, 140))]
     return "SCP_SecPistol", m, sw
 
 
 def shotgun():
-    """SCP_RiotShotgun: pump shotgun of the riot teams."""
+    """SCP_RiotShotgun: pump shotgun of the riot teams (origin at the grip)."""
     m = Mesh()
     S = dict(body=0, dark=1, steel=2, grip=3, hazard=4, logo=5)
-    m.box((0, 0.02, 0.03), (0.045, 0.24, 0.07), S["body"])            # receiver
-    m.cyl((0, 0.40, 0.05), 0.013, 0.56, S["steel"], n=8)              # barrel
-    m.cyl((0, 0.36, 0.022), 0.012, 0.44, S["dark"], n=8)              # tube
-    m.box((0, 0.30, 0.025), (0.05, 0.14, 0.05), S["grip"])            # pump
-    m.box((0, -0.24, 0.0), (0.04, 0.30, 0.07), S["dark"])             # stock
-    m.box((0, -0.40, 0.0), (0.045, 0.02, 0.10), S["grip"])
-    m.box((0, -0.03, -0.045), (0.035, 0.04, 0.08), S["grip"])
-    m.box((0, 0.66, 0.05), (0.03, 0.03, 0.03), S["hazard"])           # orange muzzle band
-    m.box((0.024, 0.03, 0.03), (0.002, 0.07, 0.04), S["logo"])
+    m.box((0, 0.04, 0.03), (0.044, 0.20, 0.065), S["body"])            # receiver
+    m.cyl((0, 0.33, 0.048), 0.012, 0.40, S["steel"], n=8)              # barrel
+    m.cyl((0, 0.30, 0.020), 0.011, 0.32, S["dark"], n=8)               # magazine tube
+    m.box((0, 0.27, 0.025), (0.046, 0.12, 0.048), S["grip"])           # pump
+    for k in range(4):
+        m.box((0, 0.225 + k * 0.03, 0.025), (0.048, 0.006, 0.05), S["dark"])
+    m.box((0, 0.52, 0.048), (0.03, 0.03, 0.03), S["hazard"])           # orange "less lethal" band
+    m.box((0, -0.04, -0.04), (0.032, 0.035, 0.075), S["grip"], rot=tilt(-18, (0, -0.02, 0.0)))  # pistol grip
+    m.box((0, -0.17, 0.02), (0.04, 0.22, 0.06), S["dark"], rot=tilt(-6, (0, -0.06, 0.03)))     # stock
+    m.box((0, -0.285, 0.008), (0.044, 0.015, 0.085), S["grip"])        # recoil pad
+    m.box((0, 0.10, 0.068), (0.016, 0.06, 0.012), S["dark"])           # ghost-ring sight base
+    m.box((0.023, 0.05, 0.03), (0.002, 0.06, 0.035), S["logo"])
     sw = [("panel", (46, 48, 52), (64, 66, 72)), ("plain", (28, 28, 30)), ("metal", (90, 92, 98)),
           ("grip", (30, 30, 32), (48, 48, 52)), ("hazard", (230, 120, 30), (25, 25, 25)),
-          ("logo", (46, 48, 52), (220, 220, 220))]
+          ("logo", (46, 48, 52), (225, 225, 225))]
     return "SCP_RiotShotgun", m, sw
 
 

@@ -161,6 +161,14 @@ local function resolve(sprite)
     return F.Fallback[sprite] or sprite
 end
 
+-- A square can only be changed while its chunk is in memory: a square kept
+-- from before (the list built while the game starts) may have lost it.
+local function loaded(sq)
+    if not sq then return false end
+    local ok, chunk = pcall(sq.getChunk, sq)
+    return ok and chunk ~= nil
+end
+
 -- replace = true: the existing floor (grass, road...) is changed to ours.
 local function addFloor(sq, sprite, replace)
     if sq:getFloor() and not replace then return end
@@ -443,7 +451,7 @@ local function roomContents(room, x, y, z)
                 local lx = origin.x + ZombRand(room.x0, room.x1 + 1)
                 local ly = origin.y + ZombRand(room.y0, room.y1 + 1)
                 local sq = getCell():getOrCreateGridSquare(lx, ly, z)
-                if sq then pcall(sq.AddWorldInventoryItem, sq, itemType, ZombRandFloat(0.1, 0.9), ZombRandFloat(0.1, 0.9), 0) end
+                if loaded(sq) then pcall(sq.AddWorldInventoryItem, sq, itemType, ZombRandFloat(0.1, 0.9), ZombRandFloat(0.1, 0.9), 0) end
             end
         end
     end
@@ -485,7 +493,7 @@ local function buildTile(level, ix, lx, ly, x, y, z, surface)
     if fl == " " and not hole and west == "." and north == "." and not post and not doors and not ix.objects[k] then return end
 
     local sq = getCell():getOrCreateGridSquare(x, y, z)
-    if not sq then return end
+    if not loaded(sq) then return end
 
     if fl == "n" then
         clearPlants(sq)                 -- cleared ground: keep it, take the plants away
@@ -558,7 +566,7 @@ local function buildShaft(lx, ly, x, y, z)
         local northWall = inX and (ly == r.y0 or ly == r.y1 + 1)
         if westWall or northWall then
             local sq = getCell():getOrCreateGridSquare(x, y, z)
-            if not sq then return end
+            if not loaded(sq) then return end
             local i0 = TL.walls.e
             if westWall and northWall then
                 addObject(sq, tile(i0 + 2))
@@ -574,6 +582,8 @@ local function buildShaft(lx, ly, x, y, z)
 end
 
 local function buildColumn(surfaceSq)
+    -- not loaded any more: it is built when its chunk loads again
+    if not loaded(surfaceSq) then return end
     if not index then buildIndex() end
     local o = origin
     local x, y = surfaceSq:getX(), surfaceSq:getY()
@@ -587,12 +597,24 @@ local function buildColumn(surfaceSq)
     for z = o.z + 1, -1 do buildShaft(lx, ly, x, y, z) end
     if index.surface.roof[key(lx, ly)] then
         local sq = getCell():getOrCreateGridSquare(x, y, 1)
-        if sq then
+        if loaded(sq) then
             addFloor(sq, tile(TL.floors.roof), false)
             pcall(sq.RecalcAllWithNeighbours, sq, true)
         end
     end
     surfaceSq:getModData().SCP_FacilityBuilt = F.VERSION
+end
+
+-- One column that fails must not stop the others (the error is logged).
+local buildErrors = 0
+local function safeBuild(sq)
+    local ok, err = pcall(buildColumn, sq)
+    if not ok then
+        buildErrors = buildErrors + 1
+        if buildErrors <= 5 or buildErrors % 200 == 0 then
+            SCP.log("facility column", sq:getX(), sq:getY(), "failed (" .. buildErrors .. "):", tostring(err))
+        end
+    end
 end
 
 local function inFootprint(x, y)
@@ -619,7 +641,7 @@ local function onLoadGridsquare(sq)
     local x, y = sq:getX(), sq:getY()
     if not inFootprint(x, y) then return end
     if sq:getModData().SCP_FacilityBuilt == F.VERSION then return end
-    buildColumn(sq)
+    safeBuild(sq)
 end
 
 SCP.on("LoadGridsquare", onLoadGridsquare)
@@ -634,7 +656,7 @@ function F.buildLoaded()
     for x = origin.x, origin.x + D.width - 1 do
         for y = origin.y, origin.y + D.height - 1 do
             local sq = getCell():getGridSquare(x, y, 0)
-            if sq and sq:getModData().SCP_FacilityBuilt ~= F.VERSION then buildColumn(sq) end
+            if sq and sq:getModData().SCP_FacilityBuilt ~= F.VERSION then safeBuild(sq) end
         end
     end
 end
@@ -718,9 +740,12 @@ SCP.on("OnTick", function()
     if not origin then pending = {} return end
     local list = pending
     pending = {}
-    for _, sq in ipairs(list) do
-        if sq:getModData().SCP_FacilityBuilt ~= F.VERSION and inFootprint(sq:getX(), sq:getY()) then
-            buildColumn(sq)
+    for _, old in ipairs(list) do
+        -- the square kept at load time may be stale: take the current one
+        local x, y = old:getX(), old:getY()
+        local sq = inFootprint(x, y) and getCell():getGridSquare(x, y, 0)
+        if sq and sq:getModData().SCP_FacilityBuilt ~= F.VERSION then
+            safeBuild(sq)
         end
     end
     if buildAllLater then
