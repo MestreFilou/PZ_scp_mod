@@ -191,7 +191,7 @@ R("scp914", "LCZ", 35, 2, 9, 7, "SCP-914", level=2); D(39, 9)
 R("storage", "LCZ", 46, 4, 6, 5, "Réserve", level=2); D(48, 9)
 R("scp500", "LCZ", 54, 5, 4, 4, "SCP-500", level=3, style="d"); D(55, 9)
 R("anomalous", "LCZ", 60, 4, 5, 5, "Objets anormaux", level=3, style="d"); D(62, 9)
-R("lab", "LCZ", 67, 2, 7, 7, "Salle de test", level=2); D(70, 9)
+R("testroom", "LCZ", 67, 2, 7, 7, "Salle de test", level=2); D(70, 9)
 
 R("closet", "LCZ", 9, 13, 4, 4, "Placard", level=0); D(8, 14)
 R("closet", "LCZ", 9, 18, 4, 3, "Local technique", level=1); D(13, 19)
@@ -847,6 +847,7 @@ for _name, _faces in _SE.items():
 # What fills a big room once its own list is placed (cycled until the room is
 # about a quarter full), and rows in the middle of storage-like rooms.
 FILL = {
+    "testroom": ["counter", "chair", "cabinet2"],
     "office": ["cabinet2", "plant2", "bookcase", "drawers", "chair", "wallshelf"],
     "research": ["cabinet", "bookcase", "plant", "counter", "cabinet2", "microscope", "plant2", "wallshelf"],
     "director": ["bookcase", "plant2", "armchair", "drawers"],
@@ -891,7 +892,7 @@ ROOMS = {
                      props=["bookcase", "bookcase", "whiteboard", "printer", "coffee", "microscope", "microscope",
                             "plant", "plant", "cabinet", "filingboxes", "trash", "cooler"],
                      islands=(12, "workstation")),
-    "director": dict(loot=["SCP_Keycard_L5", 1, "SCP_Document_Containment", 2, "SCP_Document_008", 1],
+    "director": dict(loot=["SCP_Keycard_L5", 1, "SCP_Document_Containment", 2, "SCP_Document_008", 1, "SCP_005_Key", 1],
                      props=["bookcase", "bookcase", "sofa", "armchair", "cabinet", "coffee", "plant", "plant", "corkboard"],
                      islands=(1, "desklamp")),
     "conference": dict(loot=["SCP_Document_Containment", 1], props=["whiteboard", "longtable", "chair", "chair", "chair",
@@ -900,16 +901,19 @@ ROOMS = {
     "archive": dict(loot=["SCP_Document_Containment", 2, "SCP_Document_008", 1],
                     props=["shelf", "bookcase", "shelf", "bookcase", "cabinet", "cabinet", "filingboxes", "filingboxes"],
                     islands=(1, "desklamp")),
-    "security": dict(loot=["SCP_MTF_Baton", 1, "SCP_MTF_Helmet", 1, "SCP_Keycard_L3", 1, "Torch", 1],
+    "security": dict(loot=["SCP_MTF_Baton", 1, "SCP_MTF_Helmet", 1, "SCP_Keycard_L3", 1, "Torch", 1,
+                           "Base.Pistol", 1, "Base.9mmClip", 1, "Base.Bullets9mmBox", 1],
                      zombies=[T_GUARD, 2], props=["secconsole", "locker", "locker", "cooler", "trash", "rack", "corkboard"],
                      islands=(2, "workstation")),
-    "guardroom": dict(loot=["SCP_MTF_Baton", 1, "SCP_Keycard_L2", 1, "Torch", 1], zombies=[T_GUARD, 3],
+    "guardroom": dict(loot=["SCP_MTF_Baton", 1, "SCP_Keycard_L2", 1, "Torch", 1, "Base.Pistol", 1, "Base.Bullets9mmBox", 1,
+                            "SCP_109_Canteen", 1], zombies=[T_GUARD, 3],
                       props=["bunkbed", "bunkbed", "bunkbed", "milocker", "milocker", "milocker", "table", "chair", "trash"]),
     "checkpoint": dict(loot=["SCP_Keycard_L3", 1], zombies=[T_GUARD, 1], props=["console", "chair", "locker"]),
     "armory": dict(loot=["SCP_MTF_Vest", 2, "SCP_MTF_Helmet", 2, "SCP_MTF_Uniform", 2, "SCP_MTF_Knife", 2,
-                         "SCP_Keycard_L5", 1],
+                         "SCP_Keycard_L5", 1, "Base.AssaultRifle", 2, "Base.556Clip", 3, "Base.556Box", 2, "Base.Pistol", 2, "Base.9mmClip", 2, "Base.Bullets9mmBox", 2, "Base.Shotgun", 1, "Base.ShotgunShellsBox", 2],
                    zombies=[T_GUARD, 3], props=["milocker", "milocker", "milocker", "milocker", "shelf", "crate", "crate", "shelf"]),
-    "lockers": dict(loot=["SCP_MTF_Uniform", 1, "SCP_MTF_Helmet", 1, "SCP_GasMask", 1, "SCP_GasFilter", 2],
+    "lockers": dict(loot=["SCP_MTF_Uniform", 1, "SCP_MTF_Helmet", 1, "SCP_GasMask", 1, "SCP_GasFilter", 2,
+                          "Base.Shotgun", 1, "Base.ShotgunShellsBox", 1],
                     zombies=[T_GUARD, 2], props=["locker"] * 7),
     "storage": dict(loot=["SCP_GasMask", 1, "SCP_GasFilter", 3, "SCP_Hazmat_Suit", 1, "SCP_Keycard_L2", 1, "Torch", 1],
                     props=["shelf", "shelf", "crate", "crate", "crate", "barrel", "barrel"]),
@@ -919,12 +923,14 @@ ROOMS = {
                    props=["locker", "locker", "locker", "shelf", "crate"]),
     "medical": dict(loot=["Bandage", 4, "Pills", 2, "SCP_Keycard_L3", 1],
                     props=["medbed", "medbed", "medbed", "medcabinet", "medcabinet", "sink", "fridge", "desk", "trash", "plant"]),
+    "testroom": dict(loot=["SCP_330", 1, "SCP_Document_Containment", 1], zombies=["SCP_ClassD", 1],
+                     props=["labbench", "microscope", "cabinet", "secconsole", "whiteboard", "trash"]),
     "lab": dict(loot=["SCP_LabCoat", 1, "SCP_Hazmat_Suit", 1, "SCP_Document_Containment", 2, "SCP_Keycard_L3", 1],
                 zombies=["SCP_Scientist", 2], props=["labbench", "sink", "microscope", "microscope", "fridge", "console", "cabinet", "whiteboard", "trash"],
                 islands=(2, "workstation")),
     "dorm": dict(loot=["Torch", 1], zombies=["SCP_ClassD", 1], props=["bed", "bunkbed", "bed", "locker", "locker", "desk", "armchair", "plant", "trash"]),
     "showers": dict(loot=["SCP_ClassD_Jumpsuit", 2], zombies=["SCP_ClassD", 2], props=["locker", "locker", "barrel"]),
-    "cafeteria": dict(loot=["SCP_Keycard_L1", 1], zombies=["SCP_Scientist", 1], special="scp294",
+    "cafeteria": dict(loot=["SCP_Keycard_L1", 1, "SCP_207", 1, "SCP_458_PizzaBox", 1], zombies=["SCP_Scientist", 1], special="scp294",
                       props=["counter", "counter", "fridge", "sink", "vending", "soda", "cooler", "trash", "plant", "corkboard"],
                       islands=(6, "dinner")),
     "servers": dict(loot=["SCP_Keycard_L4", 1], props=["rack"] * 8 + ["console"]),
@@ -936,7 +942,7 @@ ROOMS = {
     "femur": dict(special="femur", props=["console", "locker"]),
     "scp173": dict(scp="SCP_173"),
     "scp500": dict(loot=["SCP_500_Pill", 1], props=["cabinet"]),
-    "anomalous": dict(loot=["SCP_714_Ring", 1, "SCP_1025_Book", 1], props=["cabinet", "shelf", "labbench"]),
+    "anomalous": dict(loot=["SCP_714_Ring", 1, "SCP_1025_Book", 1, "SCP_427", 1, "SCP_018", 1, "SCP_268", 1], props=["cabinet", "shelf", "labbench"]),
     "scp914": dict(special="scp914", loot=["SCP_Document_Containment", 1], props=["crate"]),
     "scp939": dict(scp="SCP_939", count=3, props=["crate", "crate", "shelf"]),
     "scp106": dict(),

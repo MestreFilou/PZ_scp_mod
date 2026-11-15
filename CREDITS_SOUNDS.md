@@ -61,4 +61,4 @@ The SCP Foundation universe itself is CC BY-SA 3.0 (http://scp-wiki.wikidot.com/
 | `SCP_KeycardDeny.ogg` | `SFX/Door/DoorError.ogg` |
 | `SCP_TeslaZap.ogg` | `SFX/Room/Tesla/Shock.ogg` |
 
-Generated placeholders (made for this mod, no third-party rights): `SCP_BreachVoice.ogg`, `SCP_PillSwallow.ogg`.
+Generated placeholders (made for this mod, no third-party rights): `SCP_BreachVoice.ogg`, `SCP_PillSwallow.ogg`, `SCP207_Open.ogg`, `SCP018_Bounce.ogg`.

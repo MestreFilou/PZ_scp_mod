@@ -19,6 +19,10 @@ module Base
     sound SCP_PillSwallow { category = Player, clip { file = media/sound/SCP_PillSwallow.ogg, distanceMax = 5, volume = 0.7, } }
     sound SCP914_Clockwork { category = World, clip { file = media/sound/SCP914_Clockwork.ogg, distanceMax = 25, volume = 0.9, } }
     sound SCP939_Voice { category = Zombie, clip { file = media/sound/SCP939_Voice1.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice2.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice3.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice4.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice5.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice6.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice7.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice8.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice9.ogg, distanceMax = 30, volume = 0.9, } clip { file = media/sound/SCP939_Voice10.ogg, distanceMax = 30, volume = 0.9, } }
+    /* small anomalies: the two first are made by the mod (synthesised), the last reuses SCP-173's snaps */
+    sound SCP_207_Open { category = Player, clip { file = media/sound/SCP207_Open.ogg, distanceMax = 8, volume = 0.8, } }
+    sound SCP_018_Bounce { category = World, clip { file = media/sound/SCP018_Bounce.ogg, distanceMax = 25, volume = 1.0, } }
+    sound SCP_330_Hands { category = Player, clip { file = media/sound/SCP173_NeckSnap1.ogg, distanceMax = 15, volume = 1.0, } clip { file = media/sound/SCP173_NeckSnap3.ogg, distanceMax = 15, volume = 1.0, } }
     sound SCP_TeslaZap { category = World, clip { file = media/sound/SCP_TeslaZap.ogg, distanceMax = 30, volume = 1.0, } }
 
     /* Silent zombie voice for SCP entities (see lua/shared/SCP_Behaviour.lua) */

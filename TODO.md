@@ -36,6 +36,9 @@ Légende : [x] fait (non testé en jeu sauf mention), [ ] à faire.
 - [x] Abords : bande de gravier, clôture grillagée avec barbelés, zone dégagée, lisière de forêt (arbres du jeu)
 - [ ] Vérifier en jeu : meubles du jeu bien orientés, fouillables, lits utilisables ; arbres plantés autour
 - [ ] Annonce d'introduction enregistrée par Lucas (haut-parleurs + sous-titres), à brancher quand le fichier arrive
+- [x] Petites anomalies (wiki SCP, CC BY-SA) : SCP-207 (cola, courir sans fatigue mais le cœur souffre), 268 (casquette, ignoré 15 s), 330 (bonbons, le 3e coupe les mains), 005 (clé, ouvre tout), 109 (gourde infinie), 458 (pizza sans fin), 427 (médaillon, soigne puis mute), 018 (super balle). Clic droit dans l'inventaire. Rangées dans la salle de test, la cafétéria, le bureau du directeur, la salle des objets anormaux, le quartier des gardes ; aussi dans le kit admin.
+- [x] Armes à feu du jeu (pistolets, fusils d'assaut, fusil à pompe, chargeurs, munitions) dans l'armurerie, les postes de sécurité, le quartier des gardes, le vestiaire FIM et les casiers militaires
+- [ ] Vérifier en jeu : effets des anomalies (surtout 268 avec setGhostMode, 018 sur les zombies), icônes, noms des armes du jeu en 42.22
 - Plan et aperçus : `art/site_plan.png`, `art/preview_*.png`. Pour modifier le plan : `tools/make_site_layout.py`, puis `tools/make_site_preview.py`.
 - Note : un site construit avec l'ancienne version reste en place avec ses anciennes tuiles mais n'est plus géré ; il faut une nouvelle partie (ou construire le nouveau site ailleurs).
 

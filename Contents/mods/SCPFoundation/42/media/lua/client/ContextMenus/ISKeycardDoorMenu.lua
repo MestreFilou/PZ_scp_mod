@@ -24,6 +24,8 @@ end
 -- The best keycard the character carries (the item), or nil.
 local function bestCard(player)
     local inv = player:getInventory()
+    local key = inv:getFirstTypeRecurse("SCP_005_Key")
+    if key then return key end
     for level = SCP.MaxKeyLevel, 1, -1 do
         local item = inv:getFirstTypeRecurse("SCP_Keycard_L" .. level)
         if item then return item end

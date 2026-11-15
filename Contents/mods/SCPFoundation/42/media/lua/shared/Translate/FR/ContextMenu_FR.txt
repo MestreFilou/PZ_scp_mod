@@ -46,4 +46,11 @@ ContextMenu_FR = {
     ContextMenu_SCP_106_Console = "Broyeur de fémur",
     ContextMenu_SCP_106_FemurBreaker = "Activer le broyeur de fémur",
     ContextMenu_SCP_106_Recall = "Rappel magnétique de SCP-106",
+    ContextMenu_SCP_207 = "Boire une gorgée de SCP-207",
+    ContextMenu_SCP_268 = "Mettre la casquette SCP-268",
+    ContextMenu_SCP_330 = "Prendre un bonbon",
+    ContextMenu_SCP_109 = "Boire à la gourde",
+    ContextMenu_SCP_458 = "Ouvrir la boîte et manger une part",
+    ContextMenu_SCP_427 = "Ouvrir / fermer le médaillon",
+    ContextMenu_SCP_018 = "Lancer la balle",
 }

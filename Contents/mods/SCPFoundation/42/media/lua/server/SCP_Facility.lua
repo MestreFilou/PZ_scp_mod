@@ -338,7 +338,8 @@ local FURNITURE_LOOT = {
     shelves = { { "Base.Book", 40 }, { "Base.Notebook", 25 }, { "SCP_Document_Containment", 6 } },
     metal_shelves = { { "Base.Torch", 15 }, { "Base.Battery", 25 }, { "SCP_GasFilter", 10 }, { "Base.DuctTape", 15 } },
     locker = { { "SCP_LabCoat", 10 }, { "Base.WaterBottle", 20 }, { "Base.Torch", 10 } },
-    militarylocker = { { "SCP_MTF_Helmet", 15 }, { "SCP_MTF_Baton", 15 }, { "SCP_GasMask", 10 }, { "SCP_Keycard_L2", 8 } },
+    militarylocker = { { "SCP_MTF_Helmet", 15 }, { "SCP_MTF_Baton", 15 }, { "SCP_GasMask", 10 }, { "SCP_Keycard_L2", 8 },
+                       { "Base.Pistol", 6 }, { "Base.9mmClip", 12 }, { "Base.Bullets9mmBox", 18 }, { "Base.556Clip", 6 } },
     medicine = { { "Base.Bandage", 60 }, { "Base.Pills", 30 }, { "Base.AlcoholWipes", 30 }, { "SCP_500_Pill", 1 } },
     sidetable = { { "Base.Bandage", 30 }, { "Base.Pills", 20 }, { "Base.SheetPaper2", 30 } },
     fridge = { { "Base.WaterBottle", 50 }, { "Base.Pop", 30 }, { "Base.Sandwich", 15 } },
@@ -433,7 +434,12 @@ local function roomContents(room, x, y, z)
         for i = 1, #loot, 2 do
             local itemType = loot[i]
             if not itemType:find("%.") then itemType = "Base." .. itemType end
-            for _ = 1, loot[i + 1] do
+            local sm = getScriptManager and getScriptManager()
+            if sm and not sm:FindItem(itemType) then
+                SCP.log("unknown loot item", itemType)
+                itemType = nil
+            end
+            for _ = 1, itemType and loot[i + 1] or 0 do
                 local lx = origin.x + ZombRand(room.x0, room.x1 + 1)
                 local ly = origin.y + ZombRand(room.y0, room.y1 + 1)
                 local sq = getCell():getOrCreateGridSquare(lx, ly, z)

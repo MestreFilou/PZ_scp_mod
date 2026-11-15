@@ -119,4 +119,100 @@ module Base
         Tags = SCP_Anomaly,
         WorldStaticModel = Book,
     }
+
+    /* Small anomalies (SCP wiki, CC BY-SA 3.0): see SCP_Anomalies_Logic.lua. */
+
+    /* SCP-207: four sips of a cola that lets you run without tiring, and slowly kills you. */
+    item SCP_207
+    {
+        DisplayCategory = Food,
+        ItemType = base:drainable,
+        Weight = 0.5,
+        Icon = SCP_207,
+        UseDelta = 0.25,
+        UseWhileEquipped = false,
+        Tags = SCP_Anomaly,
+    }
+
+    /* SCP-268: a cap that makes the dead ignore you for a short while. */
+    item SCP_268
+    {
+        DisplayCategory = Clothing,
+        ItemType = base:normal,
+        Weight = 0.2,
+        Icon = SCP_268,
+        Tags = SCP_Anomaly,
+    }
+
+    /* SCP-330: a bowl of candy. Take no more than two. */
+    item SCP_330
+    {
+        DisplayCategory = Junk,
+        ItemType = base:normal,
+        Weight = 1.0,
+        Icon = SCP_330,
+        Tags = SCP_Anomaly,
+    }
+
+    item SCP_330_Candy
+    {
+        DisplayCategory = Food,
+        ItemType = base:food,
+        Weight = 0.02,
+        Icon = SCP_330_Candy,
+        HungerChange = -2,
+        UnhappyChange = -15,
+        BoredomChange = -10,
+        Tags = SCP_Anomaly,
+    }
+
+    /* SCP-005: a key that opens every door. */
+    item SCP_005_Key
+    {
+        DisplayCategory = Junk,
+        ItemType = base:normal,
+        Weight = 0.05,
+        Icon = SCP_005_Key,
+        Tags = SCP_Keycard;SCP_Anomaly,
+    }
+
+    /* SCP-109: a canteen that never runs dry. */
+    item SCP_109_Canteen
+    {
+        DisplayCategory = Water,
+        ItemType = base:normal,
+        Weight = 0.6,
+        Icon = SCP_109_Canteen,
+        Tags = SCP_Anomaly,
+    }
+
+    /* SCP-458: a pizza box with a fresh hot pizza in it, every time. */
+    item SCP_458_PizzaBox
+    {
+        DisplayCategory = Food,
+        ItemType = base:normal,
+        Weight = 0.8,
+        Icon = SCP_458_PizzaBox,
+        Tags = SCP_Anomaly,
+    }
+
+    /* SCP-427: a locket that heals while open... for a while. */
+    item SCP_427
+    {
+        DisplayCategory = Accessory,
+        ItemType = base:normal,
+        Weight = 0.05,
+        Icon = SCP_427,
+        Tags = SCP_Anomaly,
+    }
+
+    /* SCP-018: a super ball that never loses energy. */
+    item SCP_018
+    {
+        DisplayCategory = Junk,
+        ItemType = base:normal,
+        Weight = 0.05,
+        Icon = SCP_018,
+        Tags = SCP_Anomaly,
+    }
 }

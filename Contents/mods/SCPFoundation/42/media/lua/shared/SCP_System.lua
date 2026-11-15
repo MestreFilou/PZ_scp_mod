@@ -250,6 +250,7 @@ end
 
 function SCP.keycardLevel(player)
     local inv = player:getInventory()
+    if inv:containsTypeRecurse("SCP_005_Key") then return SCP.MaxKeyLevel end   -- SCP-005 opens everything
     for level = SCP.MaxKeyLevel, 1, -1 do
         if inv:containsTypeRecurse("SCP_Keycard_L" .. level) then return level end
     end
