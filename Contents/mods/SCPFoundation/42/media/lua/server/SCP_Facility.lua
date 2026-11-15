@@ -1,11 +1,17 @@
 --[[
-    Builds the SCP site underground, a bit at a time: whenever a chunk of
-    the surface above the site loads, the matching underground columns are
-    built (floors, walls, keycard doors, elevators, loot, staff and SCPs).
+    Builds the SCP site from its plan (shared/SCP_Facility_Data.lua), a bit
+    at a time: whenever a square of the surface above the site loads, the
+    column under it is built:
+      - the underground level: floor, walls, door frames, keycard doors,
+        corner posts, furniture, machines, signs, loot, staff and SCPs;
+      - on the surface, inside the compound: the ground is cleared and
+        paved, then the perimeter wall, the bunker, the gatehouse and the
+        two big gates (main gate and Gate A) are built;
+      - the bunker roof, one level up.
     Each surface square remembers it was done, so nothing is built twice.
 
-    The site is placed by an admin ("Build the SCP site here") or by the
-    FacilityX / FacilityY sandbox options.
+    The site is placed by an admin ("Build the SCP site here": the click is
+    where the main gate goes) or by the FacilityX / FacilityY sandbox options.
 ]]
 
 require "SCP_System"
@@ -14,33 +20,14 @@ require "SCP_Facility_Layout"
 require "SCP_Spawner"
 
 local F = SCP.Facility
+local D = F.Data
+local TL = D.tiles
+local SET = TL.sheet
 
--- Site tiles: tileset scp_facility_02 (tools/make_facility_tiles.py), per zone:
---   +0 wall W, +1 wall N, +2 corner NW, +3 door frame W, +4 door frame N.
--- Each sprite falls back to a vanilla one (F.Fallback) if the pack is missing.
-local SET = "scp_facility_02_"
-local function siteWalls(i0)
-    return { wallW = SET .. i0, wallN = SET .. (i0 + 1), wallNW = SET .. (i0 + 2),
-             frameW = SET .. (i0 + 3), frameN = SET .. (i0 + 4) }
-end
+local function tile(n) return SET .. n end
 
-F.Sprites = F.Sprites or {
-    EZ  = siteWalls(0),                             -- painted concrete, blue stripe
-    LCZ = siteWalls(8),                             -- white blocks, hazard skirting
-    HCZ = siteWalls(16),                            -- raw concrete, red band
-    floors = {
-        EZ  = SET .. "5",                           -- grey tiles
-        HCZ = SET .. "21",                          -- diamond plate
-        LCZ = SET .. "13",                          -- light concrete
-    },
-    -- Doors: closed W, closed N (+2 = open W, +3 = open N: sliding doors)
-    doorW = SET .. "24", doorN = SET .. "25",                     -- standard
-    heavyDoorW = SET .. "28", heavyDoorN = SET .. "29",           -- containment (level 3+)
-    elevator = SET .. "15",                         -- hazard-striped platform
-    containmentFloor = SET .. "14",                 -- metal grating
-    signs = { EZ = 40, LCZ = 41, HCZ = 42, Logo = 43, Danger = 44 },   -- W; N = +8
-    -- Mod tiles (media/texturepacks/scp_facility.pack, media/scp_facility.tiles).
-    -- If the pack is not loaded, each one falls back to the vanilla placeholder in F.Fallback.
+-- Machines: tileset scp_facility_01 (hand-drawn, see art/scp_facility_01_tilesheet.png).
+F.Sprites = {
     terminal = "scp_facility_01_4",                 -- SCP-079: tape reels and CRT
     scp914 = "scp_facility_01_1",                   -- SCP-914: gears and dial (center)
     scp914In = "scp_facility_01_0",                 -- SCP-914: intake booth (west)
@@ -48,28 +35,14 @@ F.Sprites = F.Sprites or {
     scp294 = "scp_facility_01_3",                   -- SCP-294: drink machine
     warhead = "scp_facility_01_6",                  -- Alpha Warhead control panel
     femur = "scp_facility_01_6",                    -- Femur Breaker console (same panel tile for now)
-    -- Generator control panels. Real generator tiles would let players pick up free generators.
-    generators = { "scp_facility_01_5", "scp_facility_01_5", "scp_facility_01_5" },
+    generator = "scp_facility_01_5",                -- generator control panel
     teslaW = "scp_facility_01_7",                   -- Tesla gate on the west edge of a square
     teslaN = "scp_facility_01_8",                   -- Tesla gate on the north edge of a square
 }
 
--- Vanilla placeholders used when the mod's tile pack is missing (nil = draw nothing).
-local function vanillaWalls(name, i0)
-    local t = {}
-    t[SET .. i0] = name .. "_0"; t[SET .. (i0 + 1)] = name .. "_1"; t[SET .. (i0 + 2)] = name .. "_2"
-    t[SET .. (i0 + 3)] = name .. "_10"; t[SET .. (i0 + 4)] = name .. "_11"
-    return t
-end
-
-F.Fallback = F.Fallback or {
-    [SET .. "5"] = "floors_interior_tilesandwood_01_28",
-    [SET .. "13"] = "floors_interior_tilesandwood_01_16",
-    [SET .. "21"] = "floors_interior_tilesandwood_01_29",
-    [SET .. "14"] = "floors_interior_tilesandwood_01_24",
-    [SET .. "15"] = "floors_interior_tilesandwood_01_3",
-    [SET .. "24"] = "fixtures_doors_01_68", [SET .. "25"] = "fixtures_doors_01_69",
-    [SET .. "28"] = "fixtures_doors_01_68", [SET .. "29"] = "fixtures_doors_01_69",
+-- Vanilla stand-ins used when the mod's tile pack is not loaded.
+-- Furniture, signs and fittings have none: they are simply left out.
+F.Fallback = {
     scp_facility_01_0 = "location_shop_accessories_01_17",
     scp_facility_01_1 = "location_shop_accessories_01_17",
     scp_facility_01_2 = "location_shop_accessories_01_17",
@@ -78,16 +51,72 @@ F.Fallback = F.Fallback or {
     scp_facility_01_5 = "security_01_0",
     scp_facility_01_6 = "security_01_0",
 }
-for _, t in ipairs({ vanillaWalls("walls_interior_house_02", 0), vanillaWalls("walls_interior_bathroom_01", 8),
-                     vanillaWalls("walls_commercial_03", 16) }) do
-    for k, v in pairs(t) do F.Fallback[k] = F.Fallback[k] or v end
+do
+    local wallSets = {
+        a = "walls_interior_house_02", b = "walls_interior_bathroom_01", c = "walls_commercial_03",
+        d = "walls_commercial_03", e = "walls_exterior_house_01", f = "walls_exterior_house_01",
+    }
+    for key, name in pairs(wallSets) do
+        local i0 = TL.walls[key]
+        F.Fallback[tile(i0)] = name .. "_0"
+        F.Fallback[tile(i0 + 1)] = name .. "_1"
+        F.Fallback[tile(i0 + 2)] = name .. "_2"
+        if key ~= "f" then
+            F.Fallback[tile(i0 + 3)] = name .. "_10"
+            F.Fallback[tile(i0 + 4)] = name .. "_11"
+        end
+        F.Fallback[tile(TL.pillars[key])] = name .. "_3"
+    end
+    local floors = {
+        t = "floors_interior_tilesandwood_01_28", c = "floors_interior_tilesandwood_01_16",
+        m = "floors_interior_tilesandwood_01_29", g = "floors_interior_tilesandwood_01_24",
+        h = "floors_interior_tilesandwood_01_3", e = "floors_interior_tilesandwood_01_3",
+        a = "floors_exterior_street_01_0", k = "floors_interior_tilesandwood_01_16",
+        roof = "floors_interior_tilesandwood_01_29",
+    }
+    for key, name in pairs(floors) do F.Fallback[tile(TL.floors[key])] = name end
+    for _, i0 in pairs(TL.doors) do
+        F.Fallback[tile(i0)] = "fixtures_doors_01_68"
+        F.Fallback[tile(i0 + 1)] = "fixtures_doors_01_69"
+    end
 end
 
 local origin = nil       -- cached F.origin()
-local fw, fh = F.footprint()
 local spawnQueue = {}
 
 local function refreshOrigin() origin = F.origin() end
+
+------------------------------------------------------------------------
+-- What the plan holds at each tile (built once)
+------------------------------------------------------------------------
+
+local index = nil
+
+local function key(lx, ly) return lx .. "," .. ly end
+
+local function buildIndex()
+    index = {}
+    for name, level in pairs({ underground = D.underground, surface = D.surface }) do
+        local ix = { doors = {}, objects = {}, tesla = {}, lifts = {}, centers = {}, roof = {} }
+        local function push(t, k, v)
+            t[k] = t[k] or {}
+            table.insert(t[k], v)
+        end
+        for _, d in ipairs(level.doors) do push(ix.doors, key(d.x, d.y), d) end
+        for _, o in ipairs(level.objects) do push(ix.objects, key(o.x, o.y), o) end
+        for _, t in ipairs(level.tesla) do ix.tesla[key(t.x, t.y)] = t end
+        for _, l in ipairs(level.lifts) do ix.lifts[key(l.x, l.y)] = l end
+        for _, r in ipairs(level.rooms) do
+            ix.centers[key(r.cx, r.cy)] = r
+            if r.roof then
+                for rx = r.x0, r.x1 do
+                    for ry = r.y0, r.y1 do ix.roof[key(rx, ry)] = true end
+                end
+            end
+        end
+        index[name] = ix
+    end
+end
 
 ------------------------------------------------------------------------
 -- Low level placement
@@ -101,7 +130,7 @@ local warned = {}
 local function warnSprite(name)
     if warned[name] then return end
     warned[name] = true
-    SCP.log("missing tile sprite:", tostring(name), "- edit SCP.Facility.Sprites")
+    SCP.log("missing tile sprite:", tostring(name))
 end
 
 -- The mod tile if its pack is loaded, else its vanilla stand-in.
@@ -110,21 +139,27 @@ local function resolve(sprite)
     return F.Fallback[sprite] or sprite
 end
 
-local function addFloor(sq, sprite)
-    if sq:getFloor() then return end
+-- replace = true: the existing floor (grass, road...) is changed to ours.
+local function addFloor(sq, sprite, replace)
+    if sq:getFloor() and not replace then return end
     sprite = resolve(sprite)
     if not spriteOk(sprite) then warnSprite(sprite) return end
     if sq.addFloor then
         if pcall(sq.addFloor, sq, sprite) then return end
     end
+    if sq:getFloor() then return end
     local ok, obj = pcall(IsoObject.new, getCell(), sq, sprite)
     if ok and obj then sq:AddTileObject(obj) end
 end
 
 -- setup(obj), if given, runs before the object is added to the square.
-local function addObject(sq, sprite, setup)
+-- optional = true: decoration, silently left out when its tile is missing.
+local function addObject(sq, sprite, setup, optional)
     sprite = resolve(sprite)
-    if not spriteOk(sprite) then warnSprite(sprite) return nil end
+    if not spriteOk(sprite) then
+        if not optional then warnSprite(sprite) end
+        return nil
+    end
     local ok, obj = pcall(IsoObject.new, getCell(), sq, sprite)
     if ok and obj then
         if setup then setup(obj) end
@@ -134,82 +169,111 @@ local function addObject(sq, sprite, setup)
     return nil
 end
 
-local function addDoor(sq, north, level, sprites)
-    addObject(sq, north and sprites.frameN or sprites.frameW)
-    local heavy = level and level >= 3
-    local sprite
-    if heavy then
-        sprite = north and F.Sprites.heavyDoorN or F.Sprites.heavyDoorW
-    else
-        sprite = north and F.Sprites.doorN or F.Sprites.doorW
+-- Removes what stands on a surface square (trees, bushes, fences...), keeps the ground.
+local function clearSquare(sq)
+    local floor = sq:getFloor()
+    local objs = sq:getObjects()
+    for i = objs:size() - 1, 0, -1 do
+        local o = objs:get(i)
+        if o ~= floor then
+            if isServer() then
+                pcall(sq.transmitRemoveItemFromSquare, sq, o)
+            else
+                pcall(sq.RemoveTileObject, sq, o)
+            end
+        end
     end
-    sprite = resolve(sprite)
+end
+
+local function addDoor(sq, north, d)
+    local base = d.gate and TL.doors.gate or (d.heavy and TL.doors.heavy or TL.doors.standard)
+    local sprite = resolve(tile(base + (north and 1 or 0)))
     if not spriteOk(sprite) then warnSprite(sprite) return end
     local ok, door = pcall(IsoDoor.new, getCell(), sq, sprite, north)
     if not ok or not door then return end
     sq:AddSpecialObject(door)
-    if level and level > 0 then
-        door:getModData().SCP_KeyLevel = level
+    local world = SCP.world()
+    if d.gate then
+        door:getModData().SCP_Gate = d.gate
+        world.gates = world.gates or {}
+        world.gates[d.gate] = world.gates[d.gate] or {}
+        table.insert(world.gates[d.gate], { x = sq:getX(), y = sq:getY(), z = sq:getZ() })
+    end
+    if d.level and d.level > 0 then
+        door:getModData().SCP_KeyLevel = d.level
         SCP.Doors.setLocked(door, true)
-        local world = SCP.world()
         world.doors = world.doors or {}
-        world.doors[SCP.Doors.key(sq)] = level
+        world.doors[SCP.Doors.key(sq)] = d.level
     end
 end
 
 ------------------------------------------------------------------------
--- What goes on each edge between two rooms
+-- Things standing on a tile
 ------------------------------------------------------------------------
 
--- Returns nil (nothing), "wall" or "door", plus the door's keycard level.
-local function edgeKind(level, ax, ay, bx, by, pos)
-    local a, b = F.charAt(level, ax, ay), F.charAt(level, bx, by)
-    local sa, sb = F.solid(a), F.solid(b)
-    if not sa and not sb then return nil end
-    if not (sa and sb) then return "wall" end
-    local ra, rb = F.Rooms[a], F.Rooms[b]
-    local mid = math.floor(F.ROOM / 2)
-    if ra.corridor and rb.corridor then
-        local lvl = math.max(ra.level or 0, rb.level or 0)
-        if lvl == 0 then return nil end
-        if pos == mid then return "door", lvl end
-        return "wall"
+local function addContainer(obj, name)
+    local ok, c = pcall(ItemContainer.new, name, obj:getSquare(), obj)
+    if ok and c then
+        pcall(c.setCapacity, c, 50)
+        pcall(c.setExplored, c, true)
+        pcall(obj.setContainer, obj, c)
+    else
+        SCP.log("SCP-914: could not create the booth container")
     end
-    if ra.corridor or rb.corridor then
-        -- Room next to a corridor: one door, on the side the room picked.
-        local rx, ry, cx, cy, room = ax, ay, bx, by, ra
-        if ra.corridor then rx, ry, cx, cy, room = bx, by, ax, ay, rb end
-        local dx, dy = F.doorSide(level, rx, ry)
-        if dx and rx + dx == cx and ry + dy == cy and pos == mid then
-            return "door", room.level or 0
-        end
-        return "wall"
-    end
-    return "wall"
 end
 
-------------------------------------------------------------------------
--- Room contents (placed once, from the room's center tile)
-------------------------------------------------------------------------
+local function placeObject(sq, o)
+    local k = o.kind
+    if k == "prop" then
+        addObject(sq, tile(TL.props[o.prop] + (o.face == "w" and 1 or 0)), nil, true)
+    elseif k == "sign" then
+        local n = (o.north and TL.signN or TL.signW)[o.sign]
+        if n then addObject(sq, tile(n), nil, true) end
+    elseif k == "pipes" or k == "vent" then
+        addObject(sq, tile(TL.fittings[k] + (o.north and 1 or 0)), nil, true)
+    elseif k == "terminal" then
+        local obj = addObject(sq, F.Sprites.terminal)
+        if obj then obj:getModData().SCP079_Terminal = true end
+    elseif k == "scp914" then
+        local obj = addObject(sq, F.Sprites.scp914)
+        if obj then obj:getModData().SCP914_Machine = true end
+    elseif k == "scp914In" or k == "scp914Out" then
+        -- Intake (west) and output (east) booths: containers, like furniture.
+        local kind = k == "scp914In" and "in" or "out"
+        addObject(sq, F.Sprites[k], function(obj)
+            obj:getModData().SCP914_Booth = kind
+            addContainer(obj, "scp914_" .. kind)
+        end)
+    elseif k == "scp294" then
+        local obj = addObject(sq, F.Sprites.scp294)
+        if obj then obj:getModData().SCP294_Machine = true end
+    elseif k == "warhead" then
+        local obj = addObject(sq, F.Sprites.warhead)
+        if obj then obj:getModData().SCP_Warhead = true end
+    elseif k == "femur" then
+        local obj = addObject(sq, F.Sprites.femur)
+        if obj then obj:getModData().SCP106_Breaker = true end
+    elseif k == "generator" then
+        local obj = addObject(sq, F.Sprites.generator)
+        if obj then obj:getModData().SCP079_Generator = o.n end
+    end
+end
 
-local function roomContents(level, cx, cy, ch, x, y, z)
-    local room = F.Rooms[ch]
-    local function rand(a, b) return ZombRand(a, b + 1) end
-    local half = math.floor(F.ROOM / 2) - 2
-
-    -- Loot on the floor
+-- Loot, staff and SCP of a room (placed once, when the room's centre tile is built).
+local function roomContents(room, x, y, z)
     local loot = room.loot
     if loot then
         for i = 1, #loot, 2 do
             local itemType = loot[i]
             if not itemType:find("%.") then itemType = "Base." .. itemType end
             for _ = 1, loot[i + 1] do
-                local sq = getCell():getOrCreateGridSquare(x + rand(-half, half), y + rand(-half, half), z)
+                local lx = origin.x + ZombRand(room.x0, room.x1 + 1)
+                local ly = origin.y + ZombRand(room.y0, room.y1 + 1)
+                local sq = getCell():getOrCreateGridSquare(lx, ly, z)
                 if sq then pcall(sq.AddWorldInventoryItem, sq, itemType, ZombRandFloat(0.1, 0.9), ZombRandFloat(0.1, 0.9), 0) end
             end
         end
     end
-
     -- Staff and SCPs are spawned a little later (not during chunk loading).
     if room.zombies then
         table.insert(spawnQueue, { outfit = room.zombies[1], count = room.zombies[2], x = x, y = y, z = z })
@@ -217,113 +281,69 @@ local function roomContents(level, cx, cy, ch, x, y, z)
     if room.scp then
         table.insert(spawnQueue, { scp = room.scp, count = room.count or 1, x = x, y = y, z = z })
     end
-
-    -- SCP-079's terminal and the three re-containment generators
-    if room.special == "scp079" then
-        local obj = addObject(getCell():getOrCreateGridSquare(x, y - 2, z), F.Sprites.terminal)
-        if obj then obj:getModData().SCP079_Terminal = true end
-    elseif room.special == "scp914" then
-        local obj = addObject(getCell():getOrCreateGridSquare(x, y - 2, z), F.Sprites.scp914)
-        if obj then obj:getModData().SCP914_Machine = true end
-        -- Intake (west) and output (east) booths: containers, like furniture.
-        for dx, kind in pairs({ [-1] = "in", [1] = "out" }) do
-            local key = kind == "in" and "scp914In" or "scp914Out"
-            local booth = addObject(getCell():getOrCreateGridSquare(x + dx, y - 2, z), F.Sprites[key], function(o)
-                o:getModData().SCP914_Booth = kind
-                local ok, c = pcall(ItemContainer.new, "scp914_" .. kind, o:getSquare(), o)
-                if ok and c then
-                    pcall(c.setCapacity, c, 50)
-                    pcall(c.setExplored, c, true)
-                    pcall(o.setContainer, o, c)
-                else
-                    SCP.log("SCP-914: could not create the booth container")
-                end
-            end)
-        end
-    elseif room.special == "scp294" then
-        local obj = addObject(getCell():getOrCreateGridSquare(x + 3, y - 3, z), F.Sprites.scp294)
-        if obj then obj:getModData().SCP294_Machine = true end
-    elseif room.special == "femur" then
-        local obj = addObject(getCell():getOrCreateGridSquare(x, y - 2, z), F.Sprites.femur)
-        if obj then obj:getModData().SCP106_Breaker = true end
-    elseif room.special == "warhead" then
-        local obj = addObject(getCell():getOrCreateGridSquare(x, y - 2, z), F.Sprites.warhead)
-        if obj then obj:getModData().SCP_Warhead = true end
-    elseif room.special == "generators" then
-        for i, sprite in ipairs(F.Sprites.generators) do
-            local obj = addObject(getCell():getOrCreateGridSquare(x - 4 + (i - 1) * 4, y - 3, z), sprite)
-            if obj then obj:getModData().SCP079_Generator = i end
-        end
-    end
-
-    -- Elevator: the yellow floor tile of the room's center carries the link.
-    if room.elevator then
-        local floor = getCell():getOrCreateGridSquare(x, y, z):getFloor()
-        if floor then floor:getModData().SCP_Elevator = { level = level.id, link = room.elevator } end
-    end
 end
 
 ------------------------------------------------------------------------
 -- One tile of one level
 ------------------------------------------------------------------------
 
-local function buildTile(level, lx, ly, x, y, z)
-    local S = F.ROOM
-    local cx, cy = math.floor(lx / S), math.floor(ly / S)
-    local ix, iy = lx - cx * S, ly - cy * S
-    local here = F.charAt(level, cx, cy)
-    local west, north, westDoorLevel, northDoorLevel
-    if ix == 0 then west, westDoorLevel = edgeKind(level, cx, cy, cx - 1, cy, iy) end
-    if iy == 0 then north, northDoorLevel = edgeKind(level, cx, cy, cx, cy - 1, ix) end
-    if not F.solid(here) and not west and not north then return end
+local function wallSprite(ch, offset)
+    local i0 = TL.walls[ch:lower()]
+    if not i0 then return nil end
+    if ch:lower() ~= ch then return tile(i0 + 3 + offset) end     -- capital: door frame
+    return tile(i0 + offset)
+end
+
+local function buildTile(level, ix, lx, ly, x, y, z, surface)
+    local fl = F.charAt(level, "floor", lx, ly)
+    local west = F.charAt(level, "west", lx, ly)
+    local north = F.charAt(level, "north", lx, ly)
+    -- corner post where the north wall of the tile to the west meets the west wall of the tile to the north
+    local post = nil
+    if west == "." and north == "." then
+        local n2, w2 = F.charAt(level, "north", lx - 1, ly), F.charAt(level, "west", lx, ly - 1)
+        if n2 ~= "." and n2 ~= " " and w2 ~= "." and w2 ~= " " then post = TL.pillars[n2:lower()] end
+    end
+    local k = key(lx, ly)
+    local doors = ix.doors[k]
+    if fl == " " and west == "." and north == "." and not post and not doors then return end
 
     local sq = getCell():getOrCreateGridSquare(x, y, z)
     if not sq then return end
-    local sprites = F.Sprites[level.id] or F.Sprites.EZ
-    local mid = math.floor(S / 2)
-    local center = ix == mid and iy == mid
 
-    if F.solid(here) then
-        local room = F.Rooms[here]
-        local floor = F.Sprites.floors[level.id] or F.Sprites.floors.EZ
-        if room.scp then floor = F.Sprites.containmentFloor end
-        if room.elevator and center then floor = F.Sprites.elevator end
-        local fresh = not sq:getFloor()
-        addFloor(sq, floor)
-        -- Tesla gate: one pylon tile per square of the gate line (only when the square is first built).
-        if fresh and room.tesla and F.isTesla(x, y, z) and spriteOk(F.Sprites.teslaW) then
-            local alongY = F.isTesla(x, y + 1, z) or F.isTesla(x, y - 1, z)
-            addObject(sq, alongY and F.Sprites.teslaW or F.Sprites.teslaN)
-        end
+    if fl ~= " " then
+        if surface then clearSquare(sq) end
+        addFloor(sq, tile(TL.floors[fl] or TL.floors.c), surface)
     end
 
-    if west == "wall" and north == "wall" then
-        addObject(sq, sprites.wallNW)
+    if west ~= "." and north ~= "." and west == north and west:lower() == west then
+        addObject(sq, tile(TL.walls[west] + 2))
     else
-        if west == "wall" then addObject(sq, sprites.wallW) end
-        if north == "wall" then addObject(sq, sprites.wallN) end
+        if west ~= "." then addObject(sq, wallSprite(west, 0)) end
+        if north ~= "." then addObject(sq, wallSprite(north, 1)) end
     end
-    if west == "door" then addDoor(sq, false, westDoorLevel, sprites) end
-    if north == "door" then addDoor(sq, true, northDoorLevel, sprites) end
-
-    -- One sign per room, on its north wall, near the west corner.
-    if north == "wall" and ix == 3 and F.solid(here) then
-        local room = F.Rooms[here]
-        local kind = nil
-        if room.scp then kind = "Danger"
-        elseif room.elevator then kind = level.id
-        elseif not room.corridor then kind = "Logo" end
-        local signs = F.Sprites.signs
-        if kind and signs and signs[kind] then addObject(sq, SET .. (signs[kind] + 8)) end
+    if post then addObject(sq, tile(post)) end
+    if doors then
+        for _, d in ipairs(doors) do addDoor(sq, d.north, d) end
     end
 
-    if F.solid(here) and center then
-        roomContents(level, cx, cy, here, x, y, z)
+    local t = ix.tesla[k]
+    if t then addObject(sq, t.north and F.Sprites.teslaN or F.Sprites.teslaW, nil, true) end
+    local objects = ix.objects[k]
+    if objects then
+        for _, o in ipairs(objects) do placeObject(sq, o) end
     end
+    local lift = ix.lifts[k]
+    if lift then
+        local floor = sq:getFloor()
+        if floor then floor:getModData().SCP_Elevator = { level = surface and "SURFACE" or "SITE", link = lift.link } end
+    end
+    local room = ix.centers[k]
+    if room then roomContents(room, x, y, z) end
 
     pcall(sq.RecalcProperties, sq)
     pcall(sq.RecalcAllWithNeighbours, sq, true)
-    -- New squares underground: make the lighting pass look at them again.
+    -- New squares: make the lighting pass look at them again.
     local chunk = sq.getChunk and sq:getChunk()
     if chunk and chunk.checkLightingLater_AllPlayers_AllLevels then
         pcall(chunk.checkLightingLater_AllPlayers_AllLevels, chunk)
@@ -331,30 +351,28 @@ local function buildTile(level, lx, ly, x, y, z)
 end
 
 ------------------------------------------------------------------------
--- One surface column -> every level under it
+-- One surface column -> the site under it, the compound, the roof
 ------------------------------------------------------------------------
 
 local function buildColumn(surfaceSq)
+    if not index then buildIndex() end
     local o = origin
     local x, y = surfaceSq:getX(), surfaceSq:getY()
     local lx, ly = x - o.x, y - o.y
-    for _, level in ipairs(F.Levels) do
-        local cols, rows = F.size(level)
-        if lx <= cols * F.ROOM and ly <= rows * F.ROOM then
-            buildTile(level, lx, ly, x, y, o.z + level.depth)
+    buildTile(D.underground, index.underground, lx, ly, x, y, o.z, false)
+    buildTile(D.surface, index.surface, lx, ly, x, y, 0, true)
+    if index.surface.roof[key(lx, ly)] then
+        local sq = getCell():getOrCreateGridSquare(x, y, 1)
+        if sq then
+            addFloor(sq, tile(TL.floors.roof), false)
+            pcall(sq.RecalcAllWithNeighbours, sq, true)
         end
-    end
-    -- Gate A on the surface, right above the site's corner.
-    if lx == 0 and ly == 0 then
-        if surfaceSq.addFloor then pcall(surfaceSq.addFloor, surfaceSq, F.Sprites.elevator) end
-        local floor = surfaceSq:getFloor()
-        if floor then floor:getModData().SCP_Elevator = { level = "SURFACE", link = "0" } end
     end
     surfaceSq:getModData().SCP_FacilityBuilt = F.VERSION
 end
 
 local function inFootprint(x, y)
-    return origin and x >= origin.x and y >= origin.y and x <= origin.x + fw and y <= origin.y + fh
+    return origin and x >= origin.x and y >= origin.y and x < origin.x + D.width and y < origin.y + D.height
 end
 
 local function onLoadGridsquare(sq)
@@ -371,8 +389,8 @@ SCP.on("LoadGridsquare", onLoadGridsquare)
 -- Build what is already loaded (right after the site was placed).
 function F.buildLoaded()
     if not origin then return end
-    for x = origin.x, origin.x + fw do
-        for y = origin.y, origin.y + fh do
+    for x = origin.x, origin.x + D.width - 1 do
+        for y = origin.y, origin.y + D.height - 1 do
             local sq = getCell():getGridSquare(x, y, 0)
             if sq and sq:getModData().SCP_FacilityBuilt ~= F.VERSION then buildColumn(sq) end
         end
@@ -391,9 +409,9 @@ local function processSpawns()
     world.facility = world.facility or {}
     world.facility.spawned = world.facility.spawned or {}
     for _, s in ipairs(queue) do
-        local key = s.x .. "," .. s.y .. "," .. s.z
-        if not world.facility.spawned[key] then
-            world.facility.spawned[key] = true
+        local k = s.x .. "," .. s.y .. "," .. s.z
+        if not world.facility.spawned[k] then
+            world.facility.spawned[k] = true
             if s.scp then
                 local list = SCP.Spawner.spawn(s.scp, s.x, s.y, s.z, s.count or 1)
                 for _, z in ipairs(list) do
@@ -412,22 +430,34 @@ end
 SCP.on("EveryOneMinute", processSpawns)
 
 ------------------------------------------------------------------------
--- Placement
+-- Placement: args.x / args.y is where the main gate goes
 ------------------------------------------------------------------------
 
 SCP.ServerCommands.PlaceFacility = function(player, args)
     if not SCP.isAdmin(player) then return end
     local world = SCP.world()
-    if world.facility and world.facility.x then
+    if world.facility and world.facility.x and world.facility.v == F.VERSION then
         SCP.sendToClient(player, "Notify", { key = "UI_SCP_FacilityExists" })
         return
     end
-    world.facility = { x = args.x, y = args.y, z = SCP.opt("FacilityDepth"), spawned = {} }
+    if world.facility and world.facility.x then
+        -- A site from an older version of the mod: forget its doors and cells (its tiles stay where they are).
+        world.doors = {}
+        local keep = {}
+        for _, p in ipairs(world.points) do
+            if not p.contained then keep[#keep + 1] = p end
+        end
+        world.points = keep
+    end
+    local o = F.originForGate(args.x, args.y)
+    o.spawned = {}
+    world.facility = o
+    world.gates = {}
     refreshOrigin()
     if isServer() then ModData.transmit("SCPFoundation") end
     F.buildLoaded()
     SCP.sendToClient(player, "Notify", { key = "UI_SCP_FacilityPlaced" })
-    SCP.log("SCP site placed at", args.x, args.y, "depth", world.facility.z)
+    SCP.log("SCP site placed, main gate at", args.x, args.y, "underground level", o.z)
 end
 
 SCP.on("OnInitGlobalModData", function() refreshOrigin() end)

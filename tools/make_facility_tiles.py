@@ -11,7 +11,7 @@ Outputs:
   Contents/mods/SCPFoundation/42/media/texturepacks/scp_facility.pack
       (scp_facility_01 from art/scp_facility_01_tilesheet.png + scp_facility_02)
   Contents/mods/SCPFoundation/42/media/scp_facility.tiles
-  art/scp_facility_02_preview.png                  (small room mock-up)
+(previews of the site are made by tools/make_site_preview.py)
 
 Usage: python3 tools/make_facility_tiles.py   (from the repository root)
 Needs numpy and Pillow.
@@ -192,75 +192,83 @@ def text_tex(w, h, bg, fg, lines, border=None, font_px=None):
 
 
 # ----------------------------------------------------------------------
-# Material textures
+# Material textures. The surfaces come from SCP - Containment Breach
+# (art/cb_textures, CC BY-SA 3.0); stripes, signs and props are drawn here.
 # ----------------------------------------------------------------------
 
 WALL_W, WALL_H = 256, 512
+CB = os.path.join(ART, "cb_textures")
+
+
+def cb(name, size, crop=None, bright=1.0, tint=None):
+    """A Containment Breach texture as a float RGBA array of `size` (w, h)."""
+    im = Image.open(os.path.join(CB, name + ".jpg")).convert("RGB")
+    if crop:
+        w, h = im.size
+        im = im.crop((int(crop[0] * w), int(crop[1] * h), int(crop[2] * w), int(crop[3] * h)))
+    im = im.resize(size, Image.LANCZOS)
+    a = np.zeros((size[1], size[0], 4), np.float32)
+    a[..., :3] = np.asarray(im).astype(np.float32) * bright
+    if tint is not None:
+        a[..., :3] *= np.array(tint, np.float32)
+    a[..., 3] = 255
+    return a
 
 
 def wall_ez():
-    a = base(WALL_W, WALL_H, "#b8bcc0", 6, 8, 1)
-    rect(a, 0, 0.62, 1, 1, "#7b8288")            # dark lower panel
-    a[int(0.62 * WALL_H):, :, :3] += noise(WALL_W, WALL_H - int(0.62 * WALL_H), 2, 6)[..., None]
-    hline(a, 0.62, 0.014, "#3a6ea5")             # blue stripe
-    hline(a, 0.645, 0.006, "#e2e5e8")
-    rect(a, 0, 0.965, 1, 1, "#3d4246")          # baseboard
-    for v in (0.2, 0.41):
-        hline(a, v, 0.004, "#9da2a6")            # panel seams
-    vline(a, 0.0, 0.01, "#8f949a")
-    vline(a, 1.0, 0.01, "#8f949a")
-    grime(a, 18, 0.2)
+    a = cb("officewall", (WALL_W, WALL_H))
+    grime(a, 14, 0.15)
     return to_img(a)
 
 
 def wall_lcz():
-    a = base(WALL_W, WALL_H, "#d9d6cd", 7, 10, 2)
-    # concrete blocks, staggered
-    rows = 7
-    for r in range(1, rows):
-        hline(a, r / rows * 0.9, 0.005, "#b3afa6")
-    for r in range(rows):
-        off = 0.5 if r % 2 else 0.0
-        for u in (off, off + 0.5):
-            u = u % 1.0
-            rect(a, u - 0.002, r / rows * 0.9, u + 0.002, (r + 1) / rows * 0.9, "#b3afa6")
-    hazard(a, 0, 0.9, 1, 0.965, period=30)        # yellow/black floor strip
-    hline(a, 0.9, 0.006, "#6a6a64")
-    rect(a, 0, 0.965, 1, 1, "#4a4a46")
-    hline(a, 0.55, 0.01, "#c79a2a", 0.8)          # thin amber line
-    grime(a, 22, 0.18)
+    a = cb("whitewall", (WALL_W, WALL_H))
+    rect(a, 0, 0.955, 1, 1, "#2e2f30")
+    grime(a, 16, 0.2)
     return to_img(a)
 
 
 def wall_hcz():
-    a = base(WALL_W, WALL_H, "#383b3d", 12, 22, 3)
-    # big poured concrete slabs with formwork holes
-    hline(a, 0.33, 0.006, "#26282a")
-    hline(a, 0.66, 0.006, "#26282a")
-    for u in (0.25, 0.75):
-        for v in (0.165, 0.495, 0.82):
-            bolts(a, [(u, v)], 5, "#1f2122")
-    # rusty steel ribs
-    for u in (0.02, 0.98):
-        rect(a, u - 0.03, 0, u + 0.03, 1, "#3a3530")
-        shade_rect(a, u - 0.03, 0, u - 0.01, 1, 1.25)
-    rect(a, 0, 0.44, 1, 0.47, "#7d2a20")          # red warning band
-    rect(a, 0, 0.965, 1, 1, "#1a1b1c")
-    a[..., :3] += (noise(WALL_W, WALL_H, 10, 10)[..., None]) * np.array([1.0, 0.7, 0.4])
-    grime(a, 35, 0.3)
-    drips(a, 6, "#211e18", 0.25, 33)
+    a = cb("concretewall", (WALL_W, WALL_H), bright=0.68)      # kept dark, as asked
+    rect(a, 0, 0.0, 1, 0.035, "#2a2c2e")
+    rect(a, 0, 0.46, 1, 0.485, "#7d2a20", 0.8)         # red warning band
+    rect(a, 0, 0.955, 1, 1, "#222425")
+    grime(a, 30, 0.3)
+    drips(a, 5, "#2a2620", 0.25, 33)
+    return to_img(a)
+
+
+def wall_cell():
+    a = cb("metalpanels", (WALL_W, WALL_H), bright=0.9)
+    hazard(a, 0, 0.9, 1, 0.955, period=30)
+    rect(a, 0, 0.955, 1, 1, "#1f2122")
+    rect(a, 0, 0.0, 1, 0.03, "#1f2122")
+    grime(a, 20, 0.25)
+    return to_img(a)
+
+
+def wall_bunker():
+    a = cb("concretemoss", (WALL_W, WALL_H), bright=1.05)
+    rect(a, 0, 0.0, 1, 0.03, "#2a2c2e")
+    return to_img(a)
+
+
+def wall_perimeter():
+    a = cb("concretewall", (WALL_W, WALL_H), bright=1.08)
+    hazard(a, 0, 0.0, 1, 0.05, period=30)
+    vline(a, 0.0, 0.02, "#4a4c4e")
+    vline(a, 1.0, 0.02, "#4a4c4e")
+    grime(a, 30, 0.3)
     return to_img(a)
 
 
 def wall_pocket():
-    a = base(WALL_W, WALL_H, "#22261c", 10, 26, 4)
-    g = noise(WALL_W, WALL_H, 18, 1, 41)
-    blot = np.clip((g - 0.25) * 3, 0, 1)
-    a[..., :3] = a[..., :3] * (1 - blot[..., None]) + hexrgb("#4a3a22") * blot[..., None]
-    drips(a, 14, "#050505", 0.6, 42)
-    gloss = np.clip((noise(WALL_W, WALL_H, 4, 1, 43) - 0.7) * 4, 0, 1)
-    a[..., :3] += gloss[..., None] * 35
-    grime(a, 40, 0.4)
+    a = cb("rockmoss", (WALL_W, WALL_H), bright=1.5)
+    b = cb("pdwall", (WALL_W, WALL_H), bright=0.9)
+    k = np.clip((noise(WALL_W, WALL_H, 40, 1, 41) + 0.2), 0, 1)[..., None] * 0.45
+    a[..., :3] = a[..., :3] * (1 - k) + b[..., :3] * k
+    drips(a, 10, "#050505", 0.6, 42)
+    grime(a, 30, 0.4)
     return to_img(a)
 
 
@@ -271,85 +279,75 @@ def cap_tex(color):
 FLOOR = 256
 
 
-def floor_ez():
-    a = base(FLOOR, FLOOR, "#9a9fa3", 5, 6, 11)
-    n = 4
-    for i in range(n):
-        for j in range(n):
-            shade_rect(a, i / n, j / n, (i + 1) / n, (j + 1) / n, 0.95 + 0.1 * rng.random())
-    for i in range(n + 1):
-        hline(a, i / n, 0.012, "#6f7377")
-        vline(a, i / n, 0.012, "#6f7377")
+def floor_ez():        # white tiles (rooms, Entrance Zone)
+    return to_img(cb("tilefloor", (FLOOR, FLOOR), crop=(0, 0, 1 / 3, 1 / 3)))
+
+
+def floor_lcz():       # dark concrete of the Containment Breach hallways
+    a = cb("concretefloor", (FLOOR, FLOOR), bright=1.45)
     return to_img(a)
 
 
-def floor_lcz():
-    a = base(FLOOR, FLOOR, "#bdbab2", 6, 10, 12)
-    for i in (0, 0.5, 1):
-        hline(a, i, 0.008, "#9c998f")
-        vline(a, i, 0.008, "#9c998f")
-    return to_img(a)
-
-
-def floor_hcz():
-    a = base(FLOOR, FLOOR, "#3a3d40", 6, 10, 13)
-    # diamond plate
-    yy, xx = np.mgrid[0:FLOOR, 0:FLOOR]
-    p = 32
-    lx, ly = (xx % p) - p / 2, (yy % p) - p / 2
-    ridge = (np.abs(lx + ly) < 3) & (np.abs(lx - ly) < 11)
-    ridge2 = (np.abs(lx - ly) < 3) & (np.abs(lx + ly) < 11)
-    a[ridge, :3] += 20
-    a[ridge2, :3] -= 0
-    a[(np.roll(ridge, 2, axis=0)) & ~ridge, :3] -= 22
+def floor_hcz():       # stained steel plate
+    a = cb("dirtymetal", (FLOOR, FLOOR), crop=(0, 0, 0.5, 0.5), bright=0.62)
     for i in (0, 1):
-        hline(a, i, 0.012, "#232527")
-        vline(a, i, 0.012, "#232527")
+        hline(a, i, 0.012, "#232526")
+        vline(a, i, 0.012, "#232526")
     return to_img(a)
 
 
 def floor_grate():
-    a = base(FLOOR, FLOOR, "#3d4145", 5, 6, 14)
-    yy, xx = np.mgrid[0:FLOOR, 0:FLOOR]
-    holes = ((xx % 16) > 3) & ((yy % 16) > 3)
-    a[holes, :3] = hexrgb("#0e0f10")
-    rect(a, 0, 0, 1, 0.04, "#575c61")
-    rect(a, 0, 0.96, 1, 1, "#575c61")
-    rect(a, 0, 0, 0.04, 1, "#575c61")
-    rect(a, 0.96, 0, 1, 1, "#575c61")
+    a = cb("metal3", (FLOOR, FLOOR), bright=1.25)
+    for u0, v0, u1, v1 in ((0, 0, 1, 0.03), (0, 0.97, 1, 1), (0, 0, 0.03, 1), (0.97, 0, 1, 1)):
+        rect(a, u0, v0, u1, v1, "#4f5458")
     return to_img(a)
 
 
 def floor_elevator():
-    a = base(FLOOR, FLOOR, "#3a3d40", 5, 6, 15)
-    hazard(a, 0.06, 0.06, 0.94, 0.94, period=48)
-    rect(a, 0.2, 0.2, 0.8, 0.8, "#4b5054")
-    yy, xx = np.mgrid[0:FLOOR, 0:FLOOR]
-    stripes = ((xx // 8) % 2 == 0)
-    sub = (slice(int(0.2 * FLOOR), int(0.8 * FLOOR)), slice(int(0.2 * FLOOR), int(0.8 * FLOOR)))
-    a[sub][stripes[sub], :3] -= 10
+    a = cb("dirtymetal", (FLOOR, FLOOR), bright=0.8)
+    hazard(a, 0.05, 0.05, 0.95, 0.95, period=48)
+    b = cb("metal3", (FLOOR, FLOOR), bright=1.3)
+    s = slice(int(0.18 * FLOOR), int(0.82 * FLOOR))
+    a[s, s] = b[s, s]
     return to_img(a)
 
 
 def floor_hazard_line():
-    a = base(FLOOR, FLOOR, "#7e8286", 5, 8, 16)
-    hazard(a, 0, 0.4, 1, 0.6, period=40)
+    a = cb("concretefloor", (FLOOR, FLOOR), bright=1.45)
+    hazard(a, 0, 0.36, 1, 0.64, period=40)
+    return to_img(a)
+
+
+def floor_asphalt():
+    a = cb("concretefloor", (FLOOR, FLOOR), bright=1.0)
+    a[..., :3] += noise(FLOOR, FLOOR, 30, 8, 75)[..., None]
+    return to_img(a)
+
+
+def floor_slab():
+    a = cb("concretefloor", (FLOOR, FLOOR), bright=2.0)
+    for i in (0, 1):
+        hline(a, i, 0.01, "#3c3e3f")
+        vline(a, i, 0.01, "#3c3e3f")
+    return to_img(a)
+
+
+def floor_roof():
+    a = base(FLOOR, FLOOR, "#3a3c3d", 14, 10, 77)
+    for i in (0, 1):
+        hline(a, i, 0.01, "#2a2b2c")
     return to_img(a)
 
 
 def floor_pocket(seed):
-    a = base(FLOOR, FLOOR, "#1a1c14", 12, 20, seed)
-    g = noise(FLOOR, FLOOR, 20, 1, seed + 1)
-    blot = np.clip((g - 0.1) * 2.5, 0, 1)
-    a[..., :3] = a[..., :3] * (1 - blot[..., None]) + hexrgb("#3d311f") * blot[..., None]
-    gl = np.clip((noise(FLOOR, FLOOR, 6, 1, seed + 2) - 0.55) * 4, 0, 1)
-    a[..., :3] += gl[..., None] * 28
+    g = np.random.default_rng(seed)
+    u, v = g.random() * 0.5, g.random() * 0.5
+    a = cb("rockmoss", (FLOOR, FLOOR), crop=(u, v, u + 0.5, v + 0.5), bright=1.7)
     return to_img(a)
 
 
 def floor_pocket_exit():
-    img = floor_pocket(70)
-    a = np.asarray(img).astype(np.float32)
+    a = np.asarray(floor_pocket(70)).astype(np.float32)
     yy, xx = np.mgrid[0:FLOOR, 0:FLOOR]
     d = np.sqrt((xx - FLOOR / 2) ** 2 + (yy - FLOOR / 2) ** 2) / (FLOOR / 2)
     ring = np.exp(-((d - 0.55) ** 2) / 0.01) + 0.5 * np.exp(-(d ** 2) / 0.08)
@@ -361,27 +359,25 @@ DOOR_W, DOOR_H = 256, 336
 
 
 def door_standard():
-    a = base(DOOR_W, DOOR_H, "#8f959a", 4, 6, 21)
-    a[..., :3] += noise(DOOR_W, DOOR_H, 1, 6)[..., None]          # brushed
-    vline(a, 0.5, 0.012, "#4a4f53")                                 # two leaves
-    for u0 in (0.12, 0.62):
-        rect(a, u0, 0.14, u0 + 0.26, 0.4, "#2b3640")              # windows
-        rect(a, u0 + 0.02, 0.16, u0 + 0.08, 0.38, "#5f7484", 0.5)
-    hazard(a, 0, 0.88, 1, 0.97, period=26)
-    rect(a, 0, 0.97, 1, 1, "#33373a")
-    rect(a, 0, 0, 1, 0.025, "#5c6166")
+    a = cb("Door01", (DOOR_W, DOOR_H), crop=(0.40, 0.02, 0.76, 0.86), bright=1.35)
+    rect(a, 0, 0.955, 1, 1, "#1c1d1e")
     return to_img(a)
 
 
 def door_containment():
-    a = base(DOOR_W, DOOR_H, "#4b5157", 6, 10, 22)
-    vline(a, 0.5, 0.016, "#202326")
-    hazard(a, 0, 0.42, 1, 0.58, period=40)
-    for u in (0.08, 0.42, 0.58, 0.92):
-        bolts(a, [(u, 0.08), (u, 0.3), (u, 0.7), (u, 0.92)], 5, "#2a2e32")
-    rect(a, 0.2, 0.15, 0.3, 0.2, "#c22a1f")                         # red lamp
-    rect(a, 0.7, 0.15, 0.8, 0.2, "#c22a1f")
-    grime(a, 25, 0.2)
+    a = cb("containment_doors", (DOOR_W, DOOR_H), crop=(0.01, 0.13, 0.58, 0.86), bright=1.15)
+    hazard(a, 0, 0.93, 1, 1, period=30)
+    return to_img(a)
+
+
+def gate_tex():
+    a = cb("containment_doors", (256, 512), crop=(0.60, 0.06, 0.98, 0.84), bright=1.2)
+    rect(a, 0, 0.0, 1, 0.06, "#8f2f24", 0.8)
+    hazard(a, 0, 0.84, 1, 0.96, period=44)
+    rect(a, 0, 0.96, 1, 1, "#1c1d1e")
+    for u in (0.0, 1.0):
+        vline(a, u, 0.03, "#26282a")
+    bolts(a, [(u, v) for u in (0.08, 0.92) for v in (0.12, 0.3, 0.5, 0.7)], 5, "#1e2022")
     return to_img(a)
 
 
@@ -389,7 +385,7 @@ def frame_trim(a, a0, b0, top, reader=True):
     """Steel frame around the door opening [a0, b0] x [top, 1] in texture coords,
     then cuts the opening (alpha 0)."""
     t = 0.045
-    rect(a, a0 - t, top - t * 0.9, b0 + t, 1, "#62686d")
+    rect(a, a0 - t, top - t * 0.9, b0 + t, 1, "#3d4144")
     hazard(a, a0 - t, top - t * 0.9, b0 + t, top, period=22)
     shade_rect(a, a0 - t, top, a0, 1, 0.85)
     shade_rect(a, b0, top, b0 + t, 1, 1.12)
@@ -525,6 +521,219 @@ def danger_tex(w=256, h=96):
 
 
 # ----------------------------------------------------------------------
+# More tile builders: corner posts, the main gate, wall fittings, furniture
+# ----------------------------------------------------------------------
+
+def tile_pillar(tex):
+    """Small post where a north wall and a west wall meet at the far corner."""
+    img = canvas()
+    t = WALL_T
+    strip = tex.crop((0, 0, 24, tex.size[1]))
+    face(img, cap_tex("#2c2f31"), (0, 0, 1), (t, 0, 1), (0, t, 1))
+    face(img, strip, (0, t, 1), (t, t, 1), (0, t, 0), 1.0)
+    face(img, strip, (t, t, 1), (t, 0, 1), (t, t, 0), 0.86)
+    return finish(img)
+
+
+def tile_gate(tex, side, opened):
+    """One tile of the big sliding gate (full tile wide, full wall height)."""
+    img = canvas()
+    d0, d1 = 0.0, 0.1
+    rail = to_img(base(64, 16, "#1c1d1e", 3, 3))
+    if opened:
+        if side == "W":
+            face(img, rail, (d0, 0, 0.004), (d1, 0, 0.004), (d0, 1, 0.004))
+        else:
+            face(img, rail, (0, d0, 0.004), (1, d0, 0.004), (0, d1, 0.004))
+        return finish(img)
+    cap = cap_tex("#1e2022")
+    if side == "W":
+        face(img, cap, (d0, 0, 1), (d0, 1, 1), (d1, 0, 1))
+        face(img, tex, (d1, 1, 1), (d1, 0, 1), (d1, 1, 0), 0.86)
+    else:
+        face(img, cap, (0, d0, 1), (1, d0, 1), (0, d1, 1))
+        face(img, tex, (0, d1, 1), (1, d1, 1), (0, d1, 0), 1.0)
+    return finish(img)
+
+
+def tile_overlay(tex, side, z0, z1, a0=0.0, b0=1.0, out=0.02):
+    """Flat fitting on a wall (pipes, vent)."""
+    img = canvas()
+    off = WALL_T + out
+    if side == "W":
+        face(img, tex, (off, b0, z1), (off, a0, z1), (off, b0, z0), 0.9)
+    else:
+        face(img, tex, (a0, off, z1), (b0, off, z1), (a0, off, z0), 1.0)
+    return finish(img)
+
+
+def box(img, facing, x0, y0, x1, y1, z0, z1, top, front, side):
+    """A box standing against the north wall (facing 'n': its front looks south)
+    or against the west wall (facing 'w': same box turned, front looks east)."""
+    if facing == "n":
+        face(img, top, (x0, y0, z1), (x1, y0, z1), (x0, y1, z1), 1.0)
+        face(img, front, (x0, y1, z1), (x1, y1, z1), (x0, y1, z0), 1.0)
+        face(img, side, (x1, y1, z1), (x1, y0, z1), (x1, y1, z0), 0.8)
+    else:
+        x0, y0, x1, y1 = y0, x0, y1, x1
+        face(img, top, (x0, y1, z1), (x0, y0, z1), (x1, y1, z1), 1.0)
+        face(img, side, (x0, y1, z1), (x1, y1, z1), (x0, y1, z0), 1.0)
+        face(img, front, (x1, y1, z1), (x1, y0, z1), (x1, y1, z0), 0.86)
+
+
+def metal_tex(w, h, color, seed):
+    a = cb("metal", (w, h), bright=1.0)
+    c = hexrgb(color) / 190.0
+    a[..., :3] *= c
+    a[..., :3] += noise(w, h, 3, 5, seed)[..., None]
+    return a
+
+
+def prop_locker(f):
+    img = canvas()
+    fr = metal_tex(256, 256, "#7d8a92", 1)
+    for u in (0.0, 0.5):
+        rect(fr, u + 0.02, 0.03, u + 0.48, 0.97, "#6f7c85")
+        for v in (0.1, 0.14, 0.18):
+            rect(fr, u + 0.12, v, u + 0.38, v + 0.02, "#2a2e31")
+        rect(fr, u + 0.40, 0.5, u + 0.44, 0.56, "#1e2022")
+    vline(fr, 0.5, 0.02, "#30353a")
+    plain = to_img(metal_tex(64, 128, "#6b767d", 2))
+    box(img, f, 0.08, 0.05, 0.92, 0.4, 0, 0.74, plain, to_img(fr), plain)
+    return finish(img)
+
+
+def prop_shelf(f):
+    img = canvas()
+    fr = base(256, 256, "#15171a", 3, 3, 3)
+    g = np.random.default_rng(31)
+    for k in range(4):
+        v = 0.04 + k * 0.24
+        rect(fr, 0, v + 0.2, 1, v + 0.24, "#59616a")
+        u = 0.05
+        while u < 0.85:
+            w = 0.1 + g.random() * 0.14
+            col = ["#8a6f4a", "#6b7d5a", "#7a7f86", "#93876b", "#5a6b80"][int(g.random() * 5)]
+            h = 0.08 + g.random() * 0.1
+            rect(fr, u, v + 0.2 - h, min(0.95, u + w), v + 0.2, col)
+            u += w + 0.03
+    for u in (0.0, 0.97):
+        rect(fr, u, 0, u + 0.03, 1, "#59616a")
+    plain = to_img(metal_tex(64, 128, "#59616a", 4))
+    box(img, f, 0.06, 0.05, 0.94, 0.38, 0, 0.8, plain, to_img(fr), plain)
+    return finish(img)
+
+
+def prop_desk(f):
+    img = canvas()
+    top = to_img(metal_tex(128, 96, "#9a9c98", 5))
+    fr = metal_tex(256, 96, "#70757a", 6)
+    rect(fr, 0.04, 0.1, 0.3, 0.9, "#5d6268")
+    rect(fr, 0.34, 0.1, 0.96, 0.9, "#0e0f10")
+    plain = to_img(metal_tex(64, 64, "#63686d", 7))
+    box(img, f, 0.05, 0.08, 0.95, 0.6, 0, 0.3, top, to_img(fr), plain)
+    scr = base(128, 96, "#b9b4a2", 4, 4, 8)
+    rect(scr, 0.1, 0.1, 0.9, 0.82, "#0c1f12")
+    for v in (0.2, 0.32, 0.44, 0.56):
+        rect(scr, 0.16, v, 0.16 + 0.5 * ((v * 7) % 1 + 0.3) / 1.3, v + 0.05, "#3ddc6a")
+    beige = to_img(base(64, 64, "#a9a493", 4, 4, 9))
+    box(img, f, 0.34, 0.14, 0.66, 0.4, 0.3, 0.52, beige, to_img(scr), beige)
+    return finish(img)
+
+
+def prop_crate(f):
+    img = canvas()
+    fr = base(256, 256, "#5a6048", 8, 12, 10)
+    for u0, v0, u1, v1 in ((0, 0, 1, 0.07), (0, 0.93, 1, 1), (0, 0, 0.07, 1), (0.93, 0, 1, 1)):
+        rect(fr, u0, v0, u1, v1, "#3b4030")
+    lab = np.asarray(text_tex(160, 60, (0, 0, 0, 0), (225, 225, 210, 255), ["SCP"])).astype(np.float32)
+    m = lab[..., 3:4] / 255
+    fr[98:158, 48:208, :3] = fr[98:158, 48:208, :3] * (1 - m) + lab[..., :3] * m
+    t = to_img(fr)
+    box(img, f, 0.14, 0.12, 0.86, 0.84, 0, 0.44, t, t, t)
+    return finish(img)
+
+
+def prop_barrel(f):
+    img = Image.new("RGBA", (TW * SS, TH * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    cx, cy = proj(0.5, 0.5, 0)
+    rx, ry, hgt = 0.3 * 64 * SS * 1.41, 0.3 * 32 * SS * 1.41, 0.46 * 192 * SS
+    body = (212, 168, 30, 255) if f == "n" else (58, 92, 128, 255)
+    dark = tuple(int(c * 0.6) for c in body[:3]) + (255,)
+    d.ellipse([cx - rx, cy - ry, cx + rx, cy + ry], fill=dark)
+    d.rectangle([cx - rx, cy - hgt, cx + rx, cy], fill=body)
+    d.rectangle([cx + rx * 0.35, cy - hgt, cx + rx, cy], fill=dark)
+    for k in (0.33, 0.66):
+        d.arc([cx - rx, cy - hgt * k - ry, cx + rx, cy - hgt * k + ry], 0, 180, fill=(30, 30, 30, 255), width=3 * SS)
+    d.ellipse([cx - rx, cy - hgt - ry, cx + rx, cy - hgt + ry], fill=tuple(int(c * 0.8) for c in body[:3]) + (255,),
+              outline=(30, 30, 30, 255), width=2 * SS)
+    d.ellipse([cx - rx * 0.2, cy - hgt - ry * 0.6, cx + rx * 0.1, cy - hgt - ry * 0.2], fill=(25, 25, 25, 255))
+    return finish(img)
+
+
+def prop_rack(f):
+    img = canvas()
+    fr = cb("controlpanel", (256, 384), crop=(0.0, 0.0, 0.42, 0.8), bright=1.5)
+    g = np.random.default_rng(12)
+    for _ in range(26):
+        u, v = 0.08 + g.random() * 0.8, 0.05 + g.random() * 0.88
+        rect(fr, u, v, u + 0.025, v + 0.012, ["#3ddc6a", "#e0b020", "#d03a2a"][int(g.random() * 3)])
+    plain = to_img(metal_tex(64, 128, "#2e3134", 13))
+    box(img, f, 0.1, 0.05, 0.9, 0.48, 0, 0.86, plain, to_img(fr), plain)
+    return finish(img)
+
+
+def prop_bed(f):
+    img = canvas()
+    frame = to_img(metal_tex(64, 32, "#4a4f54", 14))
+    box(img, f, 0.06, 0.06, 0.94, 0.52, 0, 0.14, frame, frame, frame)
+    mat = base(256, 128, "#b9bdb6", 5, 10, 15)
+    rect(mat, 0.0, 0.0, 0.24, 1.0, "#e2e3dd")
+    rect(mat, 0.45, 0.0, 1.0, 1.0, "#6f7f74", 0.85)
+    side = to_img(base(64, 16, "#a3a79f", 4, 4, 16))
+    box(img, f, 0.08, 0.08, 0.92, 0.5, 0.14, 0.22, to_img(mat), side, side)
+    return finish(img)
+
+
+def prop_cabinet(f):
+    img = canvas()
+    fr = metal_tex(256, 256, "#c9cdc8", 17)
+    for k in range(4):
+        v = 0.03 + k * 0.24
+        rect(fr, 0.04, v, 0.96, v + 0.21, "#b4b9b4")
+        rect(fr, 0.4, v + 0.08, 0.6, v + 0.11, "#3a3d40")
+    plain = to_img(metal_tex(64, 128, "#aeb3ae", 18))
+    box(img, f, 0.16, 0.05, 0.84, 0.4, 0, 0.58, plain, to_img(fr), plain)
+    return finish(img)
+
+
+def prop_console(f):
+    img = canvas()
+    fr = cb("controlpanel", (256, 160), crop=(0.0, 0.3, 0.42, 0.6), bright=1.6)
+    top = cb("controlpanel", (256, 128), crop=(0.0, 0.62, 0.42, 0.82), bright=1.7)
+    rect(top, 0.08, 0.15, 0.4, 0.8, "#0c1f12")
+    rect(top, 0.12, 0.3, 0.34, 0.4, "#3ddc6a")
+    for i, c in enumerate(("#d03a2a", "#e0b020", "#3ddc6a", "#d03a2a")):
+        rect(top, 0.5 + i * 0.11, 0.3, 0.57 + i * 0.11, 0.55, c)
+    plain = to_img(metal_tex(64, 64, "#3a3e42", 19))
+    box(img, f, 0.06, 0.06, 0.94, 0.5, 0, 0.42, to_img(top), to_img(fr), plain)
+    return finish(img)
+
+
+PROPS = [("locker", prop_locker), ("shelf", prop_shelf), ("desk", prop_desk), ("crate", prop_crate),
+         ("barrel", prop_barrel), ("rack", prop_rack), ("bed", prop_bed), ("cabinet", prop_cabinet),
+         ("console", prop_console)]
+
+
+def label_tex(lines, bg=(232, 232, 226, 255), fg=(20, 20, 20, 255), bar=(170, 40, 32, 255)):
+    img = text_tex(256, 96, bg, fg, lines, (20, 20, 20, 255))
+    d = ImageDraw.Draw(img)
+    d.rectangle([6, 6, 249, 16], fill=bar)
+    return img
+
+
+# ----------------------------------------------------------------------
 # Tileset definition
 # ----------------------------------------------------------------------
 
@@ -544,6 +753,8 @@ def wall_props(kind, name, idx, mat="Cinderblock"):
         return [("DoorWallW", ""), ("wall", ""), ("MaterialType", mat)]
     if kind == "FN":
         return [("DoorWallN", ""), ("wall", ""), ("MaterialType", mat)]
+    if kind == "SE":
+        return [("WallSE", ""), ("MaterialType", mat)]
 
 
 def door_props(side, closed, label):
@@ -563,35 +774,69 @@ def sign_props(side, label):
     return [("CustomName", label), ("GroupName", "SCP"), ("attached" + side, "")]
 
 
+def prop_props(label):
+    return [("CustomName", label), ("GroupName", "SCP"), ("solidtrans", ""), ("MaterialType", "Metal")]
+
+
 SHEET = "scp_facility_02"
 COLS = 8
+ROWS = 21
+
+# Where everything is on the sheet (also written into the mod as Lua by tools/make_site_layout.py).
+WALLS = {"a": 0, "b": 8, "c": 16, "d": 56, "e": 64}      # +0 W, +1 N, +2 NW, +3 frame W, +4 frame N
+PERIMETER = 72                                              # +0 W, +1 N, +2 NW
+PILLARS = {"a": 63, "b": 62, "c": 70, "d": 61, "e": 69, "f": 71}
+FLOORS = {"t": 5, "h": 6, "c": 13, "g": 14, "e": 15, "m": 21, "a": 75, "k": 76, "roof": 77}
+DOORS = {"standard": 24, "heavy": 28, "gate": 80}          # +0 W, +1 N, +2 open W, +3 open N
+FITTINGS = {"pipes": 84, "vent": 86}                        # +0 W, +1 N
+SIGNS = ["ez", "lcz", "hcz", "logo", "danger"]              # 40 + k (W), 48 + k (N)
+SIGNS2 = ["scp173", "scp914", "scp500", "scp939", "scp106", "scp049", "scp096", "scp035", "scp008", "scp079",
+          "scp966", "warhead", "femur", "electric", "gatea", "cafeteria", "medical", "security"]   # 96 + k, 120 + k
+PROP0 = 144                                                 # + 2 * k (against north wall), + 1 (against west wall)
 
 
 def build_tiles():
     tiles = {}
 
     def put(i, img, props):
+        assert i not in tiles, i
         tiles[i] = (img, props)
 
-    zones = [("EZ", wall_ez(), 0), ("LCZ", wall_lcz(), 8), ("HCZ", wall_hcz(), 16)]
-    for zone, tex, i0 in zones:
-        put(i0 + 0, tile_wall(tex, "W"), wall_props("W", SHEET, i0 + 0))
-        put(i0 + 1, tile_wall(tex, "N"), wall_props("N", SHEET, i0 + 1))
-        put(i0 + 2, tile_wall(tex, "NW"), wall_props("NW", SHEET, i0 + 2))
-        put(i0 + 3, tile_frame(tex, "W"), wall_props("FW", SHEET, i0 + 3))
-        put(i0 + 4, tile_frame(tex, "N"), wall_props("FN", SHEET, i0 + 4))
-    put(5, tile_floor(floor_ez()), floor_props("Entrance Zone Floor"))
-    put(6, tile_floor(floor_hazard_line()), floor_props("Hazard Line Floor"))
-    put(13, tile_floor(floor_lcz()), floor_props("Light Containment Floor"))
-    put(14, tile_floor(floor_grate()), floor_props("Containment Grating"))
-    put(15, tile_floor(floor_elevator()), floor_props("Elevator Platform"))
-    put(21, tile_floor(floor_hcz()), floor_props("Heavy Containment Floor"))
+    styles = [("a", wall_ez(), "Cinderblock"), ("b", wall_lcz(), "Cinderblock"), ("c", wall_hcz(), "Cinderblock"),
+              ("d", wall_cell(), "Metal"), ("e", wall_bunker(), "Cinderblock")]
+    for key, tex, mat in styles:
+        i0 = WALLS[key]
+        put(i0 + 0, tile_wall(tex, "W"), wall_props("W", SHEET, i0 + 0, mat))
+        put(i0 + 1, tile_wall(tex, "N"), wall_props("N", SHEET, i0 + 1, mat))
+        put(i0 + 2, tile_wall(tex, "NW"), wall_props("NW", SHEET, i0 + 2, mat))
+        put(i0 + 3, tile_frame(tex, "W"), wall_props("FW", SHEET, i0 + 3, mat))
+        put(i0 + 4, tile_frame(tex, "N"), wall_props("FN", SHEET, i0 + 4, mat))
+        put(PILLARS[key], tile_pillar(tex), wall_props("SE", SHEET, 0, mat))
+    pt = wall_perimeter()
+    put(PERIMETER + 0, tile_wall(pt, "W"), wall_props("W", SHEET, PERIMETER))
+    put(PERIMETER + 1, tile_wall(pt, "N"), wall_props("N", SHEET, PERIMETER + 1))
+    put(PERIMETER + 2, tile_wall(pt, "NW"), wall_props("NW", SHEET, PERIMETER + 2))
+    put(PILLARS["f"], tile_pillar(pt), wall_props("SE", SHEET, 0))
 
-    for base_i, tex, label in ((24, door_standard(), "Foundation Door"), (28, door_containment(), "Containment Door")):
+    for key, fn, label in (("t", floor_ez, "White Tile Floor"), ("h", floor_hazard_line, "Hazard Line Floor"),
+                           ("c", floor_lcz, "Concrete Floor"), ("g", floor_grate, "Containment Grating"),
+                           ("e", floor_elevator, "Lift Platform"), ("m", floor_hcz, "Steel Plate Floor"),
+                           ("a", floor_asphalt, "Asphalt"), ("k", floor_slab, "Bunker Slab"),
+                           ("roof", floor_roof, "Bunker Roof")):
+        put(FLOORS[key], tile_floor(fn()), floor_props(label))
+
+    for base_i, tex, label in ((DOORS["standard"], door_standard(), "Foundation Door"),
+                               (DOORS["heavy"], door_containment(), "Containment Door")):
         put(base_i + 0, tile_door(tex, "W", False), door_props("W", True, label))
         put(base_i + 1, tile_door(tex, "N", False), door_props("N", True, label))
         put(base_i + 2, tile_door(tex, "W", True), door_props("W", False, label))
         put(base_i + 3, tile_door(tex, "N", True), door_props("N", False, label))
+    gt = gate_tex()
+    g0 = DOORS["gate"]
+    put(g0 + 0, tile_gate(gt, "W", False), door_props("W", True, "Site Gate"))
+    put(g0 + 1, tile_gate(gt, "N", False), door_props("N", True, "Site Gate"))
+    put(g0 + 2, tile_gate(gt, "W", True), door_props("W", False, "Site Gate"))
+    put(g0 + 3, tile_gate(gt, "N", True), door_props("N", False, "Site Gate"))
 
     pw = wall_pocket()
     put(32, tile_wall(pw, "W"), wall_props("W", SHEET, 32, "Stone"))
@@ -601,16 +846,42 @@ def build_tiles():
     put(36, tile_floor(floor_pocket(65)), floor_props("Corroded Floor"))
     put(37, tile_floor(floor_pocket_exit()), floor_props("Corroded Floor"))
 
-    signs = [
-        ("EZ", text_tex(256, 96, (36, 86, 150, 255), (240, 244, 248, 255), ["ENTRANCE", "ZONE"], (230, 236, 240, 255))),
-        ("LCZ", text_tex(256, 96, (232, 186, 28, 255), (20, 20, 20, 255), ["LIGHT", "CONTAINMENT"], (20, 20, 20, 255))),
-        ("HCZ", text_tex(256, 96, (165, 40, 32, 255), (245, 240, 235, 255), ["HEAVY", "CONTAINMENT"], (245, 240, 235, 255))),
-        ("Logo", logo_tex()),
-        ("Danger", danger_tex()),
-    ]
-    for k, (label, tex) in enumerate(signs):
-        put(40 + k, tile_sign(tex, "W"), sign_props("W", "Sign " + label))
-        put(48 + k, tile_sign(tex, "N"), sign_props("N", "Sign " + label))
+    pipes = to_img(cb("misc", (512, 64), crop=(0, 0, 1, 0.115), bright=1.2))
+    vent = to_img(cb("vent", (128, 128)))
+    f0 = FITTINGS["pipes"]
+    put(f0 + 0, tile_overlay(pipes, "W", 0.8, 0.95), sign_props("W", "Pipes"))
+    put(f0 + 1, tile_overlay(pipes, "N", 0.8, 0.95), sign_props("N", "Pipes"))
+    v0 = FITTINGS["vent"]
+    put(v0 + 0, tile_overlay(vent, "W", 0.62, 0.84, 0.3, 0.7, 0.006), sign_props("W", "Vent"))
+    put(v0 + 1, tile_overlay(vent, "N", 0.62, 0.84, 0.3, 0.7, 0.006), sign_props("N", "Vent"))
+
+    signs = {
+        "ez": text_tex(256, 96, (36, 86, 150, 255), (240, 244, 248, 255), ["ENTRANCE", "ZONE"], (230, 236, 240, 255)),
+        "lcz": text_tex(256, 96, (232, 186, 28, 255), (20, 20, 20, 255), ["LIGHT", "CONTAINMENT"], (20, 20, 20, 255)),
+        "hcz": text_tex(256, 96, (165, 40, 32, 255), (245, 240, 235, 255), ["HEAVY", "CONTAINMENT"], (245, 240, 235, 255)),
+        "logo": logo_tex(),
+        "danger": danger_tex(),
+    }
+    for k, name in enumerate(SIGNS):
+        put(40 + k, tile_sign(signs[name], "W"), sign_props("W", "Sign " + name))
+        put(48 + k, tile_sign(signs[name], "N"), sign_props("N", "Sign " + name))
+    yellow = dict(bg=(232, 186, 28, 255), bar=(20, 20, 20, 255))
+    blue = dict(bg=(36, 86, 150, 255), fg=(240, 244, 248, 255), bar=(240, 244, 248, 255))
+    labels = {"warhead": (["ALPHA", "WARHEAD"], yellow), "femur": (["FEMUR", "BREAKER"], yellow),
+              "electric": (["ELECTRICAL", "CENTER"], yellow), "gatea": (["GATE A"], blue),
+              "cafeteria": (["CAFETERIA"], blue), "medical": (["MEDICAL", "BAY"], blue),
+              "security": (["SECURITY"], blue)}
+    for k, name in enumerate(SIGNS2):
+        if name in labels:
+            tex = label_tex(labels[name][0], **labels[name][1])
+        else:
+            tex = label_tex(["SCP-" + name[3:]])
+        put(96 + k, tile_sign(tex, "W"), sign_props("W", "Sign " + name))
+        put(120 + k, tile_sign(tex, "N"), sign_props("N", "Sign " + name))
+
+    for k, (name, fn) in enumerate(PROPS):
+        put(PROP0 + 2 * k, fn("n"), prop_props(name.capitalize()))
+        put(PROP0 + 2 * k + 1, fn("w"), prop_props(name.capitalize()))
     return tiles
 
 
@@ -723,40 +994,12 @@ def write_tiles_def(path, sheets):
         f.write(out)
 
 
-def preview(tiles):
-    """A small room: floor, walls with a door, a sign, rendered at 1x."""
-    W, H = 900, 640
-    img = Image.new("RGBA", (W, H), (24, 24, 26, 255))
-
-    def at(i, tx, ty):
-        t = tiles[i][0]
-        sx = W // 2 - 64 + (tx - ty) * 64
-        sy = 80 + (tx + ty) * 32
-        img.alpha_composite(t, (sx, sy))
-
-    n = 5
-    for ty in range(n):
-        for tx in range(n):
-            at(13 if (tx + ty) % 3 else 14, tx, ty)
-    for ty in range(n):
-        at(8 if ty != 2 else 11, 0, ty)
-    for tx in range(1, n):
-        at(9 if tx != 3 else 12, tx, 0)
-    at(10, 0, 0)
-    at(28, 0, 2)
-    at(25, 3, 0)
-    at(49, 1, 0)
-    at(44, 0, 4)
-    return img
-
-
 def main():
     tiles = build_tiles()
-    rows = 7
+    rows = ROWS
     sheet = make_sheet(tiles, rows)
     os.makedirs(ART, exist_ok=True)
     sheet.save(os.path.join(ART, SHEET + "_tilesheet.png"))
-    preview(tiles).save(os.path.join(ART, SHEET + "_preview.png"))
 
     old_sheet = Image.open(os.path.join(ART, "scp_facility_01_tilesheet.png")).convert("RGBA")
     entries = sheet_entries(old_sheet, "scp_facility_01", 8, 2) + sheet_entries(sheet, SHEET, COLS, rows)

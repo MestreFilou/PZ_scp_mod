@@ -1,11 +1,11 @@
 --[[
     Starting occupations: Class-D, Foundation Scientist, MTF Guard.
     Each starts with its gear and, if an SCP site exists, inside it:
-      Class-D  -> Class-D cells (Light Containment)
+      Class-D  -> a Class-D cell (Light Containment)
       Scientist -> research lab (Entrance Zone)
       MTF Guard -> security room (Entrance Zone)
-    In single player, if no site exists yet, one is placed next to the
-    spawn point.
+    In single player, if no site exists yet, one is placed with its main
+    gate just north of the spawn point.
 ]]
 
 require "SCP_System"
@@ -16,17 +16,17 @@ local P = SCP.Professions
 
 P.List = {
     scp_classd = {
-        room = { "LCZ", "D" },
+        room = { "LCZ", "classd" },
         wear = { "SCP_ClassD_Jumpsuit" },
         give = {},
     },
     scp_scientist = {
-        room = { "EZ", "H" },
+        room = { "EZ", "lab" },
         wear = { "SCP_LabCoat" },
         give = { "SCP_Hazmat_Suit", "SCP_Keycard_L2", "SCP_Document_Containment", "SCP_Document_008", "Torch" },
     },
     scp_mtf = {
-        room = { "EZ", "S" },
+        room = { "EZ", "security" },
         wear = { "SCP_MTF_Uniform", "SCP_MTF_Vest", "SCP_MTF_Helmet" },
         give = { "SCP_MTF_Baton", "SCP_Keycard_L3", "SCP_GasMask", "SCP_GasFilter", "Torch" },
     },
@@ -68,7 +68,8 @@ SCP.on("OnNewGame", function(player, square)
     player:getModData().SCP_StartRoom = { def.room[1], def.room[2] }
     if not SCP.Facility.origin() and not isClient() then
         local sq = player:getSquare()
-        SCP.sendToServer(player, "PlaceFacility", { x = sq:getX() + 15, y = sq:getY() + 15 })
+        -- The main gate goes a little north of the spawn point; the compound and the site extend north of it.
+        SCP.sendToServer(player, "PlaceFacility", { x = sq:getX(), y = sq:getY() - 12 })
     end
 end)
 
@@ -88,16 +89,15 @@ SCP.on("OnTick", function()
             else
                 local sq = getCell():getGridSquare(x, y, z)
                 if sq and sq:getFloor() then
-                    SCP.teleport(player, x + 0.5, y + 1.5, z)
+                    SCP.teleport(player, x + 1.5, y + 0.5, z)   -- one tile beside the room's centre
                     md.SCP_StartRoom = nil
                     SCP.say(player, "UI_SCP_StartInSite", 200, 220, 255)
                     -- Class-D wake up in the middle of a containment breach.
-                    if start[2] == "D" then SCP.sendToServer(player, "StartBreach", {}) end
+                    if start[2] == "classd" then SCP.sendToServer(player, "StartBreach", {}) end
                 elseif not md.SCP_StartWarp then
                     -- Load the area above the site so it gets built.
                     md.SCP_StartWarp = true
-                    local o = SCP.Facility.origin()
-                    SCP.teleport(player, o.x + 2.5, o.y + 2.5, 0)
+                    SCP.teleport(player, x + 0.5, y + 0.5, 0)
                 end
             end
         end

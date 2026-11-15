@@ -98,8 +98,12 @@ fracture… ou l'infection de Knox).
 **Professions** : Classe-D (commence dans les cellules pendant une brèche), Scientifique (labo, carte
 niveau 2) et Garde NTF (salle de sécurité, carte niveau 3).
 
-**Site SCP** : trois niveaux souterrains (Entrance, Heavy et Light Containment) reliés par des ascenseurs
-(case jaune), construits au chargement de la zone. Placement : menu admin → *Construire le site SCP ici*.
+**Site SCP** : un niveau souterrain en trois zones qui s'enchaînent comme dans Containment Breach (confinement
+léger, confinement lourd, zone d'entrée), couloirs de 2 cases, points de contrôle à carte entre les zones. En
+surface : une enceinte murée avec une grande porte, et un bunker (Porte A) dont l'ascenseur descend dans la zone
+d'entrée. Placement : menu admin → *Construire le site SCP* à l'endroit où doit se trouver la grande porte, de
+préférence au bord d'une route et sur un terrain dégagé (l'enceinte et le site s'étendent vers le nord).
+Plan : `art/site_plan.png`.
 
 **Brèche de confinement** : coupure de courant, toutes les portes à carte s'ouvrent, sirènes et
 lumières rouges, apparition des SCP et de gardes zombifiés à chaque point de confinement.
