@@ -119,6 +119,11 @@ SCP.on("OnNewGame", function(player, square)
         local desc = player:getDescriptor()
         local prof = desc and desc.getCharacterProfession and desc:getCharacterProfession()
         SCP.log("new character, not an SCP occupation:", tostring(prof))
+        -- any occupation started in the "SCP Site" region: the site is in front of them
+        local sq = player:getSquare()
+        if sq and not SCP.Facility.origin() and not isClient() and SCP.Facility.nearFixedSite(sq:getX(), sq:getY()) then
+            SCP.sendToServer(player, "PlaceFacility", { x = SCP.Facility.FIXED_GATE.x, y = SCP.Facility.FIXED_GATE.y })
+        end
         return
     end
     local def = P.List[id]
@@ -134,7 +139,12 @@ SCP.on("OnNewGame", function(player, square)
         local sq = player:getSquare()
         -- The main gate goes a little north of the spawn point; the compound and the site extend north of it.
         -- The server looks for open land close to the spawn point.
-        SCP.sendToServer(player, "PlaceFacility", { x = sq:getX(), y = sq:getY() - 12, search = true })
+        if SCP.Facility.nearFixedSite(sq:getX(), sq:getY()) then
+            -- "SCP Site" start region: always the same place
+            SCP.sendToServer(player, "PlaceFacility", { x = SCP.Facility.FIXED_GATE.x, y = SCP.Facility.FIXED_GATE.y })
+        else
+            SCP.sendToServer(player, "PlaceFacility", { x = sq:getX(), y = sq:getY() - 12, search = true })
+        end
     end
     -- Go straight above the start room, so its area loads and gets built.
     local x, y = SCP.Facility.roomCenter(def.room[1], def.room[2])

@@ -55,6 +55,16 @@ function F.origin()
     return nil
 end
 
+-- The "SCP Site" start region (media/maps/SCP Site): the site always stands
+-- here, in the forest near West Point, its access road ending on the road
+-- (spot found free of buildings, water and roads on the game's world map).
+F.FIXED_GATE = { x = 12212, y = 8312 }
+
+-- Is (x, y) a spawn point of the "SCP Site" region?
+function F.nearFixedSite(x, y)
+    return math.abs(x - F.FIXED_GATE.x) < 150 and math.abs(y - F.FIXED_GATE.y) < 150
+end
+
 -- Origin of a site whose access road ends at (gateX, gateY).
 function F.originForGate(gateX, gateY)
     return { x = gateX - D.anchor.x, y = gateY - D.anchor.y, z = SCP.opt("FacilityDepth"), v = F.VERSION }
