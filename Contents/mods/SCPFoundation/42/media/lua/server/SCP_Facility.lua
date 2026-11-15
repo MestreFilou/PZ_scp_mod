@@ -245,7 +245,9 @@ local function getTreeSprites()
     if treeSprites then return treeSprites end
     treeSprites = {}
     for _, prefix in ipairs(TL.trees or {}) do
-        for _, i in ipairs({ 3, 2, 1, 0 }) do
+        -- frames that exist for every species in 42.22 (the erosion system
+        -- then keeps the tree in step with the season)
+        for _, i in ipairs({ 4, 0, 1 }) do
             if spriteOk(prefix .. i) then
                 table.insert(treeSprites, prefix .. i)
                 break
@@ -259,9 +261,13 @@ local function plantTree(sq, n)
     local list = getTreeSprites()
     if #list > 0 and IsoTree then
         local sprite = list[(n % #list) + 1]
-        local ok, tree = pcall(IsoTree.new, sq, sprite)
+        -- same calls as the game's own ISMoveableSpriteProps
+        local ok, tree = pcall(IsoTree.new, sq, getSprite(sprite))
+        if not ok or not tree then ok, tree = pcall(IsoTree.new, sq, sprite) end
         if ok and tree then
             sq:AddTileObject(tree)
+            if isServer() then pcall(tree.transmitCompleteItemToClients, tree) end
+            pcall(triggerEvent, "OnObjectAdded", tree)
             return
         end
     end

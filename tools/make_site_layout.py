@@ -1038,8 +1038,9 @@ def level_lua(level, key, z=None):
     return "\n".join(out)
 
 
-TREE_SPRITES = ["e_americanholly_1_", "e_canadianhemlock_1_", "e_virginiapine_1_", "e_riverbirch_1_",
-                "e_redmaple_1_", "e_dogwood_1_"]
+# checked in the 42.22 packs (Tiles2x.pack); e_easternwhitepine does not exist
+TREE_SPRITES = ["e_canadianhemlock_1_", "e_virginiapine_1_", "e_americanholly_1_", "e_riverbirch_1_",
+                "e_redmaple_1_", "e_americanlinden_1_", "e_yellowwood_1_", "e_dogwood_1_"]
 
 
 def tiles_lua():
