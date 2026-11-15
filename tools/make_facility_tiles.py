@@ -7,9 +7,9 @@ Every tile is drawn procedurally: simple 3D boxes projected to Project
 Zomboid's isometric view, with procedural textures mapped on each face.
 
 Outputs:
-  art/scp_facility_02_tilesheet.png                (sheet, 8 columns, for editing)
+  art/tilesheets/scp_facility_02_tilesheet.png                (sheet, 8 columns, for editing)
   Contents/mods/SCPFoundation/42/media/texturepacks/scp_facility.pack
-      (scp_facility_01 from art/scp_facility_01_tilesheet.png + scp_facility_02)
+      (scp_facility_01 from art/tilesheets/scp_facility_01_tilesheet.png + scp_facility_02)
   Contents/mods/SCPFoundation/42/media/scp_facility.tiles
 (previews of the site are made by tools/make_site_preview.py)
 
@@ -195,11 +195,11 @@ def text_tex(w, h, bg, fg, lines, border=None, font_px=None):
 
 # ----------------------------------------------------------------------
 # Material textures. The surfaces come from SCP - Containment Breach
-# (art/cb_textures, CC BY-SA 3.0); stripes, signs and props are drawn here.
+# (art/sources/cb_textures, CC BY-SA 3.0); stripes, signs and props are drawn here.
 # ----------------------------------------------------------------------
 
 WALL_W, WALL_H = 256, 512
-CB = os.path.join(ART, "cb_textures")
+CB = os.path.join(ART, "sources", "cb_textures")
 
 
 def cb(name, size, crop=None, bright=1.0, tint=None):
@@ -1822,10 +1822,10 @@ def main():
     tiles = build_tiles()
     rows = ROWS
     sheet = make_sheet(tiles, rows)
-    os.makedirs(ART, exist_ok=True)
-    sheet.save(os.path.join(ART, SHEET + "_tilesheet.png"))
+    os.makedirs(os.path.join(ART, "tilesheets"), exist_ok=True)
+    sheet.save(os.path.join(ART, "tilesheets", SHEET + "_tilesheet.png"))
 
-    old_sheet = Image.open(os.path.join(ART, "scp_facility_01_tilesheet.png")).convert("RGBA")
+    old_sheet = Image.open(os.path.join(ART, "tilesheets", "scp_facility_01_tilesheet.png")).convert("RGBA")
     entries = sheet_entries(old_sheet, "scp_facility_01", 8, 2) + sheet_entries(sheet, SHEET, COLS, rows)
     write_pack(os.path.join(MEDIA, "texturepacks", "scp_facility.pack"), entries)
 

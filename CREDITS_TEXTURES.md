@@ -6,7 +6,7 @@ The tiles of the SCP site (tileset `scp_facility_02`, in
 https://github.com/Regalis11/scpcb, folder `GFX/map`), licensed under
 **Creative Commons Attribution-ShareAlike 3.0** (https://creativecommons.org/licenses/by-sa/3.0/).
 
-Source files used (kept in `art/cb_textures/`): `whitewall`, `officewall`, `concretewall`, `concretemoss`,
+Source files used (kept in `art/sources/cb_textures/`): `whitewall`, `officewall`, `concretewall`, `concretemoss`,
 `metalpanels`, `concretefloor`, `tilefloor`, `dirtymetal`, `metal3`, `metal`, `Door01`, `containment_doors`,
 `rockmoss`, `pdwall`, `misc`, `vent`, `controlpanel`.
 

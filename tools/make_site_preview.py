@@ -8,7 +8,7 @@ posts, then signs, fittings, furniture and machines.
 Walls that would hide a room (the ones standing on rock, seen from behind)
 are cut low, as the game does around the player.
 
-Outputs art/preview_*.png.  Usage: python3 tools/make_site_preview.py
+Outputs art/renders/preview_*.png.  Usage: python3 tools/make_site_preview.py
 """
 
 import os
@@ -20,9 +20,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import make_facility_tiles as T
 import make_site_layout as L
 
-ART = os.path.join(T.ROOT, "art")
+ART = os.path.join(T.ROOT, "art", "renders")
 TILES = {i: img for i, (img, _) in T.build_tiles().items()}
-OLD = Image.open(os.path.join(ART, "scp_facility_01_tilesheet.png")).convert("RGBA")
+OLD = Image.open(os.path.join(T.ROOT, "art", "tilesheets", "scp_facility_01_tilesheet.png")).convert("RGBA")
 OLD_TILES = {i: OLD.crop(((i % 8) * 128, (i // 8) * 256, (i % 8) * 128 + 128, (i // 8) * 256 + 256)) for i in range(16)}
 MACHINES = {"scp914": 1, "scp914In": 0, "scp914Out": 2, "scp294": 3, "terminal": 4, "generator": 5, "warhead": 6,
             "femur": 6}

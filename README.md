@@ -1,7 +1,8 @@
 # SCP Foundation - Facility & Anomalies
 
-Mod Project Zomboid **Build 42** : équipement de la Fondation SCP, portes à carte, anomalies
-(SCP-173, SCP-096, SCP-035, SCP-106, SCP-500) et brèches de confinement. Textes en anglais et en français.
+Mod Project Zomboid **Build 42** : un site de la Fondation SCP à explorer (souterrain sur trois zones,
+complexe fortifié en surface), ses SCP, ses anomalies, ses armes, les portes à carte et les brèches de
+confinement. Textes en anglais et en français.
 
 > Les modèles 3D, textures, icônes, sons et l'affiche sont **temporaires**.
 > Voir [`media/models_X/README.md`](Contents/mods/SCPFoundation/42/media/models_X/README.md) pour la liste à remplacer.
@@ -11,18 +12,31 @@ Mod Project Zomboid **Build 42** : équipement de la Fondation SCP, portes à ca
 Copier le dossier du dépôt dans `~/Zomboid/Workshop/` (ou seulement `Contents/mods/SCPFoundation`
 dans `~/Zomboid/mods/`), puis activer **SCP Foundation - Facility & Anomalies** dans le menu Mods.
 
+## Organisation du dépôt
+
 ```
-Contents/mods/SCPFoundation/
-├── common/                 (requis par la Build 42)
+Contents/mods/SCPFoundation/      le mod lui-même (c'est ce dossier qu'on installe)
+├── common/                       requis par la Build 42
 └── 42/
     ├── mod.info, poster.png, icon.png
     └── media/
-        ├── clothing/        tenues (XML) + outfits des entités
-        ├── scripts/         objets, tenues, armes, sons
-        ├── lua/client|shared|server
+        ├── lua/client|shared|server   logique (shared/SCP_Facility_Data.lua est généré)
         ├── lua/shared/Translate/EN|FR
-        ├── sandbox-options.txt
-        └── textures/, sound/, models_X/
+        ├── scripts/              objets, armes, modèles, tenues, sons
+        ├── clothing/             tenues (XML) et outfits des entités
+        ├── maps/SCP Site/        région de départ « Site SCP » (sans nouvelles cellules)
+        ├── models_X/             modèles 3D (voir son README)
+        ├── textures/, sound/, texturepacks/, scp_facility.tiles
+        └── sandbox-options.txt
+tools/                            scripts qui génèrent le plan, les tuiles, les icônes, les armes (voir tools/README.md)
+art/
+├── tilesheets/                   planches de tuiles (sources éditables du .pack)
+├── renders/                      plan et aperçus du site, rendus des armes
+├── concepts/                     planches de concept (hors jeu)
+└── sources/cb_textures/          textures de SCP – Containment Breach (CC BY-SA 3.0)
+docs/TODO.md                      liste des demandes et de leur avancement
+CREDITS_SOUNDS.md, CREDITS_TEXTURES.md   crédits et licences des sons et textures
+preview.png, workshop.txt         fichiers du Steam Workshop
 ```
 
 ## Contenu
@@ -38,9 +52,9 @@ niveau d'une porte par clic droit (*SCP : niveau d'accès de la porte*).
 **SCP-500** : clic droit sur le flacon → *Prendre une pilule*. Guérit l'infection, toutes les
 blessures, fractures, poison, et remet santé et fatigue à fond.
 
-**SCP-173** : immobile tant qu'un joueur le regarde. Jauge de clignement en haut de l'écran
-(touche **B** pour cligner volontairement). Si le joueur cligne ou tourne le dos à moins de
-10 cases, il apparaît derrière lui et lui brise la nuque.
+**SCP-173** : une statue, indestructible. Jauge de clignement en haut de l'écran (touche **B** pour
+cligner volontairement). Tant que personne ne le regarde, il avance par sauts d'une case ; collé à un
+joueur qui cligne ou tourne le dos, il lui brise la nuque.
 
 **SCP-096** : pleure sans bouger. Le regarder en face déclenche 5 à 10 s de cris, puis il court
 après ce joueur en cassant portes, fenêtres et barricades, jusqu'à sa mort.
@@ -58,8 +72,16 @@ de la console (le sacrifice), puis *Activer le broyeur de fémur* : les cris att
 30 min. Quand il est dans le broyeur, lancer le *Rappel magnétique* : il retourne dans sa cellule et y
 dort, même pendant la brèche en cours, jusqu'à la brèche suivante.
 
-**SCP-049** : son toucher tue, et la victime se relève en SCP-049-2. Il « soigne » aussi les cadavres
-proches. Ses 049-2 le suivent et attaquent quiconque s'approche de lui.
+**SCP-049** : marche vers le patient le plus proche et parle ; il ne mord pas, son toucher tue et la victime
+se relève en SCP-049-2. Il « soigne » aussi les cadavres proches. Ses 049-2 le suivent et attaquent
+quiconque s'approche de lui.
+
+**Petites anomalies** : SCP-207 (cola), 268 (casquette), 330 (bonbons), 005 (passe-partout), 109 (gourde),
+458 (pizza), 427 (médaillon), 018 (super balle), clic droit pour les utiliser.
+
+**Armes de la Fondation** : masse à choc à deux mains (décharge électrique, 20 charges, se recharge avec une
+pile), carabine Epsilon (5.56), fusil à pompe anti-émeute, pistolet de service (9 mm). Modèles faits par
+`tools/make_weapon_models.py`, munitions et sons de tir du jeu.
 
 **SCP-079** : une IA dans un terminal en Heavy Containment. Tant qu'elle est active, elle verrouille ou
 ouvre les portes autour des joueurs, déclenche des alarmes qui attirent les zombies, coupe le courant du
@@ -95,8 +117,9 @@ fracture… ou l'infection de Knox).
 **Ogive Alpha** : salle de contrôle en Entrance Zone (carte niveau 5). L'armer lance un compte à rebours de
 30 min ; à zéro, le site et tout ce qui s'y trouve est détruit. Annulable depuis le même terminal.
 
-**Professions** : Classe-D (commence dans les cellules pendant une brèche), Scientifique (labo, carte
-niveau 2) et Garde NTF (salle de sécurité, carte niveau 3).
+**Professions** : Classe-D (commence dans les cellules pendant une brèche), Scientifique (bureau des
+chercheurs, carte niveau 3) et Garde NTF (salle de sécurité, carte niveau 4). Un écran noir cache le
+transfert vers le site au début de la partie.
 
 **Site SCP** : un niveau souterrain en trois zones qui s'enchaînent comme dans Containment Breach (confinement
 léger, confinement lourd, zone d'entrée), couloirs de 2 cases, points de contrôle à carte entre les zones. En
@@ -105,9 +128,13 @@ surface : un complexe fortifié en béton, relié à la ville par une route d'ac
 cabine vitrée), porte intérieure, puis trois cours : garage, bâtiment de la Porte A (toit avec panneaux
 solaires et ventilations) et centrale électrique. L'ascenseur de la Porte A est une cabine dans un puits :
 on voit le personnage descendre et la zone d'entrée apparaître (option *Ascenseur : descente visible*,
-désactivable pour revenir à un fondu). Placement : menu admin → *Construire le site SCP* à l'endroit où la
-route d'accès rejoint une route de la ville, sur un terrain dégagé (l'enceinte et le site s'étendent vers le
-nord). Plan : `art/site_plan.png`, rendu : `art/rendu_exterieur_site.png`.
+désactivable pour revenir à un fondu). Les portes du site coulissent.
+Placement :
+- région de départ **Site SCP** (nouvelle partie) : toujours au même endroit, en forêt au nord-est de
+  West Point, marqué « SITE SCP » sur la carte du monde ;
+- sinon, au début d'une partie avec un métier SCP : sur le terrain libre le plus proche (sans maisons) ;
+- ou menu admin → *Construire le site SCP* à l'endroit où la route d'accès rejoint une route.
+Plan : `art/renders/site_plan.png`, rendu : `art/renders/rendu_exterieur_site.png`.
 
 **Brèche de confinement** : coupure de courant, toutes les portes à carte s'ouvrent, sirènes et
 lumières rouges, apparition des SCP et de gardes zombifiés à chaque point de confinement.
@@ -115,7 +142,8 @@ Fin automatique après 6 h de jeu (courant et verrous rétablis).
 
 ## Sons
 
-La plupart des sons viennent de *SCP – Containment Breach* (CC BY-SA 3.0) : voir `CREDITS_SOUNDS.md`.
+La plupart des sons viennent de *SCP – Containment Breach* (CC BY-SA 3.0) ; ceux de la masse à choc et de
+quelques anomalies sont synthétisés par le mod : voir `CREDITS_SOUNDS.md`.
 
 ## Tester rapidement (solo, mode debug ou admin)
 
@@ -130,9 +158,7 @@ sont dans les **options de partie (Sandbox) → SCP Foundation**.
 
 ## Limites connues
 
-- Pas de carte de l'installation pour l'instant : les portes et points de confinement se placent
-  à la main (menu admin). `SCP.Doors.SpriteLevels` permettra de sécuriser automatiquement les
-  portes d'une future carte.
+- Le site est construit par le mod sur la carte du jeu (pas encore de cellules de carte à lui).
 - Pensé en priorité pour le **solo** (pas encore testé en jeu). En multijoueur, les commandes passent par le
   serveur, mais les mouvements de 173 et 106 sont calculés sur le client du joueur ciblé et
   peuvent saccader.

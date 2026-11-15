@@ -2,3 +2,6 @@
 Thumbs.db
 *.bak
 __pycache__/
+
+# scratch renders of the tools (final renders go to art/renders/)
+tools/out/

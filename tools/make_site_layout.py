@@ -8,11 +8,11 @@ Zone), narrow 2-tile hallways, rooms hanging off them, keycard checkpoints
 between zones, and a lift (Gate A) up to a walled compound on the surface.
 
 Reference: the room meshes of SCP - Containment Breach (hallways are about
-2 m wide in 8 m map cells) - see art/cb_textures/README.md.
+2 m wide in 8 m map cells) - see art/sources/cb_textures/README.md.
 
 Outputs:
   Contents/mods/SCPFoundation/42/media/lua/shared/SCP_Facility_Data.lua
-  art/site_plan.png            (labelled top-down plan)
+  art/renders/site_plan.png            (labelled top-down plan)
 
 Usage: python3 tools/make_site_layout.py   (from the repository root)
 Needs Pillow.
@@ -29,7 +29,7 @@ import make_facility_tiles as T   # tile numbers of the scp_facility_02 sheet
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LUA_OUT = os.path.join(ROOT, "Contents/mods/SCPFoundation/42/media/lua/shared/SCP_Facility_Data.lua")
-PLAN_OUT = os.path.join(ROOT, "art", "site_plan.png")
+PLAN_OUT = os.path.join(ROOT, "art", "renders", "site_plan.png")
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 

@@ -27,7 +27,7 @@ MEDIA = os.path.join(ROOT, "Contents/mods/SCPFoundation/42/media")
 OUT_MESH = os.path.join(MEDIA, "models_X/static/weapons")
 OUT_TEX = os.path.join(MEDIA, "textures/weapons")
 OUT_ICON = os.path.join(MEDIA, "textures")
-PREVIEW = os.path.join(ROOT, "tools/out")
+PREVIEW = os.path.join(ROOT, "art/renders/weapons")
 
 ATLAS = 128      # texture size
 CELL = 32        # swatch size (4x4 swatches)

@@ -64,11 +64,11 @@ tileset `scp_facility_01` : 0-2 SCP-914 (entrée, engrenages, sortie), 3 SCP-294
 Le jeu lit `media/<nom>.tiles` du mod (`ZomboidFileSystem.loadModTileDefs`), avec le numéro de
 `tiledef=` (100 à 8189, sinon le mod entier est refusé). Dans le fichier, le numéro du tileset doit
 être entre 1 et 512 (0 est rejeté par `IsoWorld.LoadTileDefinitions`).
-Planche : `art/scp_facility_01_tilesheet.png`. Si le pack ne se charge pas, `F.Fallback`
+Planche : `art/tilesheets/scp_facility_01_tilesheet.png`. Si le pack ne se charge pas, `F.Fallback`
 (`SCP_Facility.lua`) remet les tuiles vanilla d'avant.
 
 Tileset `scp_facility_02` (numéro 2 dans le même `.tiles`), généré par `tools/make_facility_tiles.py`
-(qui reconstruit aussi le `.pack` et le `.tiles`), planche `art/scp_facility_02_tilesheet.png` :
+(qui reconstruit aussi le `.pack` et le `.tiles`), planche `art/tilesheets/scp_facility_02_tilesheet.png` :
 - murs par zone (+0 mur O, +1 mur N, +2 angle NO, +3 cadre de porte O, +4 cadre N) :
   0-4 Entrance Zone, 8-12 Light Containment, 16-20 Heavy Containment ;
 - sols : 5 EZ, 6 ligne de danger, 13 LCZ, 14 grille de confinement, 15 plateforme d'ascenseur, 21 tôle HCZ ;
