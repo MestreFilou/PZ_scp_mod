@@ -16,8 +16,12 @@ end
 
 function ISUseSCPAnomalyAction:start()
     local a = self.info
-    if a.anim then pcall(self.setActionAnim, self, a.anim) end
-    if a.anim == "Eat" or a.anim == "drink" then
+    if a.anim then
+        -- Drink / Eat are enum values in 42 (CharacterActionAnims), the others plain names
+        local anim = CharacterActionAnims and CharacterActionAnims[a.anim] or a.anim
+        pcall(self.setActionAnim, self, anim)
+    end
+    if a.anim == "Eat" or a.anim == "Drink" then
         pcall(self.setOverrideHandModels, self, nil, self.item)
     end
     if a.sound then self.character:playSound(a.sound) end

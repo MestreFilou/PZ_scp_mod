@@ -180,10 +180,10 @@ SCP.on("OnTick", updateBalls)
 
 -- What each anomaly's action is called, its animation and length (ticks).
 A.ACTIONS = {
-    ["Base.SCP_207"] = { text = "ContextMenu_SCP_207", anim = "drink", time = 60, sound = "SCP_207_Open" },
+    ["Base.SCP_207"] = { text = "ContextMenu_SCP_207", anim = "Drink", time = 60, sound = "SCP_207_Open" },
     ["Base.SCP_268"] = { text = "ContextMenu_SCP_268", anim = "WearClothing", time = 30 },
     ["Base.SCP_330"] = { text = "ContextMenu_SCP_330", anim = "Loot", time = 40 },
-    ["Base.SCP_109_Canteen"] = { text = "ContextMenu_SCP_109", anim = "drink", time = 80 },
+    ["Base.SCP_109_Canteen"] = { text = "ContextMenu_SCP_109", anim = "Drink", time = 80 },
     ["Base.SCP_458_PizzaBox"] = { text = "ContextMenu_SCP_458", anim = "Eat", time = 120 },
     ["Base.SCP_427"] = { text = "ContextMenu_SCP_427", anim = "Loot", time = 20 },
     ["Base.SCP_018"] = { text = "ContextMenu_SCP_018", anim = "Loot", time = 15 },
