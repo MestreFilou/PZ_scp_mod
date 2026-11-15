@@ -11,11 +11,11 @@ require "SCP_System"
 
 SCP.SCP049 = SCP.SCP049 or {}
 
-local TOUCH_DIST = 1.0
+local TOUCH_DIST = 1.3
 local TOUCH_COOLDOWN_MS = 2500
 local CURE_CORPSE_EVERY_MS = 15000
 local CURE_RADIUS = 3
-local TALK_EVERY_MS = 20000
+local TALK_EVERY_MS = 12000
 local GUARD_RADIUS = 9       -- 049-2 attacks players this close to the doctor
 local FOLLOW_DIST = 4        -- 049-2 walks back when farther than this
 local REPATH_MS = 2000
@@ -66,6 +66,15 @@ local function updateDoctor(zombie)
     end
     SCP.freeze(zombie, false)
 
+    -- A doctor, not a zombie: he does not eat the dead, does not crawl and
+    -- gets straight back up; he walks calmly to his patient.
+    if zombie.getEatBodyTarget and zombie:getEatBodyTarget() then
+        pcall(zombie.setEatBodyTarget, zombie, nil, false)
+    end
+    if zombie.isKnockedDown and zombie:isKnockedDown() then pcall(zombie.setKnockedDown, zombie, false) end
+    if zombie.isCrawling and zombie:isCrawling() and zombie.toggleCrawling then pcall(zombie.toggleCrawling, zombie) end
+    if zombie.setCanWalk then pcall(zombie.setCanWalk, zombie, true) end
+
     local t = getTimestampMs()
     local players = SCP.localPlayers()
 
@@ -91,6 +100,16 @@ local function updateDoctor(zombie)
                 SCP.sendToServer(p, "SCP049Cure", { x = x, y = y, z = z })
                 return
             end
+        end
+    end
+
+    -- Walk to the closest living patient on this level.
+    if not md.SCP049_NextPath or t > md.SCP049_NextPath then
+        md.SCP049_NextPath = t + REPATH_MS
+        local p = SCP.nearestPlayer(zombie, 30, players)
+        if p and SCP.sameLevel(p, zombie) and not p:isDead() then
+            zombie:setTarget(p)
+            if zombie.pathToCharacter then pcall(zombie.pathToCharacter, zombie, p) end
         end
     end
 

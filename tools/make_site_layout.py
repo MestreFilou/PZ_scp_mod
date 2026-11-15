@@ -33,11 +33,11 @@ PLAN_OUT = os.path.join(ROOT, "art", "site_plan.png")
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
-W, H = 80, 140
-ANCHOR = (40, 138)      # tile just outside the main gate: where the admin clicks
+W, H = 100, 156
+ANCHOR = (40, 155)      # end of the access road: where it meets the town road, where the admin clicks
 
 # Wall styles (letters used in the edge layers)
-STYLE = {"EZ": "a", "LCZ": "b", "HCZ": "c", "CELL": "d", "BUNKER": "e", "PERIM": "f"}
+STYLE = {"EZ": "a", "LCZ": "b", "HCZ": "c", "CELL": "d", "BUNKER": "e", "PERIM": "f", "FORT": "x"}
 # Floor letters: c concrete, t white tiles, m dark plate, g grating, h hazard threshold,
 # e lift platform, a asphalt, k bunker slab
 ZONE_FLOOR = {"LCZ": "c", "HCZ": "m", "EZ": "t"}
@@ -115,9 +115,9 @@ class Level:
         self.doors.append(dict(x=x, y=y, north=bool(ns), level=level, heavy=bool(heavy)))
         self.door_edges.add((x, y, bool(ns)))
 
-    def edge_door(self, x, y, north, level=0, heavy=False, gate=None, frame=True):
+    def edge_door(self, x, y, north, level=0, heavy=False, gate=None, frame=True, lift=None):
         """Door on the north or west edge of (x, y), in a thin wall."""
-        self.doors.append(dict(x=x, y=y, north=north, level=level, heavy=heavy, gate=gate, frame=frame))
+        self.doors.append(dict(x=x, y=y, north=north, level=level, heavy=heavy, gate=gate, frame=frame, lift=lift))
         self.door_edges.add((x, y, north))
 
     # -- derived ------------------------------------------------------
@@ -191,7 +191,7 @@ R("scp914", "LCZ", 35, 2, 9, 7, "SCP-914", level=2); D(39, 9)
 R("storage", "LCZ", 46, 4, 6, 5, "Réserve", level=2); D(48, 9)
 R("scp500", "LCZ", 54, 5, 4, 4, "SCP-500", level=3, style="d"); D(55, 9)
 R("anomalous", "LCZ", 60, 4, 5, 5, "Objets anormaux", level=3, style="d"); D(62, 9)
-R("lab", "LCZ", 67, 2, 7, 7, "Salle de test", level=2); D(70, 9)
+R("testroom", "LCZ", 67, 2, 7, 7, "Salle de test", level=2); D(70, 9)
 
 R("closet", "LCZ", 9, 13, 4, 4, "Placard", level=0); D(8, 14)
 R("closet", "LCZ", 9, 18, 4, 3, "Local technique", level=1); D(13, 19)
@@ -199,7 +199,7 @@ R("scp939", "LCZ", 17, 13, 10, 8, "SCP-939", level=4, floor="g", style="d"); D(2
 R("office", "LCZ", 29, 13, 5, 4, "Bureau", level=1); D(31, 12)
 R("archive", "LCZ", 36, 13, 3, 5, "Archives", level=1); D(37, 12)
 R("dorm", "LCZ", 29, 18, 6, 3, "Salle de repos", level=0); D(32, 21)
-R("lab", "LCZ", 43, 13, 8, 8, "Laboratoire", level=2); D(42, 16)
+R("research", "LCZ", 43, 13, 8, 8, "Bureau des chercheurs", level=2); D(42, 16)
 R("storage", "LCZ", 53, 13, 5, 4, "Réserve", level=2); D(55, 12)
 R("office", "LCZ", 60, 13, 3, 4, "Bureau", level=1); D(61, 12)
 R("dorm", "LCZ", 53, 18, 10, 3, "Salle de pause", level=0); D(58, 21)
@@ -238,11 +238,29 @@ C("HCZ", 44, 64, 45, 71)
 C("HCZ", 22, 64, 23, 85)
 C("HCZ", 56, 74, 57, 85)
 
-R("scp106", "HCZ", 11, 51, 11, 10, "SCP-106", level=5, floor="g", style="d")
-R("femur", "HCZ", 23, 51, 10, 5, "Broyeur de fémur", level=5); D(22, 53, level=5); D(28, 50)
-R("storage", "HCZ", 23, 57, 10, 4, "Stockage", level=2); D(33, 58)
-R("lab", "HCZ", 37, 51, 9, 10, "Laboratoire", level=2); D(36, 55)
-R("scp049", "HCZ", 48, 51, 13, 8, "SCP-049", level=4, floor="g", style="d"); D(54, 50)
+# SCP-106: a giant chamber around a pit, like in the games. A ledge runs
+# round it, a catwalk goes out to a platform in the middle, and the bottom
+# of the pit (where 106 is kept) is on the level below. The femur breaker
+# looks into it.
+R("scp106", "HCZ", 11, 51, 17, 10, "SCP-106", level=5, floor="m", style="d")
+R("femur", "HCZ", 29, 51, 4, 6, "Broyeur de fémur", level=5); D(28, 53, level=5); D(30, 50)
+R("storage", "HCZ", 29, 58, 4, 3, "Stockage", level=2); D(33, 59)
+PIT = (12, 53, 26, 59)
+for y in range(PIT[1], PIT[3] + 1):
+    for x in range(PIT[0], PIT[2] + 1):
+        U.floor[y][x] = " "
+for x in range(21, 27):
+    U.floor[56][x] = "g"           # catwalk from the east ledge ...
+for y in range(55, 58):
+    for x in range(17, 21):
+        U.floor[y][x] = "g"        # ... to the platform in the middle
+R("research", "HCZ", 37, 51, 9, 10, "Bureau des chercheurs", level=2); D(36, 55)
+# SCP-049 is kept one level down: a stair hall leads to its wing.
+R("stairs049", "HCZ", 48, 51, 7, 8, "Escalier SCP-049", level=4); D(51, 50)
+STAIRS049 = (53, 55)               # x, y of the top piece (the bottom one is 2 tiles south)
+for p in range(3):
+    U.floor[STAIRS049[1] + p][STAIRS049[0]] = " "
+R("armory", "HCZ", 56, 51, 5, 8, "Armurerie", level=4); D(58, 50)
 R("scp096", "HCZ", 63, 51, 6, 6, "SCP-096", level=4, floor="g", style="d"); D(69, 53)
 R("scp035", "HCZ", 63, 58, 6, 6, "SCP-035", level=3, floor="g", style="d"); D(69, 60)
 R("scp008", "HCZ", 47, 60, 9, 11, "SCP-008", level=4, style="d"); D(46, 66)
@@ -275,7 +293,7 @@ C("EZ", 38, 98, 41, 109)     # main hall, 4 wide
 R("office", "EZ", 11, 99, 6, 4, "Bureau", level=1); D(13, 98)
 R("office", "EZ", 19, 99, 6, 4, "Bureau", level=1); D(21, 98)
 R("conference", "EZ", 27, 99, 10, 4, "Salle de réunion", level=1); D(31, 98)
-R("lab", "EZ", 11, 104, 10, 5, "Laboratoire", level=2); D(15, 109)
+R("research", "EZ", 11, 104, 10, 5, "Bureau des chercheurs", level=2); D(15, 109)
 R("medical", "EZ", 23, 104, 7, 5, "Infirmerie", level=2); D(26, 109)
 R("security", "EZ", 32, 104, 5, 5, "Sécurité", level=2); D(37, 106)
 R("cafeteria", "EZ", 43, 99, 12, 4, "Cafétéria", level=0); D(48, 98)
@@ -293,10 +311,6 @@ R("storage", "EZ", 48, 113, 10, 6, "Quai de livraison", level=2); D(52, 112)
 R("director", "EZ", 60, 113, 9, 6, "Bureau du directeur", level=4, heavy=False); D(64, 112)
 
 LIFT = (39, 116)   # 2x2 platform, same tiles on the surface
-for dx in (0, 1):
-    for dy in (0, 1):
-        U.floor[LIFT[1] + dy][LIFT[0] + dx] = "e"
-        U.lifts.append(dict(x=LIFT[0] + dx, y=LIFT[1] + dy, link="A"))
 
 # Tesla gates (a line across a hallway)
 U.tesla += [dict(x=16, y=48, north=False), dict(x=16, y=49, north=False),
@@ -305,18 +319,131 @@ U.tesla += [dict(x=16, y=48, north=False), dict(x=16, y=49, north=False),
             dict(x=50, y=72, north=False), dict(x=50, y=73, north=False)]
 
 # ----------------------------------------------------------------------
-# Surface level: walled compound, bunker over the lift, main gate
+# Level below the site (one level under the underground): the SCP-049 wing
+# and the bottom of the SCP-106 pit.
 # ----------------------------------------------------------------------
 
-S = Level("surface", False)
-YARD = (20, 106, 59, 137)
-BUNKER = (32, 110, 47, 121)
-BOOTH = (45, 131, 48, 134)
+L = Level("lower", True)
+L.corridor("HCZ", 52, 55, 54, 61)            # from the foot of the stairs
+L.corridor("HCZ", 44, 62, 71, 63)
+L.room("scp049", "HCZ", 56, 51, 14, 10, "SCP-049", level=4, floor="t", style="d"); L.door(55, 57)
+L.room("obs049", "HCZ", 44, 51, 7, 10, "Observation SCP-049", level=3, floor="t"); L.door(51, 55)
+L.room("morgue", "HCZ", 44, 65, 12, 6, "Morgue", level=3, floor="t"); L.door(48, 64)
+L.room("surgery", "HCZ", 58, 65, 12, 6, "Bloc opératoire", level=3, floor="t"); L.door(62, 64)
+# stairs up to the stair hall (bottom at the south)
+L.objects += [dict(kind="stairs", dir="N", piece=p, x=STAIRS049[0], y=STAIRS049[1] + 2 - p) for p in range(3)]
 
-yard = S.new_region(kind="yard", zone="SURFACE", style=STYLE["PERIM"], name="Cour")
-S.fill(yard, *YARD, "a")
-apron = S.new_region(kind="apron", zone="SURFACE", style=STYLE["PERIM"], name="Accès")
-S.fill(apron, 36, 138, 43, 139, "a")
+# bottom of the 106 pit: stairs up the west side to the ledge
+L.room("scp106pit", "HCZ", 12, 53, 15, 7, "Fosse de SCP-106", level=5, floor="k", style="d")
+L.regions[-1]["doors"] = [(11, 56)]          # no door: reached by the stairs (keeps validate happy)
+L.objects += [dict(kind="stairs", dir="W", piece=p, x=14 - p, y=58) for p in range(3)]
+L.objects += [dict(kind="sign", sign="scp106", north=True, x=19, y=53)]
+
+# ----------------------------------------------------------------------
+# Surface: a fortified concrete compound reached by a road from town
+#
+#   road (south) -> main gate in a two-storey wall -> entrance court
+#   (guard post, watchtower in the corner) -> inner gate -> three courts:
+#   garage (west), main building with the Gate A lift (middle),
+#   power house (east). Roofs, the upper course of the walls, the tower
+#   floors and the barbed wire are on the levels above (UPPER).
+# ----------------------------------------------------------------------
+
+def lift_cabin(level, gate, label, at=LIFT, size=2, link="A"):
+    """Platform, walls on three sides of the lift, sliding doors on the south
+    side, and the call panel inside on the west wall."""
+    for dx in range(size):
+        for dy in range(size):
+            level.floor[at[1] + dy][at[0] + dx] = "e"
+            level.lifts.append(dict(x=at[0] + dx, y=at[1] + dy, link=link))
+    for dy in range(size):
+        level.extra_walls[(at[0], at[1] + dy, False)] = "e"
+        level.extra_walls[(at[0] + size, at[1] + dy, False)] = "e"
+    for dx in range(size):
+        level.extra_walls[(at[0] + dx, at[1], True)] = "e"
+        level.edge_door(at[0] + dx, at[1] + size, True, level=0, gate=gate, frame=False, lift=True)
+    level.objects.append(dict(kind="liftpanel", north=False, x=at[0], y=at[1] + size - 1, level=label, link=link))
+
+
+# Gate B: a 3x3 freight lift at the far east end of the Entrance Zone, up to
+# a hangar outside the compound with its own road (the second way out).
+LIFTB = (85, 108)
+C("EZ", 72, 110, 79, 111)
+R("lobbyb", "EZ", 81, 104, 11, 12, "Hall de la Porte B", level=3)
+D(80, 110, level=3, heavy=True); D(80, 111, level=3, heavy=True)
+
+lift_cabin(U, "LIFT_EZ", "SITE")
+lift_cabin(U, "LIFTB_EZ", "SITE", at=LIFTB, size=3, link="B")
+
+S = Level("surface", False)
+UPPER = {z: Level(f"upper{z}", False) for z in (1, 2, 3, 4)}
+
+COMPOUND = (8, 84, 71, 139)          # inside of the outer wall
+ROAD = (37, 42)                      # road columns (6 wide); centre line on the west edge of x = 40
+GATE_X = (38, 39, 40, 41)
+INNER_Y = 126                        # north edge of this row: inner wall
+TOWER = (68, 135, 71, 139)           # watchtower inside, in the south-east corner
+BUILDING = (28, 102, 51, 121)        # main building (Gate A hall in the middle)
+GUARD = (30, 133, 35, 138)
+GARAGE = (12, 88, 23, 97)
+POWER = (56, 88, 67, 97)
+
+
+def paint(level, x0, y0, x1, y1, ch):
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            level.floor[y][x] = ch
+
+
+def wall_box(level, x0, y0, x1, y1, style, skip=()):
+    """Walls on the outline of a rectangle (edges of the tiles inside it)."""
+    for y in range(y0, y1 + 1):
+        for edge in ((x0, y, False), (x1 + 1, y, False)):
+            if edge not in skip:
+                level.extra_walls[edge] = style
+    for x in range(x0, x1 + 1):
+        for edge in ((x, y0, True), (x, y1 + 1, True)):
+            if edge not in skip:
+                level.extra_walls[edge] = style
+
+
+def wall_h(level, y, xa, xb, style):
+    for x in range(xa, xb + 1):
+        level.extra_walls[(x, y, True)] = style
+
+
+def wall_v(level, x, ya, yb, style):
+    for y in range(ya, yb + 1):
+        level.extra_walls[(x, y, False)] = style
+
+
+def ext(level, name, x, y, face="n"):
+    level.objects.append(dict(kind="ext", ext=name, face=face, x=x, y=y))
+
+
+# ---- ground level -----------------------------------------------------
+court = S.new_region(kind="yard", zone="SURFACE", style="x", name="Cour d'entrée")
+S.fill(court, COMPOUND[0], INNER_Y, COMPOUND[2], COMPOUND[3], "p")
+west_court = S.new_region(kind="yard", zone="SURFACE", style="x", name="Cour du garage")
+S.fill(west_court, COMPOUND[0], COMPOUND[1], 25, INNER_Y - 1, "p")
+mid_court = S.new_region(kind="yard", zone="SURFACE", style="x", name="Cour centrale")
+S.fill(mid_court, 26, COMPOUND[1], 53, INNER_Y - 1, "p")
+east_court = S.new_region(kind="yard", zone="SURFACE", style="x", name="Cour technique")
+S.fill(east_court, 54, COMPOUND[1], COMPOUND[2], INNER_Y - 1, "p")
+road = S.new_region(kind="road", zone="SURFACE", style="x", name="Route d'accès")
+S.fill(road, ROAD[0], COMPOUND[3] + 1, ROAD[1], H - 1, "a")
+apron = S.new_region(kind="apron", zone="SURFACE", style="x", name="Parvis")
+S.fill(apron, 33, COMPOUND[3] + 1, ROAD[0] - 1, COMPOUND[3] + 3, "a")
+S.fill(apron, ROAD[1] + 1, COMPOUND[3] + 1, 46, COMPOUND[3] + 3, "a", allow_same=True)
+
+# asphalt inside: from the main gate to the Gate A doors, and in front of the garage
+paint(S, ROAD[0], BUILDING[3] + 1, ROAD[1], COMPOUND[3], "a")
+paint(S, 14, GARAGE[3] + 1, 21, 101, "a")
+for y in range(BUILDING[3] + 1, H):
+    if S.floor[y][40] == "a":
+        S.floor[y][40] = "r"
+for x in range(ROAD[0], ROAD[1] + 1):
+    S.floor[146][x] = "s"            # stop line before the checkpoint
 
 
 def carve(level, rect):
@@ -325,73 +452,468 @@ def carve(level, rect):
             level.reg[y][x] = 0
 
 
-carve(S, BUNKER)
-bunker = S.new_region(kind="bunker", zone="SURFACE", style=STYLE["BUNKER"], name="Bunker - Porte A", enclosed=True,
-                      x0=BUNKER[0], y0=BUNKER[1], x1=BUNKER[2], y1=BUNKER[3], level=2, roof=True)
-S.fill(bunker, *BUNKER, "k")
-carve(S, BOOTH)
-booth = S.new_region(kind="gatehouse", zone="SURFACE", style=STYLE["BUNKER"], name="Poste de garde", enclosed=True,
-                     x0=BOOTH[0], y0=BOOTH[1], x1=BOOTH[2], y1=BOOTH[3], level=0, roof=True)
-S.fill(booth, *BOOTH, "k")
+def building(kind, name, rect, level=0, floor="k", **kw):
+    carve(S, rect)
+    rid = S.new_region(kind=kind, zone="SURFACE", style="x", name=name, enclosed=True,
+                       x0=rect[0], y0=rect[1], x1=rect[2], y1=rect[3], level=level, **kw)
+    S.fill(rid, *rect, floor)
+    return rid
 
-for dx in (0, 1):
-    for dy in (0, 1):
-        S.floor[LIFT[1] + dy][LIFT[0] + dx] = "e"
-        S.lifts.append(dict(x=LIFT[0] + dx, y=LIFT[1] + dy, link="A"))
 
-# perimeter wall
-for y in range(YARD[1], YARD[3] + 1):
-    S.extra_walls[(YARD[0], y, False)] = STYLE["PERIM"]
-    S.extra_walls[(YARD[2] + 1, y, False)] = STYLE["PERIM"]
-for x in range(YARD[0], YARD[2] + 1):
-    S.extra_walls[(x, YARD[1], True)] = STYLE["PERIM"]
-    S.extra_walls[(x, YARD[3] + 1, True)] = STYLE["PERIM"]
+# main building: Gate A hall in the middle, two wings
+building("bunker", "Hall de la Porte A", (34, 102, 45, 121), level=2)
+building("security", "Sécurité", (28, 102, 33, 111), level=2)
+building("lockers", "Vestiaire FIM", (28, 112, 33, 121), level=3, heavy=False)
+building("medical", "Infirmerie", (46, 102, 51, 111), level=2)
+building("storage", "Réserve", (46, 112, 51, 121), level=2)
+S.edge_door(34, 106, False, level=2)
+S.edge_door(34, 116, False, level=3)
+S.edge_door(46, 106, False, level=2)
+S.edge_door(46, 116, False, level=2)
+for x in GATE_X:   # Gate A: blast doors of the main building
+    S.edge_door(x, BUILDING[3] + 1, True, level=2, heavy=True, gate="A", frame=False)
+for x in (29, 30, 31, 32, 47, 48, 49, 50):     # window bands on the facade
+    S.extra_walls[(x, BUILDING[3] + 1, True)] = "y"
+for y in (104, 105, 108, 109, 114, 115, 118, 119):
+    S.extra_walls[(BUILDING[0], y, False)] = "y"
+    S.extra_walls[(BUILDING[2] + 1, y, False)] = "y"
 
-GATE_X = (38, 39, 40, 41)
-for x in GATE_X:   # main gate, in the perimeter wall
-    del S.extra_walls[(x, YARD[3] + 1, True)]
-    S.edge_door(x, YARD[3] + 1, True, level=0, heavy=True, gate="MAIN", frame=False)
-for x in GATE_X:   # Gate A: blast door of the bunker
-    S.edge_door(x, BUNKER[3] + 1, True, level=2, heavy=True, gate="A", frame=False)
-S.edge_door(BOOTH[0], BOOTH[1] + 2, False, level=0)
+lift_cabin(S, "LIFT_SURFACE", "SURFACE")
 
-# signs on the outside walls, and what lies around the yard
-S.objects += [dict(kind="sign", sign="gatea", north=True, x=37, y=BUNKER[3] + 1),
-              dict(kind="sign", sign="logo", north=True, x=42, y=BUNKER[3] + 1),
-              dict(kind="sign", sign="logo", north=True, x=37, y=YARD[3] + 1),
-              dict(kind="sign", sign="danger", north=True, x=42, y=YARD[3] + 1),
-              dict(kind="sign", sign="security", north=False, x=BOOTH[2] + 1, y=BOOTH[1] + 1)]
-for (x, y, prop) in ((49, 112, "crate"), (50, 112, "crate"), (49, 113, "crate"), (51, 113, "barrel"),
-                     (50, 115, "barrel"), (29, 119, "crate"), (30, 120, "crate"), (28, 120, "barrel"),
-                     (23, 108, "crate"), (24, 108, "crate"), (23, 109, "barrel"), (55, 108, "crate"),
-                     (56, 109, "crate"), (56, 108, "barrel"), (22, 134, "crate"), (23, 135, "barrel"),
-                     (50, 133, "barrel"), (51, 134, "barrel"), (33, 126, "crate"), (46, 125, "crate")):
+# Gate B hangar, east of the compound, with its own road to the south
+HANGAR = (80, 102, 93, 117)
+GATEB_X = (85, 86, 87, 88)
+ROADB = (84, 89)
+building("lobbyb", "Hangar de la Porte B", HANGAR, level=3, heavy=False)
+lift_cabin(S, "LIFTB_SURFACE", "SURFACE", at=LIFTB, size=3, link="B")
+wall_box(S, *HANGAR, "x")
+for x in GATEB_X:
+    del S.extra_walls[(x, HANGAR[3] + 1, True)]
+    S.edge_door(x, HANGAR[3] + 1, True, level=3, heavy=True, gate="B", frame=False)
+for x in (81, 82, 83, 90, 91, 92):
+    S.extra_walls[(x, HANGAR[3] + 1, True)] = "y"
+for y in (104, 105, 110, 111):
+    S.extra_walls[(HANGAR[0], y, False)] = "y"
+    S.extra_walls[(HANGAR[2] + 1, y, False)] = "y"
+apron_b = S.new_region(kind="apron", zone="SURFACE", style="x", name="Parvis de la Porte B")
+S.fill(apron_b, HANGAR[0], HANGAR[3] + 1, HANGAR[2], HANGAR[3] + 4, "a")
+road_b = S.new_region(kind="road", zone="SURFACE", style="x", name="Route de la Porte B")
+S.fill(road_b, ROADB[0], HANGAR[3] + 5, ROADB[1], H - 1, "a")
+for y in range(HANGAR[3] + 5, H):
+    S.floor[y][87] = "r"
+S.objects += [dict(kind="sign", sign="gateb", north=True, x=84, y=HANGAR[3] + 1),
+              dict(kind="sign", sign="logo", north=True, x=89, y=HANGAR[3] + 1)]
+
+building("gatehouse", "Poste de garde", GUARD)
+S.edge_door(GUARD[2] + 1, 135, False, level=0)
+for x in range(GUARD[0] + 1, GUARD[2]):
+    S.extra_walls[(x, GUARD[3] + 1, True)] = "y"
+S.extra_walls[(GUARD[2] + 1, 137, False)] = "y"
+
+building("garage", "Garage", GARAGE, floor="a")
+for x in range(16, 20):
+    S.edge_door(x, GARAGE[3] + 1, True, level=0, heavy=True, gate="GARAGE", frame=False)
+building("powerhouse", "Centrale électrique", POWER, level=1)
+S.edge_door(61, POWER[3] + 1, True, level=1)
+
+building("tower", "Tour de guet", TOWER, floor="p")
+S.edge_door(TOWER[0], TOWER[3], False, level=0)
+
+# outer wall (two storeys), inner walls (one storey) and their gates
+wall_box(S, *COMPOUND, "x")
+for x in GATE_X:
+    del S.extra_walls[(x, COMPOUND[3] + 1, True)]
+    S.edge_door(x, COMPOUND[3] + 1, True, level=0, heavy=True, gate="MAIN", frame=False)
+wall_h(S, INNER_Y, COMPOUND[0], COMPOUND[2], "x")
+for x in GATE_X:
+    del S.extra_walls[(x, INNER_Y, True)]
+    S.edge_door(x, INNER_Y, True, level=2, heavy=True, gate="INNER", frame=False)
+wall_v(S, 26, COMPOUND[1], INNER_Y - 1, "x")
+wall_v(S, 54, COMPOUND[1], INNER_Y - 1, "x")
+for y in range(112, 116):
+    del S.extra_walls[(26, y, False)]
+for y in range(98, 102):
+    del S.extra_walls[(54, y, False)]
+# the tower's own walls win over the outer wall where they meet
+for y in range(TOWER[1], TOWER[3] + 1):
+    S.extra_walls.pop((TOWER[2] + 1, y, False), None)
+for x in range(TOWER[0], TOWER[2] + 1):
+    S.extra_walls.pop((x, TOWER[3] + 1, True), None)
+
+# stairs of the watchtower: up along its east side, then along its west side
+S.objects += [dict(kind="stairs", dir="N", piece=p, x=TOWER[2], y=TOWER[3] - 1 - p) for p in range(3)]
+
+# signs, floodlights, barriers
+S.objects += [dict(kind="sign", sign="gatea", north=True, x=37, y=BUILDING[3] + 1),
+              dict(kind="sign", sign="logo", north=True, x=42, y=BUILDING[3] + 1),
+              dict(kind="sign", sign="logo", north=True, x=36, y=INNER_Y),
+              dict(kind="sign", sign="danger", north=True, x=43, y=INNER_Y),
+              dict(kind="sign", sign="security", north=False, x=GUARD[2] + 1, y=134),
+              dict(kind="sign", sign="electric", north=True, x=59, y=POWER[3] + 1)]
+for (x, y) in ((80, 119), (93, 119), (27, 127), (52, 127), (10, 130), (60, 128), (36, 99), (43, 99), (24, 86), (56, 123),
+               (10, 123), (70, 86)):
+    ext(S, "floodlight", x, y)
+for (x, y, f) in ((37, 150, "n"), (38, 150, "n"), (41, 152, "n"), (42, 152, "n"),
+                  (33, 141, "n"), (46, 141, "n")):
+    ext(S, "barrier", x, y, f)
+for (x, y, prop) in ((12, 100, "crate"), (13, 100, "crate"), (12, 101, "barrel"), (24, 118, "crate"),
+                     (24, 119, "barrel"), (22, 110, "crate"), (57, 110, "crate"), (58, 110, "barrel"),
+                     (69, 105, "barrel"), (69, 106, "barrel"), (62, 120, "crate"), (63, 120, "crate"),
+                     (10, 136, "crate"), (11, 137, "barrel"), (57, 133, "crate"), (58, 133, "crate"),
+                     (57, 134, "barrel"), (20, 128, "crate")):
     S.objects.append(dict(kind="prop", prop=prop, face="n" if (x + y) % 2 else "w", x=x, y=y))
+
+# ---- surroundings: blend the site into the countryside ------------------
+#   - a gravel patrol strip along the outside of the outer wall and the hangar
+#   - a chain-link fence with barbed wire further out, crossed by the two roads
+#   - between fence and wall the ground is kept but cleared ('n'), with
+#     sandbags, floodlights and warning signs
+#   - outside the fence: a forest edge (trees thinning out away from the
+#     fence, bushes, rocks), dirt shoulders along the roads
+FENCE_RECT = (3, 79, 97, 145)        # tiles inside the fence
+land_rng = random.Random(1999)
+
+
+def ground(x, y, ch, only_empty=True):
+    if 0 < x < W - 1 and 0 < y < H and (not only_empty or S.floor[y][x] == " ") and not S.reg[y][x]:
+        S.floor[y][x] = ch
+
+
+# cleared ground inside the fence
+for y in range(FENCE_RECT[1], FENCE_RECT[3] + 1):
+    for x in range(FENCE_RECT[0], FENCE_RECT[2] + 1):
+        ground(x, y, "n")
+# gravel strips
+for y in range(COMPOUND[1] - 2, COMPOUND[3] + 3):
+    for x in range(COMPOUND[0] - 2, COMPOUND[2] + 3):
+        if S.floor[y][x] == "n":
+            S.floor[y][x] = "v"
+for y in range(HANGAR[1] - 2, HANGAR[3] + 1):
+    for x in range(HANGAR[0] - 2, HANGAR[2] + 3):
+        if S.floor[y][x] == "n":
+            S.floor[y][x] = "v"
+# path between the compound strip and the hangar strip
+for y in range(110, 112):
+    for x in range(COMPOUND[2] + 3, HANGAR[0] - 2):
+        if S.floor[y][x] == "n":
+            S.floor[y][x] = "v"
+# dirt shoulders along the roads, outside the compound
+for y in range(COMPOUND[3] + 4, H):
+    for x in (ROAD[0] - 1, ROAD[1] + 1):
+        if S.floor[y][x] in " n":
+            S.floor[y][x] = "u"
+for y in range(HANGAR[3] + 5, H):
+    for x in (ROADB[0] - 1, ROADB[1] + 1):
+        if S.floor[y][x] in " n":
+            S.floor[y][x] = "u"
+
+# the fence (open where the roads cross it)
+road_cols = set(range(ROAD[0] - 1, ROAD[1] + 2)) | set(range(ROADB[0] - 1, ROADB[1] + 2))
+fx0, fy0, fx1, fy1 = FENCE_RECT
+for x in range(fx0, fx1 + 1):
+    S.extra_walls[(x, fy0, True)] = "q"
+    if x not in road_cols:
+        S.extra_walls[(x, fy1 + 1, True)] = "q"
+for y in range(fy0, fy1 + 1):
+    S.extra_walls[(fx0, y, False)] = "q"
+    S.extra_walls[(fx1 + 1, y, False)] = "q"
+for x in (ROAD[0] - 2, ROAD[1] + 2, ROADB[0] - 2, ROADB[1] + 2):
+    ext(S, "floodlight", x, fy1)
+    S.objects.append(dict(kind="land", land="warnsign", face="n", x=x, y=fy1 + 1))
+# barrier across Gate B road at the fence
+for x in (ROADB[0], ROADB[0] + 1, ROADB[1] - 1, ROADB[1]):
+    ext(S, "barrier", x, fy1 + 2)
+
+# sandbag posts and floodlights in the cleared zone, signs on the fence
+for (x, y) in ((5, 82), (5, 141), (95, 82), (95, 141), (50, 81), (20, 81), (76, 130)):
+    S.objects.append(dict(kind="land", land="sandbags", face="n", x=x, y=y))
+for (x, y) in ((5, 100), (5, 120), (95, 100), (95, 125), (30, 80), (65, 80), (88, 80)):
+    ext(S, "floodlight", x, y)
+for x in range(fx0 + 6, fx1, 12):
+    S.objects.append(dict(kind="land", land="warnsign", face="n", x=x, y=fy0 - 1))
+for y in range(fy0 + 8, fy1, 14):
+    S.objects.append(dict(kind="land", land="warnsign", face="w", x=fx0 - 1, y=y))
+for (x, y) in ((76, 113), (77, 113), (76, 114)):
+    S.objects.append(dict(kind="land", land="camonet", face="n", x=x, y=y))
+
+# forest edge outside the fence: thick near it, thinning out
+def dist_to_fence(x, y):
+    dx = max(fx0 - x, 0, x - fx1)
+    dy = max(fy0 - y, 0, y - fy1)
+    return max(dx, dy)
+
+
+taken_land = {(o["x"], o["y"]) for o in S.objects}
+for y in range(1, H - 1):
+    for x in range(1, W - 1):
+        if S.floor[y][x] != " " or S.reg[y][x] or (x, y) in taken_land:
+            continue
+        d = dist_to_fence(x, y)
+        if d < 2:
+            continue
+        p_tree = 0.32 if d <= 8 else 0.16
+        r = land_rng.random()
+        if r < p_tree:
+            S.objects.append(dict(kind="tree", n=land_rng.randrange(1000), x=x, y=y))
+        elif r < p_tree + 0.06:
+            S.objects.append(dict(kind="land", land="bush", face=land_rng.choice("nw"), x=x, y=y))
+        elif r < p_tree + 0.075:
+            S.objects.append(dict(kind="land", land="rocks", face=land_rng.choice("nw"), x=x, y=y))
+
+# ---- levels above -----------------------------------------------------
+U1, U2, U3 = UPPER[1], UPPER[2], UPPER[3]
+
+# upper course of the outer wall, barbed wire on top
+for edge, style in list(S.extra_walls.items()):
+    x, y, north = edge
+    on_outline = (not north and x in (COMPOUND[0], COMPOUND[2] + 1)) or (north and y in (COMPOUND[1], COMPOUND[3] + 1))
+    if on_outline and style == "x":
+        U1.extra_walls[edge] = "x"
+for x in GATE_X:   # lintel over the main gate
+    U1.extra_walls[(x, COMPOUND[3] + 1, True)] = "x"
+for edge in list(U1.extra_walls):
+    x, y, north = edge
+    in_tower = TOWER[0] <= x <= TOWER[2] + 1 and TOWER[1] <= y <= TOWER[3] + 1
+    if not in_tower:
+        U2.objects.append(dict(kind="ext", ext="wire", face="n" if north else "w", x=x, y=y))
+for y in range(INNER_Y, INNER_Y + 1):
+    for x in range(COMPOUND[0], COMPOUND[2] + 1):
+        if x not in GATE_X:
+            U1.objects.append(dict(kind="ext", ext="wire", face="n", x=x, y=y))
+
+# roofs with a low wall around them
+for rect in (BUILDING, GUARD, GARAGE, POWER, HANGAR):
+    paint(U1, *rect, "o")
+    wall_box(U1, *rect, "p")
+# rooftop of the main building: solar panels and ventilation units, like the reference
+for y in (104, 107, 110):
+    for x in list(range(29, 35)) + list(range(45, 51)):
+        ext(U1, "solar", x, y)
+for (x, y) in ((38, 105), (41, 105), (38, 109), (41, 109), (63, 91), (59, 91), (82, 104), (91, 104),
+               (82, 114), (91, 114)):
+    ext(U1, "fan", x, y)
+for x in range(30, 50, 3):
+    ext(U1, "solar", x, 114)
+    ext(U1, "solar", x + 1, 114)
+
+# watchtower: rooms on z1 and z2, glazed cabin on z3, roof on z4.
+# Flights of stairs go up along the east side, then the west side, then the east side again.
+U4 = UPPER[4]
+T0x, T0y, T1x, T1y = TOWER
+for lvl in (U1, U2, U3):
+    paint(lvl, *TOWER, "p")
+paint(U4, *TOWER, "o")
+for p in range(3):
+    U1.floor[T1y - 1 - p][T1x] = " "           # hole over the first flight
+    U2.floor[T1y - 1 - p][T0x] = " "           # ... the second
+    U3.floor[T1y - 1 - p][T1x] = " "           # ... the third
+U1.objects += [dict(kind="stairs", dir="N", piece=p, x=T0x, y=T1y - 1 - p) for p in range(3)]
+U2.objects += [dict(kind="stairs", dir="N", piece=p, x=T1x, y=T1y - 1 - p) for p in range(3)]
+wall_box(U1, *TOWER, "x")
+wall_box(U2, *TOWER, "x")
+wall_box(U3, *TOWER, "y")
+wall_box(U4, *TOWER, "p")
+ext(U4, "floodlight", T1x, T1y)
+ext(U4, "floodlight", T0x, T0y, "w")
+
+LEVELS_ABOVE = [(z, UPPER[z]) for z in (1, 2, 3, 4)]
+
 
 # ----------------------------------------------------------------------
 # Dressing: specials, props, lights, signs
 # ----------------------------------------------------------------------
 
+
+# ----------------------------------------------------------------------
+# The game's own furniture (sprite names, facings and multi-tile parts read
+# from the 42.22 tile definitions). Each entry: face "n" = against a north
+# wall (front looks south), "w" = against a west wall (front looks east);
+# a list of (sprite, dx, dy) pieces (dx east, dy south; several pieces on
+# one tile are stacked: desk, then the computer on it). These are real
+# game objects: desks, cabinets, lockers and fridges can be searched, beds
+# slept in, chairs sat on. "stand" = the mod tile drawn in the previews.
+# ----------------------------------------------------------------------
+
+def _v(sheet, *pieces):
+    return [(f"{sheet}_{i}", dx, dy) for (i, dx, dy) in pieces]
+
+
+OFF1, OFF2 = "location_business_office_generic_01", "location_business_office_generic_02"
+SEAT1, SEAT2, SEAT3 = "furniture_seating_indoor_01", "furniture_seating_indoor_02", "furniture_seating_indoor_03"
+BED, MED = "furniture_bedding_01", "location_community_medical_01"
+SHELF, STOR2 = "furniture_shelving_01", "furniture_storage_02"
+COM, CNT, SINK, FRIDGE = "appliances_com_01", "fixtures_counters_01", "fixtures_sinks_01", "appliances_refrigeration_01"
+
+VPROPS = {
+    # desk (2 tiles) with a computer
+    "desk": dict(stand="workstation",
+                 n=_v(OFF1, (5, 0, 0), (6, 1, 0)) + _v(COM, (72, 0, 0)),
+                 w=_v(OFF1, (1, 0, 0), (0, 0, 1)) + _v(COM, (73, 0, 0))),
+    # the same with its swivel chair in front (the middle of offices)
+    "workstation": dict(stand="workstation",
+                        n=_v(OFF1, (5, 0, 0), (6, 1, 0)) + _v(COM, (72, 0, 0)) + _v(SEAT1, (51, 0, 1)),
+                        w=_v(OFF1, (1, 0, 0), (0, 0, 1)) + _v(COM, (73, 0, 0)) + _v(SEAT1, (48, 1, 0))),
+    "desklamp": dict(stand="desklamp",
+                     n=_v(OFF1, (42, 0, 0), (43, 1, 0)) + _v("lighting_indoor_02", (2, 1, 0)) + _v(OFF2, (20, 0, 0))
+                     + _v(SEAT1, (51, 0, 1)),
+                     w=_v(OFF1, (41, 0, 0), (40, 0, 1)) + _v("lighting_indoor_02", (1, 0, 0)) + _v(OFF2, (23, 0, 1))
+                     + _v(SEAT1, (48, 1, 1))),
+    "cabinet": dict(stand="cabinet", n=_v(OFF1, (16, 0, 0)), w=_v(OFF1, (17, 0, 0))),
+    "locker": dict(stand="locker", n=_v(STOR2, (0, 0, 0)), w=_v(STOR2, (1, 0, 0))),
+    "milocker": dict(stand="locker", n=_v("location_military_generic_01", (22, 0, 0)),
+                     w=_v("location_military_generic_01", (23, 0, 0))),
+    "shelf": dict(stand="shelf", n=_v(SHELF, (26, 0, 0), (27, 1, 0)), w=_v(SHELF, (25, 0, 0), (24, 0, 1))),
+    "bookcase": dict(stand="bookcase", n=_v(SHELF, (40, 0, 0)), w=_v(SHELF, (41, 0, 0))),
+    "bed": dict(stand="bed", n=_v(BED, (35, 0, 0), (34, 0, 1)), w=_v(BED, (32, 0, 0), (33, 1, 0))),
+    "bunkbed": dict(stand="bunkbed", n=_v(BED, (85, 0, 0), (84, 0, 1)), w=_v(BED, (86, 0, 0), (87, 1, 0))),
+    "medbed": dict(stand="medbed", n=_v(BED, (65, 0, 0), (64, 0, 1)), w=_v(BED, (66, 0, 0), (67, 1, 0))),
+    "morguetable": dict(stand="medbed", n=_v(MED, (79, 0, 0), (78, 0, 1)), w=_v(MED, (76, 0, 0), (77, 1, 0))),
+    "sofa": dict(stand="sofa", n=_v(SEAT2, (24, 0, 0), (25, 1, 0)), w=_v(SEAT2, (27, 0, 0), (26, 0, 1))),
+    "armchair": dict(stand="sofa", n=_v(SEAT2, (44, 0, 0)), w=_v(SEAT2, (45, 0, 0))),
+    "chair": dict(stand="chair", n=_v(SEAT3, (69, 0, 0)), w=_v(SEAT3, (68, 0, 0))),
+    "table": dict(stand="table", n=_v("furniture_tables_high_01", (4, 0, 0)), w=_v("furniture_tables_high_01", (5, 0, 0))),
+    "longtable": dict(stand="table", n=_v("furniture_tables_high_02", (16, 0, 0), (17, 1, 0), (18, 2, 0)),
+                      w=_v("furniture_tables_high_02", (21, 0, 0), (20, 0, 1), (19, 0, 2))),
+    "vending": dict(stand="vending", n=_v("location_shop_accessories_01", (17, 0, 0)),
+                    w=_v("location_shop_accessories_01", (16, 0, 0))),
+    "soda": dict(stand="vending", n=_v("location_shop_accessories_01", (19, 0, 0)),
+                 w=_v("location_shop_accessories_01", (18, 0, 0))),
+    "plant": dict(stand="plant", n=_v("vegetation_indoor_01", (12, 0, 0)), w=_v("vegetation_indoor_01", (20, 0, 0))),
+    "cooler": dict(stand="cooler", n=_v(OFF1, (49, 0, 0)), w=_v(OFF1, (48, 0, 0))),
+    "labbench": dict(stand="labbench", n=_v(CNT, (37, 0, 0)), w=_v(CNT, (35, 0, 0))),
+    "microscope": dict(stand="microscope", n=_v(CNT, (77, 0, 0)) + _v(MED, (136, 0, 0)),
+                       w=_v(CNT, (75, 0, 0)) + _v(MED, (137, 0, 0))),
+    "sink": dict(stand="labbench", n=_v(SINK, (33, 0, 0)), w=_v(SINK, (32, 0, 0))),
+    "fridge": dict(stand="cabinet", n=_v(FRIDGE, (40, 0, 0)), w=_v(FRIDGE, (41, 0, 0))),
+    "counter": dict(stand="labbench", n=_v(CNT, (77, 0, 0)), w=_v(CNT, (75, 0, 0))),
+    "medcabinet": dict(stand="cabinet", n=_v(MED, (37, 0, 0)), w=_v(MED, (36, 0, 0))),
+    "whiteboard": dict(stand="whiteboard", wall=True, n=_v(OFF1, (53, 0, 0), (54, 1, 0), (55, 2, 0)),
+                       w=_v(OFF1, (52, 0, 0), (51, 0, 1), (50, 0, 2))),
+    "corkboard": dict(stand=None, wall=True, n=_v(OFF1, (7, 0, 0)), w=_v(OFF1, (15, 0, 0))),
+    "trash": dict(stand="trash", n=_v("trashcontainers_01", (18, 0, 0)), w=_v("trashcontainers_01", (19, 0, 0))),
+    "secconsole": dict(stand="console", n=_v("security_01", (0, 0, 0)), w=_v("security_01", (1, 0, 0))),
+}
+
+# Facings against the south wall ("s", front looks north) and the east wall
+# ("e", front looks west), where the game has them.
+_SE = {
+    "desk": dict(s=_v(OFF1, (8, 0, 0), (10, 1, 0)) + _v(COM, (74, 0, 0)),
+                 e=_v(OFF1, (14, 0, 0), (13, 0, 1)) + _v(COM, (75, 0, 0))),
+    "workstation": dict(s=_v(OFF1, (8, 0, 0), (10, 1, 0)) + _v(COM, (74, 0, 0)) + _v(SEAT1, (50, 0, -1)),
+                        e=_v(OFF1, (14, 0, 0), (13, 0, 1)) + _v(COM, (75, 0, 0)) + _v(SEAT1, (49, -1, 0))),
+    "cabinet": dict(s=_v(OFF1, (24, 0, 0)), e=_v(OFF1, (25, 0, 0))),
+    "cabinet2": dict(n=_v(OFF1, (32, 0, 0)), w=_v(OFF1, (33, 0, 0)), s=_v(OFF1, (34, 0, 0)), e=_v(OFF1, (35, 0, 0))),
+    "locker": dict(s=_v(STOR2, (2, 0, 0)), e=_v(STOR2, (3, 0, 0))),
+    "walllocker": dict(n=_v(STOR2, (5, 0, 0)), w=_v(STOR2, (4, 0, 0)), s=_v(STOR2, (7, 0, 0)), e=_v(STOR2, (6, 0, 0))),
+    "milocker": dict(s=_v("location_military_generic_01", (30, 0, 0)), e=_v("location_military_generic_01", (31, 0, 0))),
+    "bookcase": dict(s=_v(SHELF, (43, 0, 0)), e=_v(SHELF, (42, 0, 0))),
+    "wallshelf": dict(n=_v(SHELF, (28, 0, 0)), w=_v(SHELF, (29, 0, 0)), s=_v(SHELF, (31, 0, 0)), e=_v(SHELF, (30, 0, 0))),
+    "bed": dict(s=_v(BED, (63, 0, 0), (62, 0, 1)), e=_v(BED, (60, 0, 0), (61, 1, 0))),
+    "medbed": dict(s=_v(MED, (19, 0, 0), (18, 0, 1)), e=_v(MED, (20, 0, 0), (21, 1, 0))),
+    "sofa": dict(s=_v(SEAT2, (30, 0, 0), (31, 1, 0)), e=_v(SEAT2, (29, 0, 0), (28, 0, 1))),
+    "armchair": dict(s=_v(SEAT2, (47, 0, 0)), e=_v(SEAT2, (46, 0, 0))),
+    "chair": dict(s=_v(SEAT3, (71, 0, 0)), e=_v(SEAT3, (70, 0, 0))),
+    "plant": dict(s=_v("vegetation_indoor_01", (28, 0, 0)), e=_v("vegetation_indoor_01", (10, 0, 0))),
+    "plant2": dict(n=_v("vegetation_indoor_01", (11, 0, 0)), w=_v("vegetation_indoor_01", (18, 0, 0)),
+                   s=_v("vegetation_indoor_01", (27, 0, 0)), e=_v("vegetation_indoor_01", (36, 0, 0))),
+    "cooler": dict(s=_v(OFF1, (57, 0, 0)), e=_v(OFF1, (56, 0, 0))),
+    "labbench": dict(s=_v(CNT, (33, 0, 0)), e=_v(CNT, (39, 0, 0))),
+    "counter": dict(s=_v(CNT, (73, 0, 0)), e=_v(CNT, (79, 0, 0))),
+    "microscope": dict(s=_v(CNT, (73, 0, 0)) + _v(MED, (139, 0, 0)), e=_v(CNT, (79, 0, 0)) + _v(MED, (138, 0, 0))),
+    "sink": dict(s=_v(SINK, (35, 0, 0)), e=_v(SINK, (34, 0, 0))),
+    "fridge": dict(s=_v(FRIDGE, (42, 0, 0)), e=_v(FRIDGE, (43, 0, 0))),
+    "medcabinet": dict(s=_v(MED, (39, 0, 0)), e=_v(MED, (38, 0, 0))),
+    "secconsole": dict(s=_v("security_01", (2, 0, 0)), e=_v("security_01", (3, 0, 0))),
+    "drawers": dict(n=_v("furniture_storage_01", (48, 0, 0)), w=_v("furniture_storage_01", (49, 0, 0)),
+                    s=_v("furniture_storage_01", (51, 0, 0)), e=_v("furniture_storage_01", (50, 0, 0))),
+    "bloodstand": dict(n=_v(MED, (25, 0, 0)), w=_v(MED, (24, 0, 0)), s=_v(MED, (27, 0, 0)), e=_v(MED, (26, 0, 0))),
+    "toolcart": dict(n=_v(MED, (49, 0, 0)), w=_v(MED, (50, 0, 0)), s=_v(MED, (51, 0, 0)), e=_v(MED, (48, 0, 0))),
+    "waiting": dict(n=_v(MED, (58, 0, 0), (59, 1, 0)), w=_v(MED, (57, 0, 0), (56, 0, 1))),
+    "freezer": dict(n=_v(FRIDGE, (48, 0, 0)), w=_v(FRIDGE, (49, 0, 0)), s=_v(FRIDGE, (50, 0, 0)), e=_v(FRIDGE, (51, 0, 0))),
+    "roundbin": dict(n=_v("trashcontainers_01", (20, 0, 0)), w=_v("trashcontainers_01", (20, 0, 0)),
+                     s=_v("trashcontainers_01", (20, 0, 0)), e=_v("trashcontainers_01", (20, 0, 0))),
+    "lowtable": dict(n=_v("furniture_tables_low_01", (19, 0, 0)), w=_v("furniture_tables_low_01", (18, 0, 0))),
+}
+# long table with two chairs on each side (cafeteria, meeting room)
+_SE["dinner"] = dict(n=_v("furniture_tables_high_02", (16, 0, 0), (17, 1, 0), (18, 2, 0))
+                     + _v(SEAT3, (71, 0, 1), (71, 2, 1), (69, 0, -1), (69, 2, -1)))
+STANDS = {"dinner": "table", "cabinet2": "cabinet", "walllocker": "locker", "wallshelf": "shelf", "plant2": "plant", "drawers": "cabinet",
+          "bloodstand": None, "toolcart": None, "waiting": "chair", "freezer": "cabinet", "roundbin": "trash",
+          "lowtable": "table"}
+for _name, _faces in _SE.items():
+    VPROPS.setdefault(_name, dict(stand=STANDS.get(_name)))
+    VPROPS[_name].update(_faces)
+
+# What fills a big room once its own list is placed (cycled until the room is
+# about a quarter full), and rows in the middle of storage-like rooms.
+FILL = {
+    "testroom": ["counter", "chair", "cabinet2"],
+    "office": ["cabinet2", "plant2", "bookcase", "drawers", "chair", "wallshelf"],
+    "research": ["cabinet", "bookcase", "plant", "counter", "cabinet2", "microscope", "plant2", "wallshelf"],
+    "director": ["bookcase", "plant2", "armchair", "drawers"],
+    "conference": ["chair", "plant", "cabinet2"],
+    "archive": ["bookcase", "cabinet", "cabinet2", "filingboxes", "wallshelf"],
+    "security": ["locker", "walllocker", "secconsole", "chair", "cabinet"],
+    "guardroom": ["bunkbed", "milocker", "walllocker", "chair", "drawers"],
+    "armory": ["milocker", "shelf", "crate", "walllocker"],
+    "lockers": ["locker", "walllocker", "chair"],
+    "storage": ["shelf", "crate", "barrel", "wallshelf", "filingboxes"],
+    "closet": ["wallshelf", "crate"],
+    "hazmat": ["locker", "walllocker", "wallshelf"],
+    "medical": ["medbed", "medcabinet", "bloodstand", "toolcart", "drawers", "waiting", "plant"],
+    "lab": ["labbench", "counter", "microscope", "cabinet", "fridge", "sink", "freezer"],
+    "dorm": ["bed", "bunkbed", "drawers", "locker", "plant2", "chair"],
+    "showers": ["walllocker", "chair"],
+    "cafeteria": ["plant", "roundbin", "soda", "vending", "counter", "cooler"],
+    "lobby": ["sofa", "armchair", "plant2", "lowtable", "waiting"],
+    "lobbyb": ["crate", "barrel", "shelf", "wallshelf"],
+    "obs049": ["cabinet", "counter", "chair"],
+    "morgue": ["freezer", "medcabinet", "toolcart", "morguetable"],
+    "surgery": ["toolcart", "bloodstand", "medcabinet", "counter"],
+    "scp049": ["bookcase", "medcabinet", "counter", "plant2"],
+    "gatehouse": ["cabinet", "chair"],
+    "bunker": ["crate", "barrel", "shelf"],
+}
+ROW_ISLANDS = {"storage": "shelf", "archive": "shelf", "lockers": "locker", "armory": "shelf", "lobbyb": "shelf",
+               "dorm": "bunkbed", "medical": "medbed", "guardroom": "bunkbed", "hazmat": "locker"}
+
 # kind -> (loot, zombies outfit/count, scp, count, special)
 T_GUARD = "SCP_ZombieGuard"
+VANILLA = True          # False: only the mod's own furniture tiles
+PROP_NAMES = {n for n, _ in T.PROPS} | {n for n, _ in T.PROPS2}
 ROOMS = {
-    "classd": dict(loot=["SCP_ClassD_Jumpsuit", 1], props=["bed"]),
+    "classd": dict(loot=["SCP_ClassD_Jumpsuit", 1], props=["bunkbed"]),
     "office": dict(loot=["SCP_Keycard_L1", 1, "SCP_Keycard_L2", 1, "SCP_Document_Containment", 1, "Torch", 1],
-                   props=["desk", "desk", "cabinet", "locker"]),
-    "director": dict(loot=["SCP_Keycard_L5", 1, "SCP_Document_Containment", 2, "SCP_Document_008", 1],
-                     props=["desk", "cabinet", "cabinet", "shelf", "locker"]),
-    "conference": dict(loot=["SCP_Document_Containment", 1], props=["desk", "desk", "desk", "cabinet"]),
+                   props=["bookcase", "printer", "cabinet", "cabinet", "plant", "corkboard", "coffee", "trash", "filingboxes"],
+                   islands=(4, "workstation")),
+    "research": dict(loot=["SCP_LabCoat", 1, "SCP_Keycard_L2", 1, "SCP_Keycard_L3", 1, "SCP_Document_Containment", 2,
+                           "Torch", 1],
+                     zombies=["SCP_Scientist", 2],
+                     props=["bookcase", "bookcase", "whiteboard", "printer", "coffee", "microscope", "microscope",
+                            "plant", "plant", "cabinet", "filingboxes", "trash", "cooler"],
+                     islands=(12, "workstation")),
+    "director": dict(loot=["SCP_Keycard_L5", 1, "SCP_Document_Containment", 2, "SCP_Document_008", 1, "SCP_005_Key", 1],
+                     props=["bookcase", "bookcase", "sofa", "armchair", "cabinet", "coffee", "plant", "plant", "corkboard"],
+                     islands=(1, "desklamp")),
+    "conference": dict(loot=["SCP_Document_Containment", 1], props=["whiteboard", "longtable", "chair", "chair", "chair",
+                                                                     "plant", "coffee", "cabinet"],
+                       islands=(2, "dinner")),
     "archive": dict(loot=["SCP_Document_Containment", 2, "SCP_Document_008", 1],
-                    props=["shelf", "shelf", "shelf", "cabinet", "cabinet"]),
-    "security": dict(loot=["SCP_MTF_Baton", 1, "SCP_MTF_Helmet", 1, "SCP_Keycard_L3", 1, "Torch", 1],
-                     zombies=[T_GUARD, 2], props=["locker", "locker", "desk", "console", "crate"]),
-    "guardroom": dict(loot=["SCP_MTF_Baton", 1, "SCP_Keycard_L2", 1, "Torch", 1], zombies=[T_GUARD, 3],
-                      props=["bed", "bed", "bed", "bed", "locker", "locker", "locker"]),
-    "checkpoint": dict(loot=["SCP_Keycard_L3", 1], zombies=[T_GUARD, 1], props=["console", "locker"]),
-    "armory": dict(loot=["SCP_MTF_Vest", 2, "SCP_MTF_Helmet", 2, "SCP_MTF_Uniform", 2, "SCP_MTF_Knife", 2,
-                         "SCP_Keycard_L5", 1],
-                   zombies=[T_GUARD, 3], props=["locker", "locker", "locker", "locker", "crate", "crate", "shelf"]),
-    "lockers": dict(loot=["SCP_MTF_Uniform", 1, "SCP_MTF_Helmet", 1, "SCP_GasMask", 1, "SCP_GasFilter", 2],
+                    props=["shelf", "bookcase", "shelf", "bookcase", "cabinet", "cabinet", "filingboxes", "filingboxes"],
+                    islands=(1, "desklamp")),
+    "security": dict(loot=["SCP_MTF_Baton", 1, "SCP_MTF_Helmet", 1, "SCP_Keycard_L3", 1, "Torch", 1,
+                           "SCP_SecPistol", 1, "Base.9mmClip", 1, "Base.Bullets9mmBox", 1],
+                     zombies=[T_GUARD, 2], props=["secconsole", "locker", "locker", "cooler", "trash", "rack", "corkboard"],
+                     islands=(2, "workstation")),
+    "guardroom": dict(loot=["SCP_MTF_Baton", 1, "SCP_Keycard_L2", 1, "Torch", 1, "Base.Pistol", 1, "Base.Bullets9mmBox", 1,
+                            "SCP_109_Canteen", 1], zombies=[T_GUARD, 3],
+                      props=["bunkbed", "bunkbed", "bunkbed", "milocker", "milocker", "milocker", "table", "chair", "trash"]),
+    "checkpoint": dict(loot=["SCP_Keycard_L3", 1], zombies=[T_GUARD, 1], props=["console", "chair", "locker"]),
+    "armory": dict(loot=["SCP_MTF_Vest", 2, "SCP_MTF_Helmet", 2, "SCP_MTF_Uniform", 2, "SCP_MTF_Knife", 2, "SCP_ShockMaul", 1, "Base.Battery", 2,
+                         "SCP_Keycard_L5", 1, "SCP_Epsilon", 1, "Base.AssaultRifle", 1, "Base.556Clip", 3, "Base.556Box", 2, "SCP_SecPistol", 1, "Base.Pistol", 1, "Base.9mmClip", 2, "Base.Bullets9mmBox", 2, "SCP_RiotShotgun", 1, "Base.ShotgunShellsBox", 2],
+                   zombies=[T_GUARD, 3], props=["milocker", "milocker", "milocker", "milocker", "shelf", "crate", "crate", "shelf"]),
+    "lockers": dict(loot=["SCP_MTF_Uniform", 1, "SCP_MTF_Helmet", 1, "SCP_GasMask", 1, "SCP_GasFilter", 2,
+                          "SCP_RiotShotgun", 1, "Base.ShotgunShellsBox", 1],
                     zombies=[T_GUARD, 2], props=["locker"] * 7),
     "storage": dict(loot=["SCP_GasMask", 1, "SCP_GasFilter", 3, "SCP_Hazmat_Suit", 1, "SCP_Keycard_L2", 1, "Torch", 1],
                     props=["shelf", "shelf", "crate", "crate", "crate", "barrel", "barrel"]),
@@ -400,25 +922,41 @@ ROOMS = {
     "hazmat": dict(loot=["SCP_Hazmat_Suit", 2, "SCP_GasMask", 2, "SCP_GasFilter", 4],
                    props=["locker", "locker", "locker", "shelf", "crate"]),
     "medical": dict(loot=["Bandage", 4, "Pills", 2, "SCP_Keycard_L3", 1],
-                    props=["bed", "bed", "cabinet", "cabinet", "desk"]),
+                    props=["medbed", "medbed", "medbed", "medcabinet", "medcabinet", "sink", "fridge", "desk", "trash", "plant"]),
+    "testroom": dict(loot=["SCP_330", 1, "SCP_Document_Containment", 1], zombies=["SCP_ClassD", 1],
+                     props=["labbench", "microscope", "cabinet", "secconsole", "whiteboard", "trash"]),
     "lab": dict(loot=["SCP_LabCoat", 1, "SCP_Hazmat_Suit", 1, "SCP_Document_Containment", 2, "SCP_Keycard_L3", 1],
-                zombies=["SCP_Scientist", 2], props=["desk", "desk", "console", "cabinet", "shelf", "rack"]),
-    "dorm": dict(loot=["Torch", 1], zombies=["SCP_ClassD", 1], props=["bed", "bed", "bed", "locker", "desk"]),
+                zombies=["SCP_Scientist", 2], props=["labbench", "sink", "microscope", "microscope", "fridge", "console", "cabinet", "whiteboard", "trash"],
+                islands=(2, "workstation")),
+    "dorm": dict(loot=["Torch", 1], zombies=["SCP_ClassD", 1], props=["bed", "bunkbed", "bed", "locker", "locker", "desk", "armchair", "plant", "trash"]),
     "showers": dict(loot=["SCP_ClassD_Jumpsuit", 2], zombies=["SCP_ClassD", 2], props=["locker", "locker", "barrel"]),
-    "cafeteria": dict(loot=["SCP_Keycard_L1", 1], zombies=["SCP_Scientist", 1], special="scp294",
-                      props=["desk", "desk", "desk", "cabinet"]),
+    "cafeteria": dict(loot=["SCP_Keycard_L1", 1, "SCP_207", 1, "SCP_458_PizzaBox", 1], zombies=["SCP_Scientist", 1], special="scp294",
+                      props=["counter", "counter", "fridge", "sink", "vending", "soda", "cooler", "trash", "plant", "corkboard"],
+                      islands=(6, "dinner")),
     "servers": dict(loot=["SCP_Keycard_L4", 1], props=["rack"] * 8 + ["console"]),
     "generators": dict(loot=["SCP_Keycard_L4", 1, "Torch", 1], special="generators", props=["barrel", "barrel", "crate"]),
-    "lobby": dict(loot=["SCP_Keycard_L1", 1], zombies=[T_GUARD, 2], props=["crate", "crate", "console", "locker"]),
+    "lobby": dict(loot=["SCP_Keycard_L1", 1], zombies=[T_GUARD, 2], props=["sofa", "sofa", "armchair", "plant", "plant", "secconsole", "cooler", "vending", "soda"]),
+    "lobbyb": dict(loot=["SCP_Keycard_L2", 1, "Torch", 1], zombies=[T_GUARD, 2],
+                   props=["crate", "crate", "crate", "barrel", "barrel", "console", "chair", "locker", "shelf"]),
     "warhead": dict(special="warhead", props=["console", "rack", "rack"]),
     "femur": dict(special="femur", props=["console", "locker"]),
     "scp173": dict(scp="SCP_173"),
     "scp500": dict(loot=["SCP_500_Pill", 1], props=["cabinet"]),
-    "anomalous": dict(loot=["SCP_714_Ring", 1, "SCP_1025_Book", 1], props=["cabinet", "shelf"]),
+    "anomalous": dict(loot=["SCP_714_Ring", 1, "SCP_1025_Book", 1, "SCP_427", 1, "SCP_018", 1, "SCP_268", 1], props=["cabinet", "shelf", "labbench"]),
     "scp914": dict(special="scp914", loot=["SCP_Document_Containment", 1], props=["crate"]),
     "scp939": dict(scp="SCP_939", count=3, props=["crate", "crate", "shelf"]),
-    "scp106": dict(scp="SCP_106"),
-    "scp049": dict(scp="SCP_049", loot=["SCP_Keycard_L5", 1], props=["desk", "cabinet", "bed"]),
+    "scp106": dict(),
+    "scp106pit": dict(scp="SCP_106", loot=["SCP_Document_Containment", 1]),
+    "stairs049": dict(props=["locker", "chair", "plant"]),
+    "obs049": dict(loot=["SCP_Document_Containment", 1, "SCP_Keycard_L4", 1], zombies=["SCP_Scientist", 1],
+                   props=["secconsole", "desk", "chair", "whiteboard", "cabinet", "fridge", "coffee"],
+                   islands=(1, "workstation")),
+    "morgue": dict(loot=["Bandage", 2], zombies=["SCP_ClassD", 3],
+                   props=["morguetable", "morguetable", "morguetable", "fridge", "fridge", "sink", "medcabinet", "trash"]),
+    "surgery": dict(loot=["Bandage", 3, "Pills", 1], zombies=["SCP_Scientist", 1],
+                    props=["medbed", "counter", "sink", "medcabinet", "medcabinet", "microscope", "trash"],
+                    islands=(1, "morguetable")),
+    "scp049": dict(scp="SCP_049", loot=["SCP_Keycard_L5", 1], props=["bed", "bookcase", "desklamp", "armchair", "medcabinet", "microscope", "plant", "corkboard"]),
     "scp096": dict(scp="SCP_096"),
     "scp035": dict(loot=["SCP_035_Mask", 1], props=["cabinet"]),
     "scp008": dict(special="scp008", loot=["SCP_008_Sample", 2, "SCP_Document_008", 1, "SCP_GasFilter", 2],
@@ -427,13 +965,13 @@ ROOMS = {
     "scp966": dict(scp="SCP_966", count=2),
     "bunker": dict(zombies=[T_GUARD, 2], props=["crate", "crate", "crate", "barrel", "barrel", "locker", "console"]),
     "gatehouse": dict(loot=["SCP_Keycard_L1", 1, "SCP_Keycard_L2", 1, "Torch", 1], zombies=[T_GUARD, 1],
-                      props=["desk", "locker"]),
+                      props=["desk", "secconsole", "locker", "cooler", "trash"]),
 }
 
 SIGN_FOR = {"scp173": "scp173", "scp914": "scp914", "scp500": "scp500", "scp939": "scp939", "scp106": "scp106",
-            "scp049": "scp049", "scp096": "scp096", "scp035": "scp035", "scp008": "scp008", "scp079": "scp079",
+            "scp049": "scp049", "stairs049": "scp049", "obs049": "scp049", "scp096": "scp096", "scp035": "scp035", "scp008": "scp008", "scp079": "scp079",
             "scp966": "scp966", "warhead": "warhead", "femur": "femur", "armory": "danger", "generators": "electric",
-            "electric": "electric", "bunker": "gatea", "lobby": "gatea", "cafeteria": "cafeteria",
+            "electric": "electric", "bunker": "gatea", "lobby": "gatea", "lobbyb": "gateb", "cafeteria": "cafeteria",
             "medical": "medical", "security": "security", "checkpoint": "security", "guardroom": "security"}
 
 
@@ -445,6 +983,10 @@ def dress(level):
 
     for l in level.lifts:
         take(l["x"], l["y"])
+    for o in level.objects:
+        if o["kind"] == "stairs":
+            take(o["x"], o["y"])
+            take(o["x"] - (o["dir"] == "W"), o["y"] - (o["dir"] == "N"))   # the way off the top
 
     for rid, r in enumerate(level.regions):
         if not r or "x0" not in r:
@@ -452,7 +994,7 @@ def dress(level):
         spec = ROOMS.get(r["kind"], {})
         x0, y0, x1, y1 = r["x0"], r["y0"], r["x1"], r["y1"]
         cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
-        if r["kind"] in ("bunker", "lobby"):
+        if r["kind"] in ("bunker", "lobby", "lobbyb"):
             cx, cy = x0 + 2, cy   # keep the lift platform clear
         r["cx"], r["cy"] = cx, cy
         take(cx, cy)
@@ -469,7 +1011,8 @@ def dress(level):
                         blocked.add((d["x"] + ox, d["y"] + oy))
 
         def free(x, y):
-            return (x, y) not in used and (x, y) not in blocked and level.reg[y][x] == rid
+            return (x, y) not in used and (x, y) not in blocked and level.reg[y][x] == rid \
+                and level.floor[y][x] != " "
 
         special = spec.get("special")
         top = cx
@@ -489,14 +1032,80 @@ def dress(level):
                 gx = x0 + 1 + i * 3
                 level.objects.append(dict(kind="generator", x=gx, y=y0, n=i + 1)); take(gx, y0)
 
+        def place(prop, face, x, y):
+            """Puts one piece of furniture with its corner on (x, y) if all its tiles are free."""
+            v = VPROPS.get(prop) if VANILLA else None
+            if v and face not in v:
+                return False
+            if not v:
+                if face not in "nw" or prop not in PROP_NAMES or not free(x, y):
+                    return False
+                level.objects.append(dict(kind="prop", prop=prop, face=face, x=x, y=y)); take(x, y)
+                return True
+            pieces = v[face]
+            # shift so the piece stands against its wall (s / e: footprint ends on the wall row)
+            if face == "s":
+                y -= max(dy for (_, _, dy) in pieces)
+            elif face == "e":
+                x -= max(dx for (_, dx, _) in pieces)
+            cells = {(x + dx, y + dy) for (_, dx, dy) in pieces}
+            if not all(free(cx_, cy_) for cx_, cy_ in cells):
+                return False
+            for k, (sprite, dx, dy) in enumerate(pieces):
+                o = dict(kind="vprop", s=sprite, x=x + dx, y=y + dy)
+                if k == 0:
+                    o.update(prop=prop, face=face)    # the previews draw the mod's tile there
+                level.objects.append(o)
+            for c in cells:
+                take(*c)
+            return True
+
         # furniture along the north and west walls (the two walls that face the camera)
         slots = [(x, y0, "n") for x in range(x0, x1 + 1)] + [(x0, y, "w") for y in range(y0 + 1, y1 + 1)]
         rng.shuffle(slots)
+        far = [(x, y1, "s") for x in range(x0 + 1, x1 + 1)] + [(x1, y, "e") for y in range(y0 + 1, y1)]
+        rng.shuffle(far)
         for prop in spec.get("props", []):
-            while slots:
-                x, y, face = slots.pop()
-                if free(x, y):
-                    level.objects.append(dict(kind="prop", prop=prop, face=face, x=x, y=y)); take(x, y)
+            for (x, y, face) in list(slots) + (far if VANILLA else []):
+                if place(prop, face, x, y):
+                    break
+
+        # rows of shelves / beds / lockers in the middle of big storage-like rooms
+        row = ROW_ISLANDS.get(r["kind"]) if VANILLA else None
+        if row and x1 - x0 >= 6 and y1 - y0 >= 4:
+            for y in range(y0 + 3, y1 - 1, 3):
+                for x in range(x0 + 3, x1 - 1, 3):
+                    place(row, "n", x, y)
+
+        # fill big rooms: cycle through the room's filler until a quarter of it is used
+        fill = FILL.get(r["kind"]) if VANILLA else None
+        if fill:
+            area = (x1 - x0 + 1) * (y1 - y0 + 1)
+            target = area // 4
+            cells_used = lambda: sum(1 for (ux, uy) in used if x0 <= ux <= x1 and y0 <= uy <= y1)
+            k = 0
+            spots = slots + far
+            rng.shuffle(spots)
+            for (x, y, face) in spots:
+                if cells_used() >= target:
+                    break
+                if place(fill[k % len(fill)], face, x, y):
+                    k += 1
+                else:
+                    k += 1
+
+        # desks in the middle of the room, each with its chair on its south side,
+        # in rows with an aisle between the desks
+        count, desk = spec.get("islands", (0, None))
+        step = 3 if VANILLA else 2
+        for y in range(y0 + 2, y1, 3):
+            for x in range(x0 + 2, x1, step):
+                if count > 0 and place(desk, "n", x, y):
+                    count -= 1
+        if count > 0 and spec.get("islands") and x1 - x0 >= 2 and y1 - y0 >= 2:
+            # small room: one desk in the middle
+            for x, y in ((cx + 1, cy), (cx - 1, cy), (cx + 1, cy - 1), (cx - 1, cy - 1), (cx, cy - 1)):
+                if place(desk, "n", x, y):
                     break
 
         # room sign, on the room's own north wall
@@ -567,7 +1176,7 @@ def validate(level):
                 continue
             for ox, oy in ((1, 0), (0, 1)):
                 b = level.region_at(x + ox, y + oy)
-                if b and b["enclosed"] and a is not b and not Level.passable(a, b):
+                if level is U and b and b["enclosed"] and a is not b and not Level.passable(a, b):
                     raise SystemExit(f"{level.name}: {a['name']} touches {b['name']} at {x},{y}")
             if x in (0, W - 1) or y in (0, H - 1):
                 raise SystemExit(f"{level.name}: floor on the border at {x},{y}")
@@ -608,14 +1217,16 @@ def lua_val(v):
     raise TypeError(v)
 
 
-def level_lua(level, key):
+def level_lua(level, key, z=None):
     west, north = level.walls()
-    out = [f"D.{key} = {{"]
+    out = [f"{key} = {{"]
+    if z is not None:
+        out.append(f"    z = {z},")
     for name, grid in (("floor", level.floor), ("west", west), ("north", north)):
         out.append(f"    {name} = {{")
         out += [f"        {lua_str(''.join(row))}," for row in grid]
         out.append("    },")
-    if level is U:
+    if level in (U, L):
         out.append("    zone = {")
         for y in range(H):
             row = "".join(ZONE_CHAR.get((level.region_at(x, y) or {}).get("zone"), " ") for x in range(W))
@@ -639,6 +1250,11 @@ def level_lua(level, key):
     return "\n".join(out)
 
 
+# checked in the 42.22 packs (Tiles2x.pack); e_easternwhitepine does not exist
+TREE_SPRITES = ["e_canadianhemlock_1_", "e_virginiapine_1_", "e_americanholly_1_", "e_riverbirch_1_",
+                "e_redmaple_1_", "e_americanlinden_1_", "e_yellowwood_1_", "e_dogwood_1_"]
+
+
 def tiles_lua():
     walls = dict(T.WALLS, f=T.PERIMETER)
     sign_w = {n: 40 + k for k, n in enumerate(T.SIGNS)}
@@ -646,8 +1262,16 @@ def tiles_lua():
     sign_w.update({n: 96 + k for k, n in enumerate(T.SIGNS2)})
     sign_n.update({n: 120 + k for k, n in enumerate(T.SIGNS2)})
     props = {name: T.PROP0 + 2 * k for k, (name, _) in enumerate(T.PROPS)}
-    return lua_val(dict(sheet=T.SHEET + "_", walls=walls, pillars=T.PILLARS, floors=T.FLOORS, doors=T.DOORS,
-                        fittings=T.FITTINGS, signW=sign_w, signN=sign_n, props=props))
+    props.update({name: T.PROP2 + 2 * k for k, (name, _) in enumerate(T.PROPS2)})
+    walls.update(x=T.FORT, y=T.WINDOW, p=T.PARAPET, q=T.FENCE)
+    land = {name: T.LAND0 + 2 * k for k, (name, _) in enumerate(T.LAND)}
+    # the game's own trees, tried in this order; the mod's pine when none is found
+    trees = TREE_SPRITES
+    extra = dict(T.EXTRA, liftPanel=T.LIFT_PANEL)
+    floors = dict(T.FLOORS, **T.FLOORS3)
+    return lua_val(dict(sheet=T.SHEET + "_", walls=walls, pillars=T.PILLARS, floors=floors, doors=T.DOORS,
+                        fittings=T.FITTINGS, signW=sign_w, signN=sign_n, props=props, stairs=T.STAIRS,
+                        ext=extra, lowWalls=dict(p=True, q=True), land=land, trees=trees))
 
 
 def write_lua():
@@ -657,10 +1281,12 @@ def write_lua():
 
     One character = one tile, rows run north to south.
       floor : ' ' nothing, c concrete, t white tiles, m dark plate, g grating,
-              h door threshold, e lift platform, a asphalt, k bunker slab
+              h door threshold, e lift platform, a asphalt, k bunker slab,
+              p pale concrete, r road centre line, s stop line, o concrete roof
       west / north : what stands on the west / north edge of the tile:
               '.' nothing, a-f a wall (a EZ, b LCZ, c HCZ, d containment cell,
-              e bunker, f perimeter), A-F the same wall with a door frame
+              e bunker, f perimeter), x compound concrete, y window band,
+              p low wall (can be climbed over); capitals: the same wall with a door frame
       zone  : L / H / E (Light Containment, Heavy Containment, Entrance Zone)
 
     D.tiles gives the tile numbers on the scp_facility_02 sheet:
@@ -678,10 +1304,18 @@ local D = SCP.Facility.Data
 
 D.tiles = {tiles_lua()}
 
-{level_lua(U, "underground")}
+{level_lua(U, "D.underground")}
 
-{level_lua(S, "surface")}
-"""
+{level_lua(S, "D.surface")}
+
+-- One level below the underground (z = underground - 1): the SCP-049 wing
+-- and the bottom of the SCP-106 pit.
+{level_lua(L, "D.lower", -1)}
+
+-- Levels above the surface (z = 1 to 4): upper course of the outer wall,
+-- roofs, the watchtower, barbed wire.
+D.upper = {{}}
+""" + "\n\n".join(level_lua(lvl, f"D.upper[{i + 1}]", z) for i, (z, lvl) in enumerate(LEVELS_ABOVE)) + "\n"
     with open(LUA_OUT, "w", encoding="utf-8") as f:
         f.write(text)
 
@@ -691,7 +1325,9 @@ D.tiles = {tiles_lua()}
 # ----------------------------------------------------------------------
 
 FLOOR_RGB = {"c": (150, 150, 146), "t": (214, 214, 208), "m": (92, 96, 100), "g": (60, 64, 70), "h": (226, 178, 30),
-             "e": (240, 200, 40), "a": (70, 72, 76), "k": (128, 130, 126)}
+             "e": (240, 200, 40), "a": (70, 72, 76), "k": (128, 130, 126), "p": (176, 178, 176), "r": (90, 88, 60),
+             "s": (200, 200, 196), "o": (160, 162, 160),
+             "n": (58, 80, 50), "v": (140, 136, 126), "u": (110, 92, 64)}
 ZONE_TINT = {"LCZ": (236, 222, 150), "HCZ": (200, 96, 84), "EZ": (120, 160, 214), "SURFACE": (150, 170, 150)}
 SCP_RGB = (176, 60, 52)
 
@@ -721,9 +1357,9 @@ def draw_level(level, px, crop, title, labels=True):
                 col = tuple((a * 3 + b) // 4 for a, b in zip(col, t))
             d.rectangle([ox + x * px, oy + y * px, ox + x * px + px - 1, oy + y * px + px - 1], fill=col)
     for o in level.objects:
-        if o["kind"] in ("sign", "pipes", "vent"):
+        if o["kind"] in ("sign", "pipes", "vent") or not (x0 <= o["x"] <= x1 and y0 <= o["y"] <= y1):
             continue
-        col = (120, 86, 50) if o["kind"] == "prop" else (60, 200, 220)
+        col = {"prop": (120, 86, 50), "tree": (24, 46, 26), "land": (90, 120, 60)}.get(o["kind"], (60, 200, 220))
         d.rectangle([ox + o["x"] * px + 2, oy + o["y"] * px + 2, ox + o["x"] * px + px - 3, oy + o["y"] * px + px - 3], fill=col)
     for t in level.tesla:
         d.rectangle([ox + t["x"] * px + 1, oy + t["y"] * px + 1, ox + t["x"] * px + px - 2, oy + t["y"] * px + px - 2],
@@ -737,7 +1373,8 @@ def draw_level(level, px, crop, title, labels=True):
                 if ch.isupper():
                     d.line(line, fill=(40, 220, 90), width=3)
                 else:
-                    d.line(line, fill=(250, 250, 250) if ch != "f" else (230, 160, 60), width=2)
+                    d.line(line, fill=(250, 250, 250) if ch not in "fxq" else
+                            (230, 160, 60) if ch != "q" else (170, 176, 180), width=2)
     for dr in level.doors:
         if dr.get("gate"):
             X, Y = ox + dr["x"] * px, oy + dr["y"] * px
@@ -769,20 +1406,22 @@ def draw_level(level, px, crop, title, labels=True):
 def write_plan():
     px = 13
     a = draw_level(U, px, (0, 0, W - 1, 122), "Sous-sol : zone de confinement léger (haut), lourd (milieu), zone d'entrée (bas)")
-    b = draw_level(S, px, (16, 102, 63, H - 1), "Surface : enceinte, bunker de la Porte A, grande porte")
-    legend = Image.new("RGB", (b.width, a.height - b.height), (16, 17, 19))
+    b = draw_level(S, px, (0, 76, W - 1, H - 1), "Surface : enceinte, Porte A, hangar de la Porte B, clôture, lisière de forêt")
+    c = draw_level(L, 9, (8, 49, 73, 72), "Niveau inférieur : aile SCP-049, fond de la fosse de SCP-106")
+    legend = Image.new("RGB", (b.width, a.height - b.height - c.height), (16, 17, 19))
     d = ImageDraw.Draw(legend)
     f = ImageFont.truetype(FONT, 15)
     items = [((250, 250, 250), "mur"), ((40, 220, 90), "porte à carte (N1 à N5 = niveau de carte)"),
-             ((255, 60, 60), "grande porte (4 cases)"), ((240, 200, 40), "ascenseur de la Porte A"),
+             ((255, 60, 60), "grande porte (4 cases)"), ((240, 200, 40), "ascenseur de la Porte A (cabine dans un puits)"),
              ((90, 150, 255), "portail Tesla"), ((176, 60, 52), "cellule de confinement"),
              ((60, 200, 220), "machine / console"), ((120, 86, 50), "mobilier"),
-             ((230, 160, 60), "mur d'enceinte"), ((70, 72, 76), "1 case = 1 tuile ; couloirs de 2 cases")]
+             ((230, 160, 60), "mur d'enceinte (béton)"), ((70, 72, 76), "1 case = 1 tuile ; couloirs de 2 cases")]
     for i, (col, text) in enumerate(items):
         d.rectangle([14, 20 + i * 26, 34, 36 + i * 26], fill=col)
         d.text((44, 19 + i * 26), text, fill=(230, 230, 230), font=f)
     out = Image.new("RGB", (a.width + b.width, a.height), (16, 17, 19))
-    out.paste(a, (0, 0)); out.paste(b, (a.width, 0)); out.paste(legend, (a.width, b.height))
+    out.paste(a, (0, 0)); out.paste(b, (a.width, 0)); out.paste(c, (a.width, b.height))
+    out.paste(legend, (a.width, b.height + c.height))
     out.save(PLAN_OUT)
 
 
@@ -791,8 +1430,10 @@ def build():
     if not getattr(build, "done", False):
         validate(U)
         validate(S)
+        validate(L)
         dress(U)
         dress(S)
+        dress(L)
         build.done = True
     return U, S
 

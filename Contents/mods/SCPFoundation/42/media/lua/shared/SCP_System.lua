@@ -31,17 +31,18 @@ local defaults = {
     SCP173Range = 10,
     SCP096TriggerMin = 5,
     SCP096TriggerMax = 10,
-    SCP106Speed = 0.035,
+    SCP106Speed = 0.022,
     SCP035Drain = 0.4,
     SCP035LockMinutes = 30,
     GasFilterHours = 12,
     PocketDimensionDepth = -12,
-    BreachChancePerDay = 5,
+    BreachChancePerDay = 2,
     BreachDurationHours = 6,
     BreachGuardCount = 8,
     FacilityX = 0,
     FacilityY = 0,
     FacilityDepth = -2,
+    LiftRide = true,
 }
 
 function SCP.opt(name)
@@ -249,6 +250,7 @@ end
 
 function SCP.keycardLevel(player)
     local inv = player:getInventory()
+    if inv:containsTypeRecurse("SCP_005_Key") then return SCP.MaxKeyLevel end   -- SCP-005 opens everything
     for level = SCP.MaxKeyLevel, 1, -1 do
         if inv:containsTypeRecurse("SCP_Keycard_L" .. level) then return level end
     end

@@ -8,11 +8,14 @@
         Light Containment (north) -> Heavy Containment -> Entrance Zone (south)
 
     narrow 2-tile hallways, keycard checkpoints between the zones, and the
-    Gate A lift up to a walled compound on the surface (bunker + main gate).
+    Gate A lift (a cabin in a shaft) up to a fortified compound on the
+    surface: access road, two-storey concrete wall, entrance court with a
+    watchtower, inner gate, main building over the lift. The levels above
+    the surface (roofs, wall tops, the tower) are in D.upper.
 
-    The site is placed by its main gate: the admin clicks where the gate
-    should be (or sets the FacilityX / FacilityY sandbox options), and the
-    compound and the site extend north of that point.
+    The site is placed by the end of its access road: the admin clicks where
+    the road should meet the town road (or sets the FacilityX / FacilityY
+    sandbox options), and the compound and the site extend north of it.
 
     Every function here takes world coordinates.
 ]]
@@ -24,7 +27,7 @@ SCP.Facility = SCP.Facility or {}
 local F = SCP.Facility
 local D = F.Data
 
-F.VERSION = 2      -- sites built by an older version are ignored (they keep their old tiles)
+F.VERSION = 4      -- sites built by an older version are ignored (they keep their old tiles)
 
 F.Zones = {
     L = { id = "LCZ" }, H = { id = "HCZ" }, E = { id = "EZ" },
@@ -52,9 +55,113 @@ function F.origin()
     return nil
 end
 
--- Origin of a site whose main gate stands at (gateX, gateY).
+-- The "SCP Site" start region (media/maps/SCP Site): the site always stands
+-- here, in the forest near West Point, its access road ending on the road
+-- (spot found free of buildings, water and roads on the game's world map).
+F.FIXED_GATE = { x = 12212, y = 8312 }
+
+-- Is (x, y) a spawn point of the "SCP Site" region?
+function F.nearFixedSite(x, y)
+    return math.abs(x - F.FIXED_GATE.x) < 150 and math.abs(y - F.FIXED_GATE.y) < 150
+end
+
+-- Origin of a site whose access road ends at (gateX, gateY).
 function F.originForGate(gateX, gateY)
     return { x = gateX - D.anchor.x, y = gateY - D.anchor.y, z = SCP.opt("FacilityDepth"), v = F.VERSION }
+end
+
+------------------------------------------------------------------------
+-- Where to put a new site: open land (forest, fields), no building above
+-- or below ground anywhere on the footprint. Uses the map's lot data, so
+-- it also works on areas that are not loaded yet.
+------------------------------------------------------------------------
+
+local BAD_ZONES = { townzone = true, trailerpark = true, water = true, waterzone = true, parkingstall = true }
+local GOOD_ZONES = { forest = true, deepforest = true, vegitation = true, farmland = true, farm = true }
+
+local function zoneInfo(mg, x, y)
+    local ok, zones = pcall(mg.getZonesAt, mg, x, y, 0)
+    if not ok or not zones then return false, false, false end
+    local bad, good, road = false, false, false
+    for i = 0, zones:size() - 1 do
+        local t = tostring(zones:get(i):getType() or ""):lower()
+        if BAD_ZONES[t] then bad = true end
+        if GOOD_ZONES[t] then good = true end
+        if t == "nav" then road = true end
+    end
+    return bad, good, road
+end
+
+local function roomAt(mg, x, y, z)
+    local ok, r = pcall(mg.getRoomAt, mg, x, y, z)
+    return ok and r ~= nil
+end
+
+local function onMap(mg, x, y)
+    if not mg.isValidChunk then return true end
+    local ok, v = pcall(mg.isValidChunk, mg, math.floor(x / 8), math.floor(y / 8))
+    return not ok or v
+end
+
+-- Is the site free if its access road ends at (gx, gy)? step: sampling step in tiles.
+local function siteFree(mg, gx, gy, depth, step)
+    local x0, y0 = gx - D.anchor.x - 4, gy - D.anchor.y - 4
+    local x1, y1 = x0 + D.width + 8, y0 + D.height + 8
+    local good, total = 0, 0
+    for x = x0, x1, step do
+        for y = y0, y1, step do
+            if not onMap(mg, x, y) then return false end
+            if roomAt(mg, x, y, 0) or roomAt(mg, x, y, -1) or roomAt(mg, x, y, depth) then return false end
+            local bad, isGood = zoneInfo(mg, x, y)
+            if bad then return false end
+            total = total + 1
+            if isGood then good = good + 1 end
+        end
+    end
+    return true, good / math.max(1, total)
+end
+
+-- A road close to the end of the access road (south of the site)?
+local function roadNear(mg, gx, gy)
+    for d = 0, 40, 4 do
+        for _, dx in ipairs({ 0, -8, 8 }) do
+            local _, _, road = zoneInfo(mg, gx + dx, gy + d)
+            if road then return true end
+        end
+    end
+    return false
+end
+
+-- The closest good place to (x, y): returns gateX, gateY (where the access
+-- road ends), or nil when nothing fits within maxDist tiles.
+function F.findSite(x, y, maxDist)
+    local world = getWorld()
+    local mg = world and world.getMetaGrid and world:getMetaGrid()
+    if not mg or not mg.getRoomAt then return nil end
+    local depth = SCP.opt("FacilityDepth") or -2
+    maxDist = maxDist or 1500
+    local best, bestScore, foundAt, found = nil, -1, nil, 0
+    for r = 0, maxDist, 50 do
+        -- keep looking a little farther than the first fit, for a greener spot near a road
+        if foundAt and (r > foundAt + 200 or found >= 24) then break end
+        local n = r == 0 and 1 or math.max(8, math.floor(2 * math.pi * r / 50))
+        for i = 0, n - 1 do
+            local a = 2 * math.pi * i / n
+            local gx, gy = math.floor(x + math.cos(a) * r), math.floor(y + math.sin(a) * r)
+            -- quick look first, then the whole footprint
+            if siteFree(mg, gx, gy, depth, 12) then
+                local ok, green = siteFree(mg, gx, gy, depth, 4)
+                if ok then
+                    found = found + 1
+                    local score = green + (roadNear(mg, gx, gy) and 1 or 0) - r / maxDist
+                    if score > bestScore then best, bestScore = { gx, gy }, score end
+                    foundAt = foundAt or r
+                end
+            end
+        end
+    end
+    if best then return best[1], best[2] end
+    return nil
 end
 
 -- Tile of the plan under a world position, or nil outside the footprint.
@@ -74,21 +181,32 @@ function F.charAt(level, layer, lx, ly)
     return row:sub(lx + 1, lx + 1)
 end
 
--- The plan level a world z belongs to: D.underground, D.surface or nil.
+-- The plan level a world z belongs to: D.underground, D.lower, D.surface or nil.
 function F.planLevel(z, o)
     z = math.floor(z)
     if z == o.z then return D.underground end
+    if D.lower and z == o.z + D.lower.z then return D.lower end
     if z == 0 then return D.surface end
     return nil
+end
+
+-- World z of a plan level (D.lower.z is counted from the underground level).
+function F.levelZ(level, o)
+    if level == D.surface then return 0 end
+    if level == D.lower then return o.z + level.z end
+    if level == D.underground then return o.z end
+    return level.z or 0
 end
 
 -- Which zone of the site a position is in ({ id = "LCZ" | "HCZ" | "EZ" | "SITE" }),
 -- or nil outside the underground site. Used as "is this inside the site?".
 function F.levelAt(x, y, z)
     local lx, ly, o = F.toLocal(x, y)
-    if not lx or math.floor(z) ~= o.z then return nil end
+    if not lx then return nil end
+    local level = F.planLevel(z, o)
+    if not level or (level ~= D.underground and level ~= D.lower) then return nil end
     for _, d in ipairs({ { 0, 0 }, { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) do
-        local zone = F.Zones[F.charAt(D.underground, "zone", lx + d[1], ly + d[2])]
+        local zone = F.Zones[F.charAt(level, "zone", lx + d[1], ly + d[2])]
         if zone then return zone end
     end
     return F.Zones.SITE
@@ -112,10 +230,10 @@ end
 function F.roomCenter(zoneId, kind)
     local o = F.origin()
     if not o then return nil end
-    for _, level in ipairs({ D.underground, D.surface }) do
+    for _, level in ipairs({ D.underground, D.lower or D.underground, D.surface }) do
         for _, r in ipairs(level.rooms) do
             if r.kind == kind and (zoneId == nil or r.zone == zoneId) then
-                return o.x + r.cx, o.y + r.cy, level == D.surface and 0 or o.z
+                return o.x + r.cx, o.y + r.cy, F.levelZ(level, o)
             end
         end
     end
@@ -143,7 +261,8 @@ function F.liftDestinations(info)
     local level = toSurface and D.surface or D.underground
     for _, l in ipairs(level.lifts) do
         if l.link == info.link then
-            return { { label = toSurface and "SURFACE" or "EZ", x = o.x + l.x, y = o.y + l.y, z = toSurface and 0 or o.z } }
+            return { { label = toSurface and "SURFACE" or "EZ", link = l.link or "A",
+                       x = o.x + l.x, y = o.y + l.y, z = toSurface and 0 or o.z } }
         end
     end
     return {}

@@ -8,7 +8,7 @@ module SCPFoundation
         Cost = 8,
         UIName = UI_prof_scp_classd,
         UIDescription = UI_profdesc_scp_classd,
-        IconPathName = profession_burglar2,
+        IconPathName = profession_scp_classd,
     }
 
     character_profession_definition scpfoundation:scp_scientist
@@ -17,7 +17,7 @@ module SCPFoundation
         Cost = 0,
         UIName = UI_prof_scp_scientist,
         UIDescription = UI_profdesc_scp_scientist,
-        IconPathName = profession_doctor2,
+        IconPathName = profession_scp_scientist,
         XPBoosts = Doctor=2;Electricity=1,
     }
 
@@ -27,7 +27,7 @@ module SCPFoundation
         Cost = -4,
         UIName = UI_prof_scp_mtf,
         UIDescription = UI_profdesc_scp_mtf,
-        IconPathName = profession_securityguard2,
+        IconPathName = profession_scp_mtf,
         XPBoosts = Aiming=2;Fitness=1;Strength=1,
     }
 }

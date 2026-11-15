@@ -100,10 +100,14 @@ niveau 2) et Garde NTF (salle de sécurité, carte niveau 3).
 
 **Site SCP** : un niveau souterrain en trois zones qui s'enchaînent comme dans Containment Breach (confinement
 léger, confinement lourd, zone d'entrée), couloirs de 2 cases, points de contrôle à carte entre les zones. En
-surface : une enceinte murée avec une grande porte, et un bunker (Porte A) dont l'ascenseur descend dans la zone
-d'entrée. Placement : menu admin → *Construire le site SCP* à l'endroit où doit se trouver la grande porte, de
-préférence au bord d'une route et sur un terrain dégagé (l'enceinte et le site s'étendent vers le nord).
-Plan : `art/site_plan.png`.
+surface : un complexe fortifié en béton, relié à la ville par une route d'accès. Mur d'enceinte de deux
+étages avec barbelés, grande porte, cour d'entrée avec poste de garde et tour de guet (escaliers jusqu'à la
+cabine vitrée), porte intérieure, puis trois cours : garage, bâtiment de la Porte A (toit avec panneaux
+solaires et ventilations) et centrale électrique. L'ascenseur de la Porte A est une cabine dans un puits :
+on voit le personnage descendre et la zone d'entrée apparaître (option *Ascenseur : descente visible*,
+désactivable pour revenir à un fondu). Placement : menu admin → *Construire le site SCP* à l'endroit où la
+route d'accès rejoint une route de la ville, sur un terrain dégagé (l'enceinte et le site s'étendent vers le
+nord). Plan : `art/site_plan.png`, rendu : `art/rendu_exterieur_site.png`.
 
 **Brèche de confinement** : coupure de courant, toutes les portes à carte s'ouvrent, sirènes et
 lumières rouges, apparition des SCP et de gardes zombifiés à chaque point de confinement.

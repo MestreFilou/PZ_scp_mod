@@ -14,7 +14,9 @@ Sandbox_EN = {
     Sandbox_SCP_BreachChancePerDay = "Breach chance per day (%)",
     Sandbox_SCP_BreachDurationHours = "Breach duration (hours)",
     Sandbox_SCP_BreachGuardCount = "Zombified guards per breach",
-    Sandbox_SCP_FacilityX = "X of the SCP site's main gate (0 = placed by an admin)",
-    Sandbox_SCP_FacilityY = "Y of the SCP site's main gate (0 = placed by an admin)",
+    Sandbox_SCP_FacilityX = "X of the end of the SCP site's access road (0 = placed by an admin)",
+    Sandbox_SCP_FacilityY = "Y of the end of the SCP site's access road (0 = placed by an admin)",
+    Sandbox_SCP_LiftRide = "Gate A lift: ride down the shaft",
+    Sandbox_SCP_LiftRide_tooltip = "On: the cabin goes down (or up) the shaft and you see the other level appear. Off: a quick fade, as before.",
     Sandbox_SCP_FacilityDepth = "SCP site depth (Z level of the underground site)",
 }

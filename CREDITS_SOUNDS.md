@@ -15,6 +15,15 @@ The SCP Foundation universe itself is CC BY-SA 3.0 (http://scp-wiki.wikidot.com/
 
 | File in the mod | Original file (SCP - Containment Breach) |
 |---|---|
+| `SCP_DoorOpen1.ogg` to `SCP_DoorOpen3.ogg` | `SFX/Door/DoorOpen1.ogg` to `DoorOpen3.ogg` |
+| `SCP_DoorClose1.ogg` to `SCP_DoorClose3.ogg` | `SFX/Door/DoorClose1.ogg` to `DoorClose3.ogg` |
+| `SCP_HeavyDoorOpen.ogg` | `SFX/Door/Door2Open1.ogg` |
+| `SCP_HeavyDoorClose.ogg` | `SFX/Door/Door2Close1.ogg` |
+| `SCP_GateOpen.ogg` | `SFX/Door/BigDoorOpen1.ogg` |
+| `SCP_GateClose.ogg` | `SFX/Door/BigDoorClose1.ogg` |
+| `SCP_LiftBeep.ogg` | `SFX/General/Elevator/Beep.ogg` |
+| `SCP_LiftMoving.ogg` | `SFX/General/Elevator/Moving.ogg` |
+| `SCP106_Breathing.ogg` | `SFX/SCP/106/Breathing.ogg` |
 | `SCP096_Cry.ogg` | `SFX/Music/096.ogg` |
 | `SCP096_Scream.ogg` | `SFX/SCP/096/Scream.ogg` |
 | `SCP096_Triggered.ogg` | `SFX/SCP/096/Triggered.ogg` |
@@ -52,4 +61,9 @@ The SCP Foundation universe itself is CC BY-SA 3.0 (http://scp-wiki.wikidot.com/
 | `SCP_KeycardDeny.ogg` | `SFX/Door/DoorError.ogg` |
 | `SCP_TeslaZap.ogg` | `SFX/Room/Tesla/Shock.ogg` |
 
-Generated placeholders (made for this mod, no third-party rights): `SCP_BreachVoice.ogg`, `SCP_PillSwallow.ogg`.
+Generated placeholders (made for this mod, no third-party rights): `SCP_BreachVoice.ogg`, `SCP_PillSwallow.ogg`, `SCP207_Open.ogg`, `SCP018_Bounce.ogg`.
+
+## Sounds made for this mod
+
+`SCP_ShockMaul_Hit1.ogg` to `SCP_ShockMaul_Hit3.ogg`, `SCP_ShockMaul_Swing.ogg`, `SCP_ShockMaul_Charge.ogg`
+and `SCP_ShockMaul_Empty.ogg` are synthesised by `tools/make_weapon_sounds.py` (no recordings used).

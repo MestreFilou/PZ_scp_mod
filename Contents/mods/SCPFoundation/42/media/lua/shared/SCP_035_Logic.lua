@@ -126,7 +126,7 @@ SCP.ServerCommands.SCP035Host = function(player, args)
 end
 
 ------------------------------------------------------------------------
--- Possessed Host behaviour: fast, tough and unsettles everyone nearby.
+-- Possessed Host behaviour: tough, walks, and unsettles everyone nearby.
 ------------------------------------------------------------------------
 
 local function onZombieUpdate(zombie)
@@ -134,7 +134,6 @@ local function onZombieUpdate(zombie)
     local md = zombie:getModData()
     if not md.SCP035_Init then
         md.SCP035_Init = true
-        SCP.makeSprinter(zombie)
         zombie:setHealth(math.max(zombie:getHealth(), 6))
     end
     local t = getTimestampMs()

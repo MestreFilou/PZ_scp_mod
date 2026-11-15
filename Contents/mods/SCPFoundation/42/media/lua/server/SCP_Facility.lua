@@ -4,14 +4,18 @@
     column under it is built:
       - the underground level: floor, walls, door frames, keycard doors,
         corner posts, furniture, machines, signs, loot, staff and SCPs;
-      - on the surface, inside the compound: the ground is cleared and
-        paved, then the perimeter wall, the bunker, the gatehouse and the
-        two big gates (main gate and Gate A) are built;
-      - the bunker roof, one level up.
+      - on the surface: the access road, then inside the compound the
+        ground is cleared and paved, and the two-storey outer wall, the
+        inner walls, the main building over the lift, the guard post, the
+        garage, the power house, the watchtower and the big gates (main
+        gate, inner gate, Gate A, garage) are built;
+      - the levels above (D.upper): roofs, the upper course of the outer
+        wall, the watchtower and its stairs, barbed wire;
+      - the lift shaft on every level between the surface and the site.
     Each surface square remembers it was done, so nothing is built twice.
 
     The site is placed by an admin ("Build the SCP site here": the click is
-    where the main gate goes) or by the FacilityX / FacilityY sandbox options.
+    where the access road starts) or by the FacilityX / FacilityY sandbox options.
 ]]
 
 require "SCP_System"
@@ -67,7 +71,23 @@ do
         end
         F.Fallback[tile(TL.pillars[key])] = name .. "_3"
     end
+    for key, name in pairs({ x = "walls_commercial_03", y = "walls_commercial_03" }) do
+        local i0 = TL.walls[key]
+        F.Fallback[tile(i0)] = name .. "_0"
+        F.Fallback[tile(i0 + 1)] = name .. "_1"
+        F.Fallback[tile(i0 + 2)] = name .. "_2"
+        if key == "x" then
+            F.Fallback[tile(i0 + 3)] = name .. "_10"
+            F.Fallback[tile(i0 + 4)] = name .. "_11"
+        end
+    end
+    F.Fallback[tile(TL.pillars.x)] = "walls_commercial_03_3"
+    -- wooden stairs of the game (north-facing set: bottom, middle, top)
+    for piece = 0, 2 do F.Fallback[tile(TL.stairs.N + piece)] = "carpentry_02_" .. (96 + piece) end
+    for piece = 0, 2 do F.Fallback[tile(TL.stairs.W + piece)] = "carpentry_02_" .. (88 + piece) end
     local floors = {
+        p = "floors_exterior_street_01_16", r = "floors_exterior_street_01_0", s = "floors_exterior_street_01_0",
+        o = "floors_interior_tilesandwood_01_29",
         t = "floors_interior_tilesandwood_01_28", c = "floors_interior_tilesandwood_01_16",
         m = "floors_interior_tilesandwood_01_29", g = "floors_interior_tilesandwood_01_24",
         h = "floors_interior_tilesandwood_01_3", e = "floors_interior_tilesandwood_01_3",
@@ -96,7 +116,9 @@ local function key(lx, ly) return lx .. "," .. ly end
 
 local function buildIndex()
     index = {}
-    for name, level in pairs({ underground = D.underground, surface = D.surface }) do
+    local all = { underground = D.underground, surface = D.surface, lower = D.lower }
+    for i, level in ipairs(D.upper or {}) do all["upper" .. i] = level end
+    for name, level in pairs(all) do
         local ix = { doors = {}, objects = {}, tesla = {}, lifts = {}, centers = {}, roof = {} }
         local function push(t, k, v)
             t[k] = t[k] or {}
@@ -137,6 +159,14 @@ end
 local function resolve(sprite)
     if spriteOk(sprite) then return sprite end
     return F.Fallback[sprite] or sprite
+end
+
+-- A square can only be changed while its chunk is in memory: a square kept
+-- from before (the list built while the game starts) may have lost it.
+local function loaded(sq)
+    if not sq then return false end
+    local ok, chunk = pcall(sq.getChunk, sq)
+    return ok and chunk ~= nil
 end
 
 -- replace = true: the existing floor (grass, road...) is changed to ours.
@@ -185,8 +215,75 @@ local function clearSquare(sq)
     end
 end
 
+-- Removes only plants (trees, bushes, tall grass) from a square: used for
+-- the cleared ground between the fence and the wall, and under the fence.
+local function isPlant(o)
+    if instanceof(o, "IsoTree") then return true end
+    local sp = o:getSprite() and o:getSprite():getName()
+    if not sp then return false end
+    return sp:find("^e_") or sp:find("^vegetation_") or sp:find("^f_bushes") or sp:find("^d_plants")
+        or sp:find("^d_generic") or sp:find("^blends_grass")
+end
+
+local function clearPlants(sq)
+    local floor = sq:getFloor()
+    local objs = sq:getObjects()
+    for i = objs:size() - 1, 0, -1 do
+        local o = objs:get(i)
+        if o ~= floor and isPlant(o) then
+            if isServer() then
+                pcall(sq.transmitRemoveItemFromSquare, sq, o)
+            else
+                pcall(sq.RemoveTileObject, sq, o)
+            end
+        end
+    end
+end
+
+-- Natural ground with nothing on it (where a tree may be planted).
+local function bareGrass(sq)
+    local floor = sq:getFloor()
+    local sp = floor and floor:getSprite() and floor:getSprite():getName()
+    if not sp or not sp:find("^blends_natural") then return false end
+    return sq:getObjects():size() <= 1 and not (sq.getBuilding and sq:getBuilding())
+end
+
+local treeSprites = nil
+local function getTreeSprites()
+    if treeSprites then return treeSprites end
+    treeSprites = {}
+    for _, prefix in ipairs(TL.trees or {}) do
+        -- frames that exist for every species in 42.22 (the erosion system
+        -- then keeps the tree in step with the season)
+        for _, i in ipairs({ 4, 0, 1 }) do
+            if spriteOk(prefix .. i) then
+                table.insert(treeSprites, prefix .. i)
+                break
+            end
+        end
+    end
+    return treeSprites
+end
+
+local function plantTree(sq, n)
+    local list = getTreeSprites()
+    if #list > 0 and IsoTree then
+        local sprite = list[(n % #list) + 1]
+        -- same calls as the game's own ISMoveableSpriteProps
+        local ok, tree = pcall(IsoTree.new, sq, getSprite(sprite))
+        if not ok or not tree then ok, tree = pcall(IsoTree.new, sq, sprite) end
+        if ok and tree then
+            sq:AddTileObject(tree)
+            if isServer() then pcall(tree.transmitCompleteItemToClients, tree) end
+            pcall(triggerEvent, "OnObjectAdded", tree)
+            return
+        end
+    end
+    addObject(sq, tile(TL.land.pine + (n % 2)), nil, true)
+end
+
 local function addDoor(sq, north, d)
-    local base = d.gate and TL.doors.gate or (d.heavy and TL.doors.heavy or TL.doors.standard)
+    local base = d.lift and TL.doors.lift or d.gate and TL.doors.gate or (d.heavy and TL.doors.heavy or TL.doors.standard)
     local sprite = resolve(tile(base + (north and 1 or 0)))
     if not spriteOk(sprite) then warnSprite(sprite) return end
     local ok, door = pcall(IsoDoor.new, getCell(), sq, sprite, north)
@@ -201,10 +298,28 @@ local function addDoor(sq, north, d)
     end
     if d.level and d.level > 0 then
         door:getModData().SCP_KeyLevel = d.level
-        SCP.Doors.setLocked(door, true)
+        -- Built during a breach (an area that loads late, or the Class-D start):
+        -- it stays unlocked and open like the others.
+        local breach = world.breach and world.breach.active
+        SCP.Doors.setLocked(door, not breach)
+        if breach then SCP.Doors.setOpen(door, true, nil) end
         world.doors = world.doors or {}
         world.doors[SCP.Doors.key(sq)] = d.level
     end
+end
+
+-- One piece of a staircase (0 bottom, 1 middle, 2 top). The game knows a
+-- staircase by its tile (stairs flags), so AddStairs is tried first and a
+-- plain object with the same tile is the fallback.
+local function addStairs(sq, dir, piece)
+    local north = dir == "N"
+    local sprite = resolve(tile(TL.stairs[dir] + piece))
+    if not spriteOk(sprite) then warnSprite(sprite) return end
+    if sq.AddStairs then
+        local ok = pcall(sq.AddStairs, sq, north, piece, sprite, sprite, nil)
+        if ok then return end
+    end
+    addObject(sq, sprite)
 end
 
 ------------------------------------------------------------------------
@@ -222,13 +337,74 @@ local function addContainer(obj, name)
     end
 end
 
+-- A few things in the game's furniture, by container type (item, chance in %).
+local FURNITURE_LOOT = {
+    desk = { { "Base.SheetPaper2", 60 }, { "Base.Pen", 50 }, { "Base.Pencil", 40 }, { "Base.Notebook", 25 },
+             { "SCP_Document_Containment", 8 }, { "SCP_Keycard_L1", 6 } },
+    filingcabinet = { { "Base.SheetPaper2", 70 }, { "Base.Notebook", 20 }, { "SCP_Document_Containment", 15 },
+                      { "SCP_Document_008", 4 } },
+    shelves = { { "Base.Book", 40 }, { "Base.Notebook", 25 }, { "SCP_Document_Containment", 6 } },
+    metal_shelves = { { "Base.Torch", 15 }, { "Base.Battery", 25 }, { "SCP_GasFilter", 10 }, { "Base.DuctTape", 15 } },
+    locker = { { "SCP_LabCoat", 10 }, { "Base.WaterBottle", 20 }, { "Base.Torch", 10 } },
+    militarylocker = { { "SCP_MTF_Helmet", 15 }, { "SCP_MTF_Baton", 15 }, { "SCP_GasMask", 10 }, { "SCP_Keycard_L2", 8 },
+                       { "Base.Pistol", 6 }, { "Base.9mmClip", 12 }, { "Base.Bullets9mmBox", 18 }, { "Base.556Clip", 6 } },
+    medicine = { { "Base.Bandage", 60 }, { "Base.Pills", 30 }, { "Base.AlcoholWipes", 30 }, { "SCP_500_Pill", 1 } },
+    sidetable = { { "Base.Bandage", 30 }, { "Base.Pills", 20 }, { "Base.SheetPaper2", 30 } },
+    fridge = { { "Base.WaterBottle", 50 }, { "Base.Pop", 30 }, { "Base.Sandwich", 15 } },
+    counter = { { "Base.Mugl", 30 }, { "Base.SheetPaper2", 20 } },
+}
+
+-- One piece of the game's own furniture. Its containers come from the
+-- sprite's properties, the way the game places a moveable.
+local function placeVanilla(sq, sprite)
+    local obj = addObject(sq, sprite, nil, true)
+    if not obj then return end
+    pcall(obj.createContainersFromSpriteProperties, obj)
+    local n = 0
+    pcall(function() n = obj:getContainerCount() end)
+    for i = 0, n - 1 do
+        local c = obj:getContainerByIndex(i)
+        if c then
+            pcall(c.setExplored, c, true)
+            local list = FURNITURE_LOOT[c:getType()]
+            for _, e in ipairs(list or {}) do
+                if ZombRand(100) < e[2] then
+                    local item = e[1]
+                    if not item:find("%.") then item = "Base." .. item end
+                    local sm = getScriptManager and getScriptManager()
+                    if not sm or sm:FindItem(item) then pcall(c.AddItem, c, item) end
+                end
+            end
+        end
+    end
+end
+
 local function placeObject(sq, o)
     local k = o.kind
-    if k == "prop" then
+    if k == "vprop" then
+        placeVanilla(sq, o.s)
+    elseif k == "prop" then
         addObject(sq, tile(TL.props[o.prop] + (o.face == "w" and 1 or 0)), nil, true)
     elseif k == "sign" then
         local n = (o.north and TL.signN or TL.signW)[o.sign]
         if n then addObject(sq, tile(n), nil, true) end
+    elseif k == "liftpanel" then
+        -- call panel inside the lift: right click it to pick the floor
+        local obj = addObject(sq, tile(TL.ext.liftPanel + (o.north and 1 or 0)), nil, true)
+        local target = obj or sq:getFloor()
+        if target then target:getModData().SCP_Elevator = { level = o.level, link = o.link } end
+    elseif k == "ext" then
+        local i0 = TL.ext[o.ext]
+        if i0 then addObject(sq, tile(i0 + (o.face == "w" and 1 or 0)), nil, true) end
+    elseif k == "land" then
+        local i0 = TL.land and TL.land[o.land]
+        if i0 and (o.land ~= "bush" and o.land ~= "rocks" or bareGrass(sq)) then
+            addObject(sq, tile(i0 + (o.face == "w" and 1 or 0)), nil, true)
+        end
+    elseif k == "tree" then
+        if bareGrass(sq) then plantTree(sq, o.n or 0) end
+    elseif k == "stairs" then
+        addStairs(sq, o.dir, o.piece)
     elseif k == "pipes" or k == "vent" then
         addObject(sq, tile(TL.fittings[k] + (o.north and 1 or 0)), nil, true)
     elseif k == "terminal" then
@@ -266,11 +442,16 @@ local function roomContents(room, x, y, z)
         for i = 1, #loot, 2 do
             local itemType = loot[i]
             if not itemType:find("%.") then itemType = "Base." .. itemType end
-            for _ = 1, loot[i + 1] do
+            local sm = getScriptManager and getScriptManager()
+            if sm and not sm:FindItem(itemType) then
+                SCP.log("unknown loot item", itemType)
+                itemType = nil
+            end
+            for _ = 1, itemType and loot[i + 1] or 0 do
                 local lx = origin.x + ZombRand(room.x0, room.x1 + 1)
                 local ly = origin.y + ZombRand(room.y0, room.y1 + 1)
                 local sq = getCell():getOrCreateGridSquare(lx, ly, z)
-                if sq then pcall(sq.AddWorldInventoryItem, sq, itemType, ZombRandFloat(0.1, 0.9), ZombRandFloat(0.1, 0.9), 0) end
+                if loaded(sq) then pcall(sq.AddWorldInventoryItem, sq, itemType, ZombRandFloat(0.1, 0.9), ZombRandFloat(0.1, 0.9), 0) end
             end
         end
     end
@@ -306,17 +487,24 @@ local function buildTile(level, ix, lx, ly, x, y, z, surface)
     end
     local k = key(lx, ly)
     local doors = ix.doors[k]
-    if fl == " " and west == "." and north == "." and not post and not doors then return end
+    -- a hole inside the site (the SCP-106 pit, over a staircase): the square
+    -- must exist, with no floor, so that one can fall or climb through it
+    local hole = fl == " " and level.zone ~= nil and F.charAt(level, "zone", lx, ly) ~= " "
+    if fl == " " and not hole and west == "." and north == "." and not post and not doors and not ix.objects[k] then return end
 
     local sq = getCell():getOrCreateGridSquare(x, y, z)
-    if not sq then return end
+    if not loaded(sq) then return end
 
-    if fl ~= " " then
+    if fl == "n" then
+        clearPlants(sq)                 -- cleared ground: keep it, take the plants away
+    elseif fl ~= " " then
         if surface then clearSquare(sq) end
         addFloor(sq, tile(TL.floors[fl] or TL.floors.c), surface)
+    elseif surface and (west ~= "." or north ~= ".") then
+        clearPlants(sq)                 -- the fence line outside the cleared zone
     end
 
-    if west ~= "." and north ~= "." and west == north and west:lower() == west then
+    if west ~= "." and north ~= "." and west == north and west:lower() == west and not TL.lowWalls[west] then
         addObject(sq, tile(TL.walls[west] + 2))
     else
         if west ~= "." then addObject(sq, wallSprite(west, 0)) end
@@ -354,16 +542,62 @@ end
 -- One surface column -> the site under it, the compound, the roof
 ------------------------------------------------------------------------
 
+-- The lift platforms (plan tiles, one rectangle per lift: A, B) and their
+-- shaft walls on the levels in between.
+local liftRects = nil
+local function getLiftRects()
+    if liftRects then return liftRects end
+    liftRects = {}
+    for _, l in ipairs(D.surface.lifts) do
+        local link = l.link or "A"
+        local r = liftRects[link] or { x0 = 9999, y0 = 9999, x1 = -1, y1 = -1 }
+        r.x0, r.y0 = math.min(r.x0, l.x), math.min(r.y0, l.y)
+        r.x1, r.y1 = math.max(r.x1, l.x), math.max(r.y1, l.y)
+        liftRects[link] = r
+    end
+    return liftRects
+end
+F.liftRect = function(link) return getLiftRects()[link or "A"] end
+
+local function buildShaft(lx, ly, x, y, z)
+    for _, r in pairs(getLiftRects()) do
+        local inY, inX = ly >= r.y0 and ly <= r.y1, lx >= r.x0 and lx <= r.x1
+        local westWall = inY and (lx == r.x0 or lx == r.x1 + 1)
+        local northWall = inX and (ly == r.y0 or ly == r.y1 + 1)
+        if westWall or northWall then
+            local sq = getCell():getOrCreateGridSquare(x, y, z)
+            if not loaded(sq) then return end
+            local i0 = TL.walls.e
+            if westWall and northWall then
+                addObject(sq, tile(i0 + 2))
+            elseif westWall then
+                addObject(sq, tile(i0))
+            else
+                addObject(sq, tile(i0 + 1))
+            end
+            pcall(sq.RecalcAllWithNeighbours, sq, true)
+            return
+        end
+    end
+end
+
 local function buildColumn(surfaceSq)
+    -- not loaded any more: it is built when its chunk loads again
+    if not loaded(surfaceSq) then return end
     if not index then buildIndex() end
     local o = origin
     local x, y = surfaceSq:getX(), surfaceSq:getY()
     local lx, ly = x - o.x, y - o.y
     buildTile(D.underground, index.underground, lx, ly, x, y, o.z, false)
+    if D.lower then buildTile(D.lower, index.lower, lx, ly, x, y, F.levelZ(D.lower, o), false) end
     buildTile(D.surface, index.surface, lx, ly, x, y, 0, true)
+    for i, level in ipairs(D.upper or {}) do
+        buildTile(level, index["upper" .. i], lx, ly, x, y, level.z, false)
+    end
+    for z = o.z + 1, -1 do buildShaft(lx, ly, x, y, z) end
     if index.surface.roof[key(lx, ly)] then
         local sq = getCell():getOrCreateGridSquare(x, y, 1)
-        if sq then
+        if loaded(sq) then
             addFloor(sq, tile(TL.floors.roof), false)
             pcall(sq.RecalcAllWithNeighbours, sq, true)
         end
@@ -371,17 +605,43 @@ local function buildColumn(surfaceSq)
     surfaceSq:getModData().SCP_FacilityBuilt = F.VERSION
 end
 
+-- One column that fails must not stop the others (the error is logged).
+local buildErrors = 0
+local function safeBuild(sq)
+    local ok, err = pcall(buildColumn, sq)
+    if not ok then
+        buildErrors = buildErrors + 1
+        if buildErrors <= 5 or buildErrors % 200 == 0 then
+            SCP.log("facility column", sq:getX(), sq:getY(), "failed (" .. buildErrors .. "):", tostring(err))
+        end
+    end
+end
+
 local function inFootprint(x, y)
     return origin and x >= origin.x and y >= origin.y and x < origin.x + D.width and y < origin.y + D.height
 end
 
+-- Nothing is built while a game is still loading: removing or replacing
+-- objects then (the town's grass, trees...) runs the game's own handlers
+-- before they exist, which floods the log with errors (seen when a new
+-- character placed the site from OnNewGame). Squares that load before the
+-- game is ready wait in `pending`.
+local ready = false
+local readyTicks = 0
+local pending = {}
+local buildAllLater = false
+
 local function onLoadGridsquare(sq)
     if isClient() or not origin then return end
+    if not ready then
+        if sq:getZ() == 0 then pending[#pending + 1] = sq end
+        return
+    end
     if sq:getZ() ~= 0 then return end
     local x, y = sq:getX(), sq:getY()
     if not inFootprint(x, y) then return end
     if sq:getModData().SCP_FacilityBuilt == F.VERSION then return end
-    buildColumn(sq)
+    safeBuild(sq)
 end
 
 SCP.on("LoadGridsquare", onLoadGridsquare)
@@ -389,10 +649,14 @@ SCP.on("LoadGridsquare", onLoadGridsquare)
 -- Build what is already loaded (right after the site was placed).
 function F.buildLoaded()
     if not origin then return end
+    if not ready then
+        buildAllLater = true
+        return
+    end
     for x = origin.x, origin.x + D.width - 1 do
         for y = origin.y, origin.y + D.height - 1 do
             local sq = getCell():getGridSquare(x, y, 0)
-            if sq and sq:getModData().SCP_FacilityBuilt ~= F.VERSION then buildColumn(sq) end
+            if sq and sq:getModData().SCP_FacilityBuilt ~= F.VERSION then safeBuild(sq) end
         end
     end
 end
@@ -430,7 +694,7 @@ end
 SCP.on("EveryOneMinute", processSpawns)
 
 ------------------------------------------------------------------------
--- Placement: args.x / args.y is where the main gate goes
+-- Placement: args.x / args.y is where the access road starts
 ------------------------------------------------------------------------
 
 SCP.ServerCommands.PlaceFacility = function(player, args)
@@ -449,7 +713,17 @@ SCP.ServerCommands.PlaceFacility = function(player, args)
         end
         world.points = keep
     end
-    local o = F.originForGate(args.x, args.y)
+    local gx, gy = args.x, args.y
+    if args.search then
+        -- automatic placement (new game): the closest open land, away from houses
+        local fx, fy = F.findSite(args.x, args.y)
+        if fx then
+            gx, gy = fx, fy
+        else
+            SCP.log("no free place found for the site near", args.x, args.y, ": placed at the spawn point")
+        end
+    end
+    local o = F.originForGate(gx, gy)
     o.spawned = {}
     world.facility = o
     world.gates = {}
@@ -457,9 +731,40 @@ SCP.ServerCommands.PlaceFacility = function(player, args)
     if isServer() then ModData.transmit("SCPFoundation") end
     F.buildLoaded()
     SCP.sendToClient(player, "Notify", { key = "UI_SCP_FacilityPlaced" })
-    SCP.log("SCP site placed, main gate at", args.x, args.y, "underground level", o.z)
+    SCP.log("SCP site placed, access road at", gx, gy, "underground level", o.z)
 end
 
+local started = false
+local function onStarted()
+    refreshOrigin()
+    started = true
+end
+
+-- A couple of seconds after the game has started, build what waited.
+SCP.on("OnTick", function()
+    if ready or not started then return end
+    readyTicks = readyTicks + 1
+    if readyTicks < 120 then return end
+    ready = true
+    refreshOrigin()
+    if not origin then pending = {} return end
+    local list = pending
+    pending = {}
+    for _, old in ipairs(list) do
+        -- the square kept at load time may be stale: take the current one
+        local x, y = old:getX(), old:getY()
+        local sq = inFootprint(x, y) and getCell():getGridSquare(x, y, 0)
+        if sq and sq:getModData().SCP_FacilityBuilt ~= F.VERSION then
+            safeBuild(sq)
+        end
+    end
+    if buildAllLater then
+        buildAllLater = false
+        F.buildLoaded()
+    end
+end)
+
 SCP.on("OnInitGlobalModData", function() refreshOrigin() end)
-SCP.on("OnGameStart", function() refreshOrigin() end)
-if Events.OnServerStarted then SCP.on("OnServerStarted", function() refreshOrigin() end) end
+SCP.on("OnGameStart", onStarted)
+SCP.on("EveryOneMinute", function() if not started then onStarted() end end)
+if Events.OnServerStarted then SCP.on("OnServerStarted", onStarted) end

@@ -1,0 +1,63 @@
+/* SCP Foundation - models of the mod's own weapons (made by tools/make_weapon_models.py).
+   Same axes as the game's weapons: long side along +Y, grip at the origin. */
+module Base
+{
+    model SCP_ShockMaul
+    {
+        mesh = static/weapons/SCP_ShockMaul,
+        texture = weapons/SCP_ShockMaul,
+        attachment world
+        {
+            offset = 0.0000 0.5500 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+        }
+    }
+
+    model SCP_Epsilon
+    {
+        mesh = static/weapons/SCP_Epsilon,
+        texture = weapons/SCP_Epsilon,
+        attachment muzzle
+        {
+            offset = 0.0000 0.5000 0.0450,
+            rotate = -90.0000 0.0000 -180.0000,
+        }
+        attachment world
+        {
+            offset = 0.0200 0.1300 0.0000,
+            rotate = 180.0000 0.0000 180.0000,
+        }
+    }
+
+    model SCP_RiotShotgun
+    {
+        mesh = static/weapons/SCP_RiotShotgun,
+        texture = weapons/SCP_RiotShotgun,
+        attachment muzzle
+        {
+            offset = 0.0000 0.5400 0.0480,
+            rotate = -90.0000 0.0000 180.0000,
+        }
+        attachment world
+        {
+            offset = 0.0158 0.1660 0.0000,
+            rotate = -180.0000 1.0000 -180.0000,
+        }
+    }
+
+    model SCP_SecPistol
+    {
+        mesh = static/weapons/SCP_SecPistol,
+        texture = weapons/SCP_SecPistol,
+        attachment muzzle
+        {
+            offset = 0.0000 0.1580 -0.0300,
+            rotate = -90.0000 0.0000 0.0000,
+        }
+        attachment world
+        {
+            offset = 0.0000 0.0700 0.0000,
+            rotate = 180.0000 0.0000 180.0000,
+        }
+    }
+}
