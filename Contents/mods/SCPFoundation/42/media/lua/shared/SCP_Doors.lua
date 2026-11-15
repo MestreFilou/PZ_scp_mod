@@ -54,6 +54,30 @@ function SCP.Doors.setLocked(door, locked)
     if door.setLockedByKey then door:setLockedByKey(locked) end
 end
 
+-- Opens or closes a door, whoever is (or is not) standing next to it.
+function SCP.Doors.setOpen(door, open, player)
+    if SCP.Doors.isOpen(door) == open then return end
+    if open then SCP.Doors.setLocked(door, false) end
+    if door.ToggleDoor then pcall(door.ToggleDoor, door, player) end
+    if SCP.Doors.isOpen(door) ~= open and door.ToggleDoorSilent then pcall(door.ToggleDoorSilent, door) end
+end
+
+-- The big gates are several doors side by side (mod data SCP_Gate = gate id).
+-- Returns every loaded door of the gate `door` belongs to, or nil.
+function SCP.Doors.gateDoors(door)
+    local id = door:getModData().SCP_Gate
+    if not id then return nil end
+    local md = ModData.get("SCPFoundation")
+    local list = md and md.gates and md.gates[id]
+    if not list then return nil end
+    local doors = {}
+    for _, p in ipairs(list) do
+        local d = SCP.Doors.find(p.x, p.y, p.z)
+        if d then doors[#doors + 1] = d end
+    end
+    return doors, id
+end
+
 -- Applies a level change locally (all machines run this).
 function SCP.Doors.apply(x, y, z, level, locked)
     local door = SCP.Doors.find(x, y, z)
@@ -95,8 +119,53 @@ SCP.ServerCommands.KeycardUnlock = function(player, args)
     end
     SCP.Doors.setLocked(door, false)
     broadcast(args.x, args.y, args.z, nil, false)
+    -- A big gate: the card unlocks every leaf (they then follow the one the player opens).
+    local leaves = SCP.Doors.gateDoors(door)
+    if leaves then
+        for _, d in ipairs(leaves) do
+            if d ~= door then
+                local sq = d:getSquare()
+                SCP.Doors.setLocked(d, false)
+                broadcast(sq:getX(), sq:getY(), sq:getZ(), nil, false)
+            end
+        end
+    end
     SCP.sendToClient(player, "KeycardResult", { ok = true, x = args.x, y = args.y, z = args.z })
 end
+
+-- The leaves of a big gate move together: when one is opened or closed,
+-- the others follow.
+local gateState = {}     -- gate id -> last known "open" state
+local nextGateCheck = 0
+local function syncGates()
+    if isClient() then return end
+    local t = getTimestampMs()
+    if t < nextGateCheck then return end
+    nextGateCheck = t + 300
+    local md = ModData.get("SCPFoundation")
+    if not md or not md.gates then return end
+    for id, list in pairs(md.gates) do
+        local doors = {}
+        for _, p in ipairs(list) do
+            local d = SCP.Doors.find(p.x, p.y, p.z)
+            if d then doors[#doors + 1] = d end
+        end
+        if #doors > 0 then
+            local last = gateState[id]
+            if last == nil then last = SCP.Doors.isOpen(doors[1]) end
+            local now = last
+            for _, d in ipairs(doors) do
+                if SCP.Doors.isOpen(d) ~= last then now = not last break end
+            end
+            for _, d in ipairs(doors) do
+                if SCP.Doors.isOpen(d) ~= now then SCP.Doors.setOpen(d, now, nil) end
+            end
+            gateState[id] = now
+        end
+    end
+end
+
+SCP.on("OnTick", syncGates)
 
 -- Unlock (breach) or relock every registered door.
 function SCP.Doors.setAllLocked(locked)
@@ -107,9 +176,7 @@ function SCP.Doors.setAllLocked(locked)
         local door = SCP.Doors.find(x, y, z)
         if door then
             SCP.Doors.setLocked(door, locked)
-            if not locked and not SCP.Doors.isOpen(door) and door.ToggleDoor then
-                pcall(door.ToggleDoor, door, nil)
-            end
+            if not locked then SCP.Doors.setOpen(door, true, nil) end
         end
         broadcast(x, y, z, level, locked)
     end

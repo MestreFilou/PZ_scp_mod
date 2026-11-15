@@ -19,7 +19,8 @@ SCP.Pocket = SCP.Pocket or {}
 
 -- Placeholder tiles. Replace with custom tiles once they exist.
 SCP.SCP106.CorrosionSprite = "floors_burnt_01_0"
--- Pocket dimension tiles (scp_facility_02, see tools/make_facility_tiles.py),
+-- Pocket dimension tiles (scp_facility_02, made from the pocket dimension rock
+-- of SCP - Containment Breach, see tools/make_facility_tiles.py),
 -- with vanilla fallbacks if the mod tileset failed to load.
 SCP.Pocket.FloorSprites = { "scp_facility_02_35", "scp_facility_02_36" }
 SCP.Pocket.ExitSprite = "scp_facility_02_37"
@@ -32,8 +33,9 @@ SCP.Pocket.Fallback = {
     scp_facility_02_32 = "walls_exterior_house_01_0", scp_facility_02_33 = "walls_exterior_house_01_1",
     scp_facility_02_34 = "walls_exterior_house_01_2",
 }
--- Dim, sickly green-brown "natural" light: the pocket is never pitch black.
-SCP.Pocket.Light = { r = 0.45, g = 0.38, b = 0.22, radius = 12 }
+-- Dim, sickly green "daylight": the pocket is never pitch black.
+SCP.Pocket.Light = { r = 0.42, g = 0.46, b = 0.3, radius = 14 }
+SCP.Pocket.ExitLight = { r = 0.5, g = 0.58, b = 0.42, radius = 5 }
 
 local CHASE_DIST = 40
 local TOUCH_DIST = 0.9
@@ -205,17 +207,34 @@ local function relightAround(x, y, z)
     end
 end
 
+local function dropPocketLights(cur)
+    for _, light in ipairs(cur.lights) do pcall(getCell().removeLamppost, getCell(), light) end
+end
+
+-- A wide dim light over the whole pocket, plus a paler one over each exit,
+-- so the place reads as lit from above rather than by a single lamp.
 local function ensurePocketLight(player, p)
     if isServer() then return end
     local key = player:getPlayerNum()
     local cur = pocketLights[key]
     if cur and cur.cx == p.cx and cur.cy == p.cy and cur.cz == p.cz then return end
-    if cur then pcall(getCell().removeLamppost, getCell(), cur.light) end
-    local L = SCP.Pocket.Light
-    local ok, light = pcall(IsoLightSource.new, p.cx, p.cy, p.cz, L.r, L.g, L.b, L.radius)
-    if ok and light then
-        getCell():addLamppost(light)
-        pocketLights[key] = { light = light, cx = p.cx, cy = p.cy, cz = p.cz }
+    if cur then dropPocketLights(cur) end
+    local L, E = SCP.Pocket.Light, SCP.Pocket.ExitLight
+    local spots = { { 0, 0, L } }
+    for _, d in ipairs(exitsDirs) do
+        spots[#spots + 1] = { d[1] * (POCKET_RADIUS - 1), d[2] * (POCKET_RADIUS - 1), E }
+    end
+    local made = {}
+    for _, s in ipairs(spots) do
+        local c = s[3]
+        local ok, light = pcall(IsoLightSource.new, p.cx + s[1], p.cy + s[2], p.cz, c.r, c.g, c.b, c.radius)
+        if ok and light then
+            getCell():addLamppost(light)
+            made[#made + 1] = light
+        end
+    end
+    if #made > 0 then
+        pocketLights[key] = { lights = made, cx = p.cx, cy = p.cy, cz = p.cz }
         relightAround(p.cx, p.cy, p.cz)
     end
 end
@@ -224,7 +243,7 @@ local function clearPocketLight(player)
     local key = player:getPlayerNum()
     local cur = pocketLights[key]
     if not cur then return end
-    pcall(getCell().removeLamppost, getCell(), cur.light)
+    dropPocketLights(cur)
     pocketLights[key] = nil
     relightAround(cur.cx, cur.cy, cur.cz)
 end

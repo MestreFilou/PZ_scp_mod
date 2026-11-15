@@ -18,7 +18,7 @@ local function everyMinute()
     for _, player in ipairs(SCP.localPlayers()) do
         local room, level = SCP.Facility.roomAt(player:getX(), player:getY(), player:getZ())
         local chance = 0
-        if room == "V" then
+        if room == "scp008" then
             chance = ROOM_CHANCE
         elseif level and level.id == "HCZ" and SCP.isBreachActive() then
             chance = HCZ_CHANCE

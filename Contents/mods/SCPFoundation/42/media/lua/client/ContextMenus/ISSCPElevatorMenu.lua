@@ -1,6 +1,6 @@
 --[[
-    Elevators between the zones of the SCP site (and Gate A to the surface).
-    Right click the elevator tile -> pick a destination.
+    The Gate A lift, between the Entrance Zone and the bunker on the surface.
+    Right click the lift platform -> pick the destination.
 ]]
 
 require "SCP_System"
@@ -24,34 +24,10 @@ local function findElevatorObject(worldobjects)
     return nil
 end
 
--- Every place this elevator can go: { label, x, y, z }
-local function destinations(info)
-    local o = F.origin()
-    if not o then return {} end
-    local list = {}
-    local top = F.Levels[1]
-    if info.level == "SURFACE" then
-        local x, y = F.findElevator(top, "0")
-        if x then list[#list + 1] = { label = top.id, x = o.x + x, y = o.y + y, z = o.z + top.depth } end
-        return list
-    end
-    for _, lv in ipairs(F.Levels) do
-        if lv.id ~= info.level then
-            local x, y = F.findElevator(lv, info.link)
-            if x then list[#list + 1] = { label = lv.id, x = o.x + x, y = o.y + y, z = o.z + lv.depth } end
-        end
-    end
-    if info.link == "0" and info.level == top.id then
-        list[#list + 1] = { label = "SURFACE", x = o.x, y = o.y, z = 0 }
-    end
-    return list
-end
-
 local function travel(player, dest)
     player:playSound("SCP_KeycardAccept")
-    local sq = getCell():getOrCreateGridSquare(dest.x, dest.y, dest.z)
-    -- Step off the elevator tile on arrival.
-    SCP.teleport(player, dest.x + 1.5, dest.y + 0.5, dest.z)
+    getCell():getOrCreateGridSquare(dest.x, dest.y, dest.z)
+    SCP.teleport(player, dest.x + 0.5, dest.y + 0.5, dest.z)
     SCP.say(player, LEVEL_TEXT[dest.label] or dest.label, 200, 220, 255)
 end
 
@@ -60,7 +36,7 @@ local function onFillWorldMenu(playerNum, context, worldobjects, test)
     if not obj then return end
     if test then return true end
     local player = getSpecificPlayer(playerNum)
-    local dests = destinations(info)
+    local dests = F.liftDestinations(info)
     if #dests == 0 then return end
     local parent = context:addOption(getText("ContextMenu_SCP_Elevator"))
     local sub = ISContextMenu:getNew(context)
