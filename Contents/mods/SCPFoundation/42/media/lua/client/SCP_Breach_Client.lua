@@ -8,7 +8,7 @@ require "SCP_System"
 SCP.BreachClient = SCP.BreachClient or { lights = {}, active = false }
 local B = SCP.BreachClient
 
-local ALARM_EVERY_MS = 4000
+local ALARM_EVERY_MS = 20000   -- the siren plays about once every 20 s
 local LIGHT_RADIUS = 12
 
 local function clearLights()

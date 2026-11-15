@@ -39,7 +39,6 @@ function SCP.Spawner.spawn(scpType, x, y, z, count)
         local zombie = list:get(i)
         zombie:getModData().SCP_Type = scpType
         if HEALTH[scpType] then zombie:setHealth(HEALTH[scpType]) end
-        if scpType == SCP.Types.SCP035 then SCP.makeSprinter(zombie) end
         out[#out + 1] = zombie
     end
     SCP.log("spawned", scpType, "x" .. (count or 1), "at", x, y, z)

@@ -1,6 +1,8 @@
 --[[
     The Gate A lift, between the main building on the surface and the
-    Entrance Zone. Right click the lift platform -> pick the destination.
+    Entrance Zone. Step into the cabin (sliding doors), right click the
+    call panel on its wall (or the platform) -> pick the floor. The doors
+    close, the cabin moves, the doors of the other floor open.
 
     Ride (sandbox option LiftRide, on by default): the cabin really goes down
     (or up) its shaft. The player stays on the platform while their height
@@ -15,6 +17,7 @@
 ]]
 
 require "SCP_System"
+require "SCP_Doors"
 require "SCP_Facility_Layout"
 
 local F = SCP.Facility
@@ -99,6 +102,19 @@ local function restoreFloors(removed)
     end
 end
 
+-- Sliding doors of the lift on one floor (gate ids from the site plan).
+local DOOR_GATE = { SURFACE = "LIFT_SURFACE", SITE = "LIFT_EZ" }
+
+local function setLiftDoors(gateId, open)
+    local md = ModData.get("SCPFoundation")
+    local list = md and md.gates and md.gates[gateId]
+    if not list then return end
+    for _, p in ipairs(list) do
+        local d = SCP.Doors.find(p.x, p.y, p.z)
+        if d then SCP.Doors.setOpen(d, open, nil) end
+    end
+end
+
 local function teleportTravel(player, dest)
     player:playSound("SCP_KeycardAccept")
     getCell():getOrCreateGridSquare(dest.x, dest.y, dest.z)
@@ -114,7 +130,8 @@ local function finishRide()
     stopFalling(r.player)
     restoreFloors(r.removed)
     freeze(r.player, false)
-    r.player:playSound("SCP_KeycardAccept")
+    r.player:playSound("SCP_LiftBeep")
+    setLiftDoors(r.toGate, true)
     SCP.say(r.player, LEVEL_TEXT[r.dest.label] or r.dest.label, 200, 220, 255)
 end
 
@@ -135,10 +152,13 @@ local function startRide(player, dest)
     ride = {
         player = player, dest = dest, x = x, y = y, z0 = z0, z1 = dest.z, z = z0,
         speed = math.max(SPEED, dist / MAX_TIME), wait = START_DELAY, removed = nil,
+        fromGate = DOOR_GATE[dest.label == "SURFACE" and "SITE" or "SURFACE"],
+        toGate = DOOR_GATE[dest.label == "SURFACE" and "SURFACE" or "SITE"],
     }
     freeze(player, true)
     SCP.teleport(player, x, y, z0)
-    player:playSound("SCP_KeycardAccept")
+    setLiftDoors(ride.fromGate, false)
+    player:playSound("SCP_LiftBeep")
 end
 
 local function updateRide()
@@ -161,6 +181,7 @@ local function updateRide()
         SCP.teleport(p, r.x, r.y, r.z0)
         if r.wait <= 0 then
             r.removed = liftTopFloor(F.origin(), platform())
+            p:playSound("SCP_LiftMoving")
         end
         return
     end

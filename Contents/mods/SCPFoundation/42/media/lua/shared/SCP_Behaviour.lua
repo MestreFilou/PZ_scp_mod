@@ -31,9 +31,9 @@ SCP.Behaviour.Profiles = {
     [T.SCP096]   = { silent = true, walk = "slow1", speed = 3, onlyIf = function(z)
                         return SCP.SCP096 == nil or SCP.SCP096.getState(z) == SCP.SCP096.IDLE end },
     [T.SCP106]   = { silent = true, walk = "slow3", speed = 3 },  -- slow, heavy, inevitable
-    [T.SCP049]   = { silent = true, walk = "slow1", speed = 3 },  -- calm doctor's pace
+    [T.SCP049]   = { silent = true, walk = "1", speed = 2 },      -- walks, never runs
     [T.SCP049_2] = { silent = true, walk = "slow2", speed = 3 },
-    [T.SCP035]   = { silent = true },                             -- host made a sprinter at spawn
+    [T.SCP035]   = { silent = true, walk = "2", speed = 2 },      -- the host walks, never runs
     [T.SCP939]   = { silent = true },                             -- sprinter, see SCP_966_939_Logic
     [T.SCP966]   = { silent = true },
 }

@@ -208,7 +208,7 @@ local function clearSquare(sq)
 end
 
 local function addDoor(sq, north, d)
-    local base = d.gate and TL.doors.gate or (d.heavy and TL.doors.heavy or TL.doors.standard)
+    local base = d.lift and TL.doors.lift or d.gate and TL.doors.gate or (d.heavy and TL.doors.heavy or TL.doors.standard)
     local sprite = resolve(tile(base + (north and 1 or 0)))
     if not spriteOk(sprite) then warnSprite(sprite) return end
     local ok, door = pcall(IsoDoor.new, getCell(), sq, sprite, north)
@@ -223,7 +223,11 @@ local function addDoor(sq, north, d)
     end
     if d.level and d.level > 0 then
         door:getModData().SCP_KeyLevel = d.level
-        SCP.Doors.setLocked(door, true)
+        -- Built during a breach (an area that loads late, or the Class-D start):
+        -- it stays unlocked and open like the others.
+        local breach = world.breach and world.breach.active
+        SCP.Doors.setLocked(door, not breach)
+        if breach then SCP.Doors.setOpen(door, true, nil) end
         world.doors = world.doors or {}
         world.doors[SCP.Doors.key(sq)] = d.level
     end
@@ -265,6 +269,11 @@ local function placeObject(sq, o)
     elseif k == "sign" then
         local n = (o.north and TL.signN or TL.signW)[o.sign]
         if n then addObject(sq, tile(n), nil, true) end
+    elseif k == "liftpanel" then
+        -- call panel inside the lift: right click it to pick the floor
+        local obj = addObject(sq, tile(TL.ext.liftPanel + (o.north and 1 or 0)), nil, true)
+        local target = obj or sq:getFloor()
+        if target then target:getModData().SCP_Elevator = { level = o.level, link = o.link } end
     elseif k == "ext" then
         local i0 = TL.ext[o.ext]
         if i0 then addObject(sq, tile(i0 + (o.face == "w" and 1 or 0)), nil, true) end

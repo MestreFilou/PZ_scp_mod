@@ -32,4 +32,46 @@ module Base
     sound SCPSilentZombieBiteB { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
     sound SCPSilentZombieBiteC { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
     sound SCPSilentZombieHurt { category = Zombie, clip { file = media/sound/SCP_Silence.ogg, distanceMax = 1, volume = 0.0, } }
+
+    /* Doors, lift, SCP-106 breathing: SCP - Containment Breach, CC BY-SA 3.0 */
+    sound SCP_DoorOpen { category = World, clip { file = media/sound/SCP_DoorOpen1.ogg, distanceMax = 20, volume = 0.8, } clip { file = media/sound/SCP_DoorOpen2.ogg, distanceMax = 20, volume = 0.8, } clip { file = media/sound/SCP_DoorOpen3.ogg, distanceMax = 20, volume = 0.8, } }
+    sound SCP_DoorClose { category = World, clip { file = media/sound/SCP_DoorClose1.ogg, distanceMax = 20, volume = 0.8, } clip { file = media/sound/SCP_DoorClose2.ogg, distanceMax = 20, volume = 0.8, } clip { file = media/sound/SCP_DoorClose3.ogg, distanceMax = 20, volume = 0.8, } }
+    sound SCP_HeavyDoorOpen { category = World, clip { file = media/sound/SCP_HeavyDoorOpen.ogg, distanceMax = 25, volume = 0.9, } }
+    sound SCP_HeavyDoorClose { category = World, clip { file = media/sound/SCP_HeavyDoorClose.ogg, distanceMax = 25, volume = 0.9, } }
+    sound SCP_GateOpen { category = World, clip { file = media/sound/SCP_GateOpen.ogg, distanceMax = 40, volume = 1.0, } }
+    sound SCP_GateClose { category = World, clip { file = media/sound/SCP_GateClose.ogg, distanceMax = 40, volume = 1.0, } }
+    sound SCP_LiftBeep { category = World, clip { file = media/sound/SCP_LiftBeep.ogg, distanceMax = 15, volume = 0.8, } }
+    sound SCP_LiftMoving { category = World, clip { file = media/sound/SCP_LiftMoving.ogg, distanceMax = 15, volume = 0.8, } }
+    sound SCP106_Breathing { category = Zombie, clip { file = media/sound/SCP106_Breathing.ogg, distanceMax = 16, volume = 0.9, } }
+
+    /* Door sound families (tile property DoorSound = <prefix>): the game plays <prefix>Open, Close, Locked,
+       Lock, Unlock, Blocked, Break. Open / Close: Containment Breach; the rest: the game's metal door. */
+    sound SCPDoorOpen { category = Object, clip { file = media/sound/SCP_DoorOpen1.ogg, distanceMax = 20, volume = 0.9, } clip { file = media/sound/SCP_DoorOpen2.ogg, distanceMax = 20, volume = 0.9, } clip { file = media/sound/SCP_DoorOpen3.ogg, distanceMax = 20, volume = 0.9, } }
+    sound SCPDoorClose { category = Object, clip { file = media/sound/SCP_DoorClose1.ogg, distanceMax = 20, volume = 0.9, } clip { file = media/sound/SCP_DoorClose2.ogg, distanceMax = 20, volume = 0.9, } clip { file = media/sound/SCP_DoorClose3.ogg, distanceMax = 20, volume = 0.9, } }
+    sound SCPDoorLocked { category = Object, clip { file = media/sound/SCP_KeycardDeny.ogg, distanceMax = 10, volume = 0.7, } }
+    sound SCPDoorLock { category = Object, clip { event = Object/MetalDoor/Lock, } }
+    sound SCPDoorUnlock { category = Object, clip { event = Object/MetalDoor/Unlock, } }
+    sound SCPDoorBlocked { category = Object, clip { event = Object/MetalDoor/IsBlocked, } }
+    sound SCPDoorBreak { category = Object, clip { event = Object/MetalDoor/Break, } }
+    sound SCPHeavyDoorOpen { category = Object, clip { file = media/sound/SCP_HeavyDoorOpen.ogg, distanceMax = 25, volume = 0.9, } }
+    sound SCPHeavyDoorClose { category = Object, clip { file = media/sound/SCP_HeavyDoorClose.ogg, distanceMax = 25, volume = 0.9, } }
+    sound SCPHeavyDoorLocked { category = Object, clip { file = media/sound/SCP_KeycardDeny.ogg, distanceMax = 10, volume = 0.7, } }
+    sound SCPHeavyDoorLock { category = Object, clip { event = Object/MetalDoor/Lock, } }
+    sound SCPHeavyDoorUnlock { category = Object, clip { event = Object/MetalDoor/Unlock, } }
+    sound SCPHeavyDoorBlocked { category = Object, clip { event = Object/MetalDoor/IsBlocked, } }
+    sound SCPHeavyDoorBreak { category = Object, clip { event = Object/MetalDoor/Break, } }
+    sound SCPGateOpen { category = Object, clip { file = media/sound/SCP_GateOpen.ogg, distanceMax = 40, volume = 0.9, } }
+    sound SCPGateClose { category = Object, clip { file = media/sound/SCP_GateClose.ogg, distanceMax = 40, volume = 0.9, } }
+    sound SCPGateLocked { category = Object, clip { file = media/sound/SCP_KeycardDeny.ogg, distanceMax = 10, volume = 0.7, } }
+    sound SCPGateLock { category = Object, clip { event = Object/MetalDoor/Lock, } }
+    sound SCPGateUnlock { category = Object, clip { event = Object/MetalDoor/Unlock, } }
+    sound SCPGateBlocked { category = Object, clip { event = Object/MetalDoor/IsBlocked, } }
+    sound SCPGateBreak { category = Object, clip { event = Object/MetalDoor/Break, } }
+    sound SCPLiftDoorOpen { category = Object, clip { file = media/sound/SCP_DoorOpen2.ogg, distanceMax = 15, volume = 0.9, } }
+    sound SCPLiftDoorClose { category = Object, clip { file = media/sound/SCP_DoorClose2.ogg, distanceMax = 15, volume = 0.9, } }
+    sound SCPLiftDoorLocked { category = Object, clip { file = media/sound/SCP_KeycardDeny.ogg, distanceMax = 10, volume = 0.7, } }
+    sound SCPLiftDoorLock { category = Object, clip { event = Object/MetalDoor/Lock, } }
+    sound SCPLiftDoorUnlock { category = Object, clip { event = Object/MetalDoor/Unlock, } }
+    sound SCPLiftDoorBlocked { category = Object, clip { event = Object/MetalDoor/IsBlocked, } }
+    sound SCPLiftDoorBreak { category = Object, clip { event = Object/MetalDoor/Break, } }
 }

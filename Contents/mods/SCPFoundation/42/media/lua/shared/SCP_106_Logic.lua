@@ -43,6 +43,7 @@ local CORRODE_EVERY_TILES = 1.5
 local CORROSION_HOURS = 12
 local POCKET_RADIUS = 7
 local LAUGH_EVERY_MS = 15000
+local BREATH_DIST = 16          -- tiles: its breathing is heard from here
 
 ------------------------------------------------------------------------
 -- Corrosion (server owns the objects)
@@ -505,6 +506,11 @@ local function onZombieUpdate(zombie)
     if not md.SCP106_NextLaugh or t > md.SCP106_NextLaugh then
         md.SCP106_NextLaugh = t + LAUGH_EVERY_MS
         zombie:playSound("SCP106_Laugh")
+    end
+    -- Heavy breathing, louder and more often as it closes in.
+    if best < BREATH_DIST and (not md.SCP106_NextBreath or t > md.SCP106_NextBreath) then
+        md.SCP106_NextBreath = t + 2600 + math.floor(best * 250)
+        zombie:playSound("SCP106_Breathing")
     end
 
     local dx, dy = target:getX() - zombie:getX(), target:getY() - zombie:getY()

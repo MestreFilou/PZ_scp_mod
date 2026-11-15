@@ -1,7 +1,9 @@
 --[[
-    Keycard door context menu:
-      - players: "Swipe keycard" on a secured door
-      - admins / debug: set the access level of any door
+    Keycard doors:
+      - press the Interact key (E) in front of a secured door, or right
+        click it -> "Swipe keycard": the character takes their best card in
+        hand, swipes it on the reader, and the door opens if the level is enough;
+      - admins / debug: set the access level of any door (right click).
 ]]
 
 require "SCP_System"
@@ -19,13 +21,53 @@ function ISKeycardSwipeAction:waitToStart()
     return self.character:shouldBeTurning()
 end
 
+-- The best keycard the character carries (the item), or nil.
+local function bestCard(player)
+    local inv = player:getInventory()
+    for level = SCP.MaxKeyLevel, 1, -1 do
+        local item = inv:getFirstTypeRecurse("SCP_Keycard_L" .. level)
+        if item then return item end
+    end
+    return nil
+end
+
+-- Card in the hand for the swipe; what was there comes back afterwards.
+function ISKeycardSwipeAction:takeCard()
+    local card = bestCard(self.character)
+    if not card then return end
+    self.previous = self.character:getPrimaryHandItem()
+    local inv = self.character:getInventory()
+    local from = card:getContainer()
+    if from and from ~= inv then
+        pcall(function() from:Remove(card); inv:AddItem(card) end)
+    end
+    pcall(self.character.setPrimaryHandItem, self.character, card)
+    self.card = card
+end
+
+function ISKeycardSwipeAction:putCardBack()
+    if not self.card then return end
+    if self.character:getPrimaryHandItem() == self.card then
+        pcall(self.character.setPrimaryHandItem, self.character, self.previous)
+    end
+    self.card = nil
+end
+
 function ISKeycardSwipeAction:start()
+    self:takeCard()
     self:setActionAnim("Loot")
+    self:setAnimVariable("LootPosition", "High")
+end
+
+function ISKeycardSwipeAction:stop()
+    self:putCardBack()
+    ISBaseTimedAction.stop(self)
 end
 
 function ISKeycardSwipeAction:perform()
     local sq = self.door:getSquare()
     SCP.sendToServer(self.character, "KeycardUnlock", { x = sq:getX(), y = sq:getY(), z = sq:getZ() })
+    self:putCardBack()
     ISBaseTimedAction.perform(self)
 end
 
@@ -117,3 +159,68 @@ local function onFillWorldMenu(playerNum, context, worldobjects, test)
 end
 
 SCP.on("OnFillWorldObjectContextMenu", onFillWorldMenu)
+
+------------------------------------------------------------------------
+-- Interact key (E by default) in front of a secured door
+------------------------------------------------------------------------
+
+local function securedDoorOn(sq)
+    if not sq then return nil end
+    local objs = sq:getSpecialObjects()
+    for i = 0, objs:size() - 1 do
+        local o = objs:get(i)
+        if SCP.Doors.isDoor(o) and SCP.Doors.getLevel(o) > 0 and not SCP.Doors.isOpen(o) then return o end
+    end
+    return nil
+end
+
+-- The secured door the player faces, at most one tile away.
+local function doorInFront(player)
+    local sq = player:getCurrentSquare() or player:getSquare()
+    if not sq then return nil end
+    local x, y, z = sq:getX(), sq:getY(), sq:getZ()
+    local dir = player:getDir()
+    local dx, dy = 0, 0
+    if dir and dir.dx and dir.dy then
+        local ok1, a = pcall(dir.dx, dir)
+        local ok2, b = pcall(dir.dy, dir)
+        if ok1 and ok2 and a and b then dx, dy = a, b end
+    end
+    local cell = getCell()
+    local candidates = { sq }
+    if dx ~= 0 or dy ~= 0 then
+        candidates[#candidates + 1] = cell:getGridSquare(x + dx, y + dy, z)
+        candidates[#candidates + 1] = cell:getGridSquare(x + dx, y, z)
+        candidates[#candidates + 1] = cell:getGridSquare(x, y + dy, z)
+    else
+        for _, d in ipairs({ { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } }) do
+            candidates[#candidates + 1] = cell:getGridSquare(x + d[1], y + d[2], z)
+        end
+    end
+    local best, bestDist = nil, 99
+    for _, c in ipairs(candidates) do
+        local door = securedDoorOn(c)
+        if door then
+            local dist = SCP.dist(player, door)
+            if dist < bestDist then best, bestDist = door, dist end
+        end
+    end
+    if best and bestDist <= 1.8 then return best end
+    return nil
+end
+
+-- Events.OnContextKey fires when the Interact key (E) is pressed.
+local function onContextKey(player)
+    if not player or player:isDead() or player:getVehicle() then return end
+    if player.hasTimedActions and player:hasTimedActions() then return end
+    local door = doorInFront(player)
+    if not door then return end
+    if SCP.keycardLevel(player) == 0 then
+        player:playSound("SCP_KeycardDeny")
+        SCP.say(player, "UI_SCP_AccessDenied", 255, 80, 80, SCP.Doors.getLevel(door))
+        return
+    end
+    ISTimedActionQueue.add(ISKeycardSwipeAction:new(player, door))
+end
+
+SCP.on("OnContextKey", onContextKey)

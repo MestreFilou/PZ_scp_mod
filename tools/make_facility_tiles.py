@@ -879,6 +879,34 @@ def tile_wire(side):
     return finish(img)
 
 
+def lift_door_tex():
+    """Brushed steel sliding lift door, seam in the middle."""
+    a = cb("metal", (256, 512), bright=1.25)
+    a[..., :3] = a[..., :3] * 0.7 + 150 * 0.3
+    vline(a, 0.5, 0.012, "#2b2e31")
+    for u in (0.0, 1.0):
+        vline(a, u, 0.03, "#4a4e52")
+    rect(a, 0, 0.0, 1, 0.04, "#3a3d40")
+    hazard(a, 0, 0.94, 1, 1.0, period=24)
+    rect(a, 0.06, 0.4, 0.44, 0.43, "#6c7176")
+    rect(a, 0.56, 0.4, 0.94, 0.43, "#6c7176")
+    return to_img(a)
+
+
+def lift_panel_tex():
+    img = Image.new("RGBA", (96, 192), (120, 126, 130, 255))
+    d = ImageDraw.Draw(img)
+    d.rectangle([2, 2, 93, 189], outline=(40, 42, 44, 255), width=4)
+    d.rectangle([14, 14, 81, 44], fill=(12, 20, 14, 255))
+    d.text((24, 16), "GATE A", fill=(80, 230, 110, 255), font=ImageFont.truetype(FONT_BOLD, 14))
+    for k, lab in enumerate(("S", "EZ")):
+        cy = 80 + k * 50
+        d.ellipse([28, cy - 18, 68, cy + 18], fill=(210, 60, 40, 255) if k else (230, 190, 40, 255),
+                  outline=(30, 30, 30, 255), width=3)
+        d.text((40 if k == 0 else 34, cy - 9), lab, fill=(20, 20, 20, 255), font=ImageFont.truetype(FONT_BOLD, 15))
+    return img
+
+
 def floor_concrete_pale():
     a = cb("concretefloor", (FLOOR, FLOOR), bright=2.25)
     a[..., :3] = a[..., :3] * 0.6 + 168 * 0.4
@@ -945,9 +973,11 @@ def wall_props(kind, name, idx, mat="Cinderblock"):
         return [("WallSE", ""), ("MaterialType", mat)]
 
 
-def door_props(side, closed, label):
+def door_props(side, closed, label, sound="SCPDoor"):
+    # DoorSound: the game plays <prefix>Open, Close, Locked, Lock, Unlock, Blocked, Break
+    # (sounds in media/scripts/sounds/scp_sounds.txt)
     p = [("CustomName", label), ("GroupName", "SCP"), ("Material", "MetalPlates"), ("Material2", "Door"),
-         ("MaterialType", "Metal"), ("attached" + side, "")]
+         ("MaterialType", "Metal"), ("attached" + side, ""), ("DoorSound", sound)]
     if closed:
         p.append(("door" + side, ""))
     return p
@@ -976,7 +1006,7 @@ PERIMETER = 72                                              # +0 W, +1 N, +2 NW
 PILLARS = {"a": 63, "b": 62, "c": 70, "d": 61, "e": 69, "f": 71, "x": 173, "y": 173}
 FLOORS = {"t": 5, "h": 6, "c": 13, "g": 14, "e": 15, "m": 21, "a": 75, "k": 76, "roof": 77,
           "p": 186, "r": 187, "s": 188, "o": 189}
-DOORS = {"standard": 24, "heavy": 28, "gate": 80}          # +0 W, +1 N, +2 open W, +3 open N
+DOORS = {"standard": 24, "heavy": 28, "gate": 80, "lift": 200}   # +0 W, +1 N, +2 open W, +3 open N
 FITTINGS = {"pipes": 84, "vent": 86}                        # +0 W, +1 N
 SIGNS = ["ez", "lcz", "hcz", "logo", "danger"]              # 40 + k (W), 48 + k (N)
 SIGNS2 = ["scp173", "scp914", "scp500", "scp939", "scp106", "scp049", "scp096", "scp035", "scp008", "scp079",
@@ -989,6 +1019,7 @@ PARAPET = 177               # low wall: +0 W, +1 N
 STAIRS = {"N": 180, "W": 183}   # + piece (0 bottom, 1 middle, 2 top)
 FLOORS2 = {"p": 186, "r": 187, "s": 188, "o": 189}
 EXTRA = {"solar": 190, "fan": 192, "floodlight": 193, "barrier": 195, "wire": 197}   # n/w pairs except fan
+LIFT_PANEL = 204            # lift call panel: +0 on a west wall, +1 on a north wall
 
 
 def build_tiles():
@@ -1021,18 +1052,18 @@ def build_tiles():
                            ("roof", floor_roof, "Bunker Roof")):
         put(FLOORS[key], tile_floor(fn()), floor_props(label))
 
-    for base_i, tex, label in ((DOORS["standard"], door_standard(), "Foundation Door"),
-                               (DOORS["heavy"], door_containment(), "Containment Door")):
-        put(base_i + 0, tile_door(tex, "W", False), door_props("W", True, label))
-        put(base_i + 1, tile_door(tex, "N", False), door_props("N", True, label))
-        put(base_i + 2, tile_door(tex, "W", True), door_props("W", False, label))
-        put(base_i + 3, tile_door(tex, "N", True), door_props("N", False, label))
+    for base_i, tex, label, snd in ((DOORS["standard"], door_standard(), "Foundation Door", "SCPDoor"),
+                                    (DOORS["heavy"], door_containment(), "Containment Door", "SCPHeavyDoor")):
+        put(base_i + 0, tile_door(tex, "W", False), door_props("W", True, label, snd))
+        put(base_i + 1, tile_door(tex, "N", False), door_props("N", True, label, snd))
+        put(base_i + 2, tile_door(tex, "W", True), door_props("W", False, label, snd))
+        put(base_i + 3, tile_door(tex, "N", True), door_props("N", False, label, snd))
     gt = gate_tex()
     g0 = DOORS["gate"]
-    put(g0 + 0, tile_gate(gt, "W", False), door_props("W", True, "Site Gate"))
-    put(g0 + 1, tile_gate(gt, "N", False), door_props("N", True, "Site Gate"))
-    put(g0 + 2, tile_gate(gt, "W", True), door_props("W", False, "Site Gate"))
-    put(g0 + 3, tile_gate(gt, "N", True), door_props("N", False, "Site Gate"))
+    put(g0 + 0, tile_gate(gt, "W", False), door_props("W", True, "Site Gate", "SCPGate"))
+    put(g0 + 1, tile_gate(gt, "N", False), door_props("N", True, "Site Gate", "SCPGate"))
+    put(g0 + 2, tile_gate(gt, "W", True), door_props("W", False, "Site Gate", "SCPGate"))
+    put(g0 + 3, tile_gate(gt, "N", True), door_props("N", False, "Site Gate", "SCPGate"))
 
     pw = wall_pocket()
     put(32, tile_wall(pw, "W"), wall_props("W", SHEET, 32, "Stone"))
@@ -1110,6 +1141,15 @@ def build_tiles():
     put(EXTRA["barrier"] + 1, prop_barrier("w"), prop_props("Road Barrier"))
     put(EXTRA["wire"], tile_wire("W"), sign_props("W", "Barbed Wire"))
     put(EXTRA["wire"] + 1, tile_wire("N"), sign_props("N", "Barbed Wire"))
+    lt = lift_door_tex()
+    l0 = DOORS["lift"]
+    put(l0 + 0, tile_gate(lt, "W", False), door_props("W", True, "Lift Door", "SCPLiftDoor"))
+    put(l0 + 1, tile_gate(lt, "N", False), door_props("N", True, "Lift Door", "SCPLiftDoor"))
+    put(l0 + 2, tile_gate(lt, "W", True), door_props("W", False, "Lift Door", "SCPLiftDoor"))
+    put(l0 + 3, tile_gate(lt, "N", True), door_props("N", False, "Lift Door", "SCPLiftDoor"))
+    pt2 = lift_panel_tex()
+    put(LIFT_PANEL, tile_sign(pt2, "W", 0.3, 0.75, 0.3, 0.7), sign_props("W", "Lift Panel"))
+    put(LIFT_PANEL + 1, tile_sign(pt2, "N", 0.3, 0.75, 0.3, 0.7), sign_props("N", "Lift Panel"))
     return tiles
 
 

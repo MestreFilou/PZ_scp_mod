@@ -25,7 +25,7 @@ SCP.Facility = SCP.Facility or {}
 SCP.Facility.Data = { width = 80, height = 156, anchor = { x = 40, y = 155 } }
 local D = SCP.Facility.Data
 
-D.tiles = { sheet = "scp_facility_02_", walls = { a = 0, b = 8, c = 16, d = 56, e = 64, f = 72, x = 168, y = 174, p = 177 }, pillars = { a = 63, b = 62, c = 70, d = 61, e = 69, f = 71, x = 173, y = 173 }, floors = { t = 5, h = 6, c = 13, g = 14, e = 15, m = 21, a = 75, k = 76, roof = 77, p = 186, r = 187, s = 188, o = 189 }, doors = { standard = 24, heavy = 28, gate = 80 }, fittings = { pipes = 84, vent = 86 }, signW = { ez = 40, lcz = 41, hcz = 42, logo = 43, danger = 44, scp173 = 96, scp914 = 97, scp500 = 98, scp939 = 99, scp106 = 100, scp049 = 101, scp096 = 102, scp035 = 103, scp008 = 104, scp079 = 105, scp966 = 106, warhead = 107, femur = 108, electric = 109, gatea = 110, cafeteria = 111, medical = 112, security = 113 }, signN = { ez = 48, lcz = 49, hcz = 50, logo = 51, danger = 52, scp173 = 120, scp914 = 121, scp500 = 122, scp939 = 123, scp106 = 124, scp049 = 125, scp096 = 126, scp035 = 127, scp008 = 128, scp079 = 129, scp966 = 130, warhead = 131, femur = 132, electric = 133, gatea = 134, cafeteria = 135, medical = 136, security = 137 }, props = { locker = 144, shelf = 146, desk = 148, crate = 150, barrel = 152, rack = 154, bed = 156, cabinet = 158, console = 160 }, stairs = { N = 180, W = 183 }, ext = { solar = 190, fan = 192, floodlight = 193, barrier = 195, wire = 197 }, lowWalls = { p = true } }
+D.tiles = { sheet = "scp_facility_02_", walls = { a = 0, b = 8, c = 16, d = 56, e = 64, f = 72, x = 168, y = 174, p = 177 }, pillars = { a = 63, b = 62, c = 70, d = 61, e = 69, f = 71, x = 173, y = 173 }, floors = { t = 5, h = 6, c = 13, g = 14, e = 15, m = 21, a = 75, k = 76, roof = 77, p = 186, r = 187, s = 188, o = 189 }, doors = { standard = 24, heavy = 28, gate = 80, lift = 200 }, fittings = { pipes = 84, vent = 86 }, signW = { ez = 40, lcz = 41, hcz = 42, logo = 43, danger = 44, scp173 = 96, scp914 = 97, scp500 = 98, scp939 = 99, scp106 = 100, scp049 = 101, scp096 = 102, scp035 = 103, scp008 = 104, scp079 = 105, scp966 = 106, warhead = 107, femur = 108, electric = 109, gatea = 110, cafeteria = 111, medical = 112, security = 113 }, signN = { ez = 48, lcz = 49, hcz = 50, logo = 51, danger = 52, scp173 = 120, scp914 = 121, scp500 = 122, scp939 = 123, scp106 = 124, scp049 = 125, scp096 = 126, scp035 = 127, scp008 = 128, scp079 = 129, scp966 = 130, warhead = 131, femur = 132, electric = 133, gatea = 134, cafeteria = 135, medical = 136, security = 137 }, props = { locker = 144, shelf = 146, desk = 148, crate = 150, barrel = 152, rack = 154, bed = 156, cabinet = 158, console = 160 }, stairs = { N = 180, W = 183 }, ext = { solar = 190, fan = 192, floodlight = 193, barrier = 195, wire = 197, liftPanel = 204 }, lowWalls = { p = true } }
 
 D.underground = {
     floor = {
@@ -816,8 +816,11 @@ D.underground = {
         { x = 41, y = 112, north = true, level = 3, heavy = true },
         { x = 52, y = 112, north = true, level = 2, heavy = false },
         { x = 64, y = 112, north = true, level = 4, heavy = false },
+        { x = 39, y = 118, north = true, level = 0, heavy = false, gate = "LIFT_EZ", frame = false, lift = true },
+        { x = 40, y = 118, north = true, level = 0, heavy = false, gate = "LIFT_EZ", frame = false, lift = true },
     },
     objects = {
+        { kind = "liftpanel", north = false, x = 39, y = 117, level = "SITE", link = "A" },
         { kind = "prop", prop = "bed", face = "w", x = 2, y = 2 },
         { kind = "prop", prop = "bed", face = "n", x = 11, y = 1 },
         { kind = "prop", prop = "bed", face = "w", x = 2, y = 5 },
@@ -2143,6 +2146,8 @@ D.surface = {
         { x = 39, y = 122, north = true, level = 2, heavy = true, gate = "A", frame = false },
         { x = 40, y = 122, north = true, level = 2, heavy = true, gate = "A", frame = false },
         { x = 41, y = 122, north = true, level = 2, heavy = true, gate = "A", frame = false },
+        { x = 39, y = 118, north = true, level = 0, heavy = false, gate = "LIFT_SURFACE", frame = false, lift = true },
+        { x = 40, y = 118, north = true, level = 0, heavy = false, gate = "LIFT_SURFACE", frame = false, lift = true },
         { x = 36, y = 135, north = false, level = 0, heavy = false, frame = true },
         { x = 16, y = 98, north = true, level = 0, heavy = true, gate = "GARAGE", frame = false },
         { x = 17, y = 98, north = true, level = 0, heavy = true, gate = "GARAGE", frame = false },
@@ -2160,6 +2165,7 @@ D.surface = {
         { x = 41, y = 126, north = true, level = 2, heavy = true, gate = "INNER", frame = false },
     },
     objects = {
+        { kind = "liftpanel", north = false, x = 39, y = 117, level = "SURFACE", link = "A" },
         { kind = "stairs", dir = "N", piece = 0, x = 71, y = 138 },
         { kind = "stairs", dir = "N", piece = 1, x = 71, y = 137 },
         { kind = "stairs", dir = "N", piece = 2, x = 71, y = 136 },

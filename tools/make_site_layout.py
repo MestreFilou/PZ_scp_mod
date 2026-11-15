@@ -115,9 +115,9 @@ class Level:
         self.doors.append(dict(x=x, y=y, north=bool(ns), level=level, heavy=bool(heavy)))
         self.door_edges.add((x, y, bool(ns)))
 
-    def edge_door(self, x, y, north, level=0, heavy=False, gate=None, frame=True):
+    def edge_door(self, x, y, north, level=0, heavy=False, gate=None, frame=True, lift=None):
         """Door on the north or west edge of (x, y), in a thin wall."""
-        self.doors.append(dict(x=x, y=y, north=north, level=level, heavy=heavy, gate=gate, frame=frame))
+        self.doors.append(dict(x=x, y=y, north=north, level=level, heavy=heavy, gate=gate, frame=frame, lift=lift))
         self.door_edges.add((x, y, north))
 
     # -- derived ------------------------------------------------------
@@ -314,13 +314,19 @@ U.tesla += [dict(x=16, y=48, north=False), dict(x=16, y=49, north=False),
 #   floors and the barbed wire are on the levels above (UPPER).
 # ----------------------------------------------------------------------
 
-# the lift has walls on three sides (a cabin open to the south), up and down
-for lvl in (U,):
+def lift_cabin(level, gate, label):
+    """Walls on three sides of the lift, sliding doors on the south side,
+    and the call panel inside on the west wall."""
     for dy in (0, 1):
-        lvl.extra_walls[(LIFT[0], LIFT[1] + dy, False)] = "e"
-        lvl.extra_walls[(LIFT[0] + 2, LIFT[1] + dy, False)] = "e"
+        level.extra_walls[(LIFT[0], LIFT[1] + dy, False)] = "e"
+        level.extra_walls[(LIFT[0] + 2, LIFT[1] + dy, False)] = "e"
     for dx in (0, 1):
-        lvl.extra_walls[(LIFT[0] + dx, LIFT[1], True)] = "e"
+        level.extra_walls[(LIFT[0] + dx, LIFT[1], True)] = "e"
+        level.edge_door(LIFT[0] + dx, LIFT[1] + 2, True, level=0, gate=gate, frame=False, lift=True)
+    level.objects.append(dict(kind="liftpanel", north=False, x=LIFT[0], y=LIFT[1] + 1, level=label, link="A"))
+
+
+lift_cabin(U, "LIFT_EZ", "SITE")
 
 S = Level("surface", False)
 UPPER = {z: Level(f"upper{z}", False) for z in (1, 2, 3, 4)}
@@ -429,11 +435,7 @@ for dx in (0, 1):
     for dy in (0, 1):
         S.floor[LIFT[1] + dy][LIFT[0] + dx] = "e"
         S.lifts.append(dict(x=LIFT[0] + dx, y=LIFT[1] + dy, link="A"))
-for dy in (0, 1):
-    S.extra_walls[(LIFT[0], LIFT[1] + dy, False)] = "e"
-    S.extra_walls[(LIFT[0] + 2, LIFT[1] + dy, False)] = "e"
-for dx in (0, 1):
-    S.extra_walls[(LIFT[0] + dx, LIFT[1], True)] = "e"
+lift_cabin(S, "LIFT_SURFACE", "SURFACE")
 
 building("gatehouse", "Poste de garde", GUARD)
 S.edge_door(GUARD[2] + 1, 135, False, level=0)
@@ -833,9 +835,10 @@ def tiles_lua():
     sign_n.update({n: 120 + k for k, n in enumerate(T.SIGNS2)})
     props = {name: T.PROP0 + 2 * k for k, (name, _) in enumerate(T.PROPS)}
     walls.update(x=T.FORT, y=T.WINDOW, p=T.PARAPET)
+    extra = dict(T.EXTRA, liftPanel=T.LIFT_PANEL)
     return lua_val(dict(sheet=T.SHEET + "_", walls=walls, pillars=T.PILLARS, floors=T.FLOORS, doors=T.DOORS,
                         fittings=T.FITTINGS, signW=sign_w, signN=sign_n, props=props, stairs=T.STAIRS,
-                        ext=T.EXTRA, lowWalls=dict(p=True)))
+                        ext=extra, lowWalls=dict(p=True)))
 
 
 def write_lua():

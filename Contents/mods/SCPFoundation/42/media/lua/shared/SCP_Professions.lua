@@ -95,8 +95,10 @@ local function wear(player, fullType)
     local ok = loc and pcall(player.setWornItem, player, loc, item)
     if not ok and item.getCanBeEquipped then
         loc = item:getCanBeEquipped()
-        if loc and loc ~= "" then pcall(player.setWornItem, player, loc, item) end
+        ok = loc and loc ~= "" and pcall(player.setWornItem, player, loc, item)
     end
+    -- multiplayer: tell the others what this character now wears
+    if ok and sendClothing then pcall(sendClothing, player, loc, item) end
 end
 
 -- Puts the occupation's outfit on (also used by the start scenarios).
@@ -106,7 +108,6 @@ function P.dress(player, id)
     undress(player)
     for _, t in ipairs(def.wear) do wear(player, t) end
     pcall(player.resetModelNextFrame, player)
-    pcall(sendClothing, player)
 end
 
 -- New character: gear, then a trip to the site once it is built.

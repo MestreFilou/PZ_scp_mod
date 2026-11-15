@@ -119,7 +119,8 @@ def draw_level(level, zz, crop, put, grass, open_doors, ground):
     tesla = {(t["x"], t["y"]): t for t in level.tesla}
 
     def door_tile(d, is_north):
-        base = T.DOORS["gate"] if d.get("gate") else T.DOORS["heavy"] if d["heavy"] else T.DOORS["standard"]
+        base = T.DOORS["lift"] if d.get("lift") else T.DOORS["gate"] if d.get("gate") else \
+            T.DOORS["heavy"] if d["heavy"] else T.DOORS["standard"]
         opened = (d["x"], d["y"]) in open_doors or d.get("gate") in open_doors
         return TILES[base + (1 if is_north else 0) + (2 if opened else 0)]
 
@@ -174,6 +175,8 @@ def draw_level(level, zz, crop, put, grass, open_doors, ground):
                     put(TILES[T.FITTINGS[k] + (1 if o["north"] else 0)], x, y, zz)
                 elif k == "ext":
                     put(TILES[T.EXTRA[o["ext"]] + (1 if o["face"] == "w" else 0)], x, y, zz)
+                elif k == "liftpanel":
+                    put(TILES[T.LIFT_PANEL + (1 if o["north"] else 0)], x, y, zz)
                 elif k == "stairs":
                     put(TILES[T.STAIRS[o["dir"]] + o["piece"]], x, y, zz)
                 elif k in MACHINES:
