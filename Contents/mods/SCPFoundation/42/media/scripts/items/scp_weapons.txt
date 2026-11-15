@@ -221,7 +221,7 @@ module Base
         InsertAmmoStartSound = JS2000ShotgunInsertAmmoStart,
         InsertAmmoStopSound = JS2000ShotgunInsertAmmoStop,
         RackSound = JS2000ShotgunRack,
-        ShellFallSound = JS2000ShotgunShellFall,
+        ShellFallSound = JS2000ShotgunCartridgeFall,
         DropSound = JS2000ShotgunDrop,
         HitSound = BulletImpact,
         ConditionMax = 12,
