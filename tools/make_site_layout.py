@@ -199,7 +199,7 @@ R("scp939", "LCZ", 17, 13, 10, 8, "SCP-939", level=4, floor="g", style="d"); D(2
 R("office", "LCZ", 29, 13, 5, 4, "Bureau", level=1); D(31, 12)
 R("archive", "LCZ", 36, 13, 3, 5, "Archives", level=1); D(37, 12)
 R("dorm", "LCZ", 29, 18, 6, 3, "Salle de repos", level=0); D(32, 21)
-R("lab", "LCZ", 43, 13, 8, 8, "Laboratoire", level=2); D(42, 16)
+R("research", "LCZ", 43, 13, 8, 8, "Bureau des chercheurs", level=2); D(42, 16)
 R("storage", "LCZ", 53, 13, 5, 4, "Réserve", level=2); D(55, 12)
 R("office", "LCZ", 60, 13, 3, 4, "Bureau", level=1); D(61, 12)
 R("dorm", "LCZ", 53, 18, 10, 3, "Salle de pause", level=0); D(58, 21)
@@ -254,7 +254,7 @@ for x in range(21, 27):
 for y in range(55, 58):
     for x in range(17, 21):
         U.floor[y][x] = "g"        # ... to the platform in the middle
-R("lab", "HCZ", 37, 51, 9, 10, "Laboratoire", level=2); D(36, 55)
+R("research", "HCZ", 37, 51, 9, 10, "Bureau des chercheurs", level=2); D(36, 55)
 # SCP-049 is kept one level down: a stair hall leads to its wing.
 R("stairs049", "HCZ", 48, 51, 7, 8, "Escalier SCP-049", level=4); D(51, 50)
 STAIRS049 = (53, 55)               # x, y of the top piece (the bottom one is 2 tiles south)
@@ -293,7 +293,7 @@ C("EZ", 38, 98, 41, 109)     # main hall, 4 wide
 R("office", "EZ", 11, 99, 6, 4, "Bureau", level=1); D(13, 98)
 R("office", "EZ", 19, 99, 6, 4, "Bureau", level=1); D(21, 98)
 R("conference", "EZ", 27, 99, 10, 4, "Salle de réunion", level=1); D(31, 98)
-R("lab", "EZ", 11, 104, 10, 5, "Laboratoire", level=2); D(15, 109)
+R("research", "EZ", 11, 104, 10, 5, "Bureau des chercheurs", level=2); D(15, 109)
 R("medical", "EZ", 23, 104, 7, 5, "Infirmerie", level=2); D(26, 109)
 R("security", "EZ", 32, 104, 5, 5, "Sécurité", level=2); D(37, 106)
 R("cafeteria", "EZ", 43, 99, 12, 4, "Cafétéria", level=0); D(48, 98)
@@ -631,14 +631,24 @@ T_GUARD = "SCP_ZombieGuard"
 ROOMS = {
     "classd": dict(loot=["SCP_ClassD_Jumpsuit", 1], props=["bunkbed"]),
     "office": dict(loot=["SCP_Keycard_L1", 1, "SCP_Keycard_L2", 1, "SCP_Document_Containment", 1, "Torch", 1],
-                   props=["desk", "desk", "chair", "cabinet", "plant", "whiteboard", "trash"]),
+                   props=["bookcase", "printer", "filingboxes", "cabinet", "plant", "whiteboard", "coffee", "trash"],
+                   islands=(4, "workstation")),
+    "research": dict(loot=["SCP_LabCoat", 1, "SCP_Keycard_L2", 1, "SCP_Keycard_L3", 1, "SCP_Document_Containment", 2,
+                           "Torch", 1],
+                     zombies=["SCP_Scientist", 2],
+                     props=["bookcase", "bookcase", "whiteboard", "printer", "coffee", "microscope", "microscope",
+                            "plant", "plant", "cabinet", "filingboxes", "trash", "cooler"],
+                     islands=(12, "workstation")),
     "director": dict(loot=["SCP_Keycard_L5", 1, "SCP_Document_Containment", 2, "SCP_Document_008", 1],
-                     props=["desk", "chair", "sofa", "cabinet", "shelf", "plant", "plant"]),
+                     props=["bookcase", "bookcase", "sofa", "cabinet", "coffee", "plant", "plant", "filingboxes"],
+                     islands=(1, "desklamp")),
     "conference": dict(loot=["SCP_Document_Containment", 1], props=["table", "table", "chair", "chair", "chair", "whiteboard", "plant"]),
     "archive": dict(loot=["SCP_Document_Containment", 2, "SCP_Document_008", 1],
-                    props=["shelf", "shelf", "shelf", "cabinet", "cabinet"]),
+                    props=["shelf", "bookcase", "shelf", "bookcase", "cabinet", "cabinet", "filingboxes", "filingboxes"],
+                    islands=(1, "desklamp")),
     "security": dict(loot=["SCP_MTF_Baton", 1, "SCP_MTF_Helmet", 1, "SCP_Keycard_L3", 1, "Torch", 1],
-                     zombies=[T_GUARD, 2], props=["locker", "locker", "desk", "chair", "console", "cooler", "trash"]),
+                     zombies=[T_GUARD, 2], props=["locker", "locker", "console", "cooler", "trash", "rack"],
+                     islands=(2, "workstation")),
     "guardroom": dict(loot=["SCP_MTF_Baton", 1, "SCP_Keycard_L2", 1, "Torch", 1], zombies=[T_GUARD, 3],
                       props=["bunkbed", "bunkbed", "bed", "locker", "locker", "locker", "table", "chair"]),
     "checkpoint": dict(loot=["SCP_Keycard_L3", 1], zombies=[T_GUARD, 1], props=["console", "chair", "locker"]),
@@ -656,7 +666,8 @@ ROOMS = {
     "medical": dict(loot=["Bandage", 4, "Pills", 2, "SCP_Keycard_L3", 1],
                     props=["medbed", "medbed", "medbed", "cabinet", "cabinet", "desk", "trash"]),
     "lab": dict(loot=["SCP_LabCoat", 1, "SCP_Hazmat_Suit", 1, "SCP_Document_Containment", 2, "SCP_Keycard_L3", 1],
-                zombies=["SCP_Scientist", 2], props=["labbench", "labbench", "labbench", "desk", "chair", "console", "cabinet", "whiteboard"]),
+                zombies=["SCP_Scientist", 2], props=["labbench", "labbench", "microscope", "microscope", "console", "cabinet", "whiteboard", "trash"],
+                islands=(2, "workstation")),
     "dorm": dict(loot=["Torch", 1], zombies=["SCP_ClassD", 1], props=["bed", "bunkbed", "bed", "locker", "locker", "desk", "chair", "plant"]),
     "showers": dict(loot=["SCP_ClassD_Jumpsuit", 2], zombies=["SCP_ClassD", 2], props=["locker", "locker", "barrel"]),
     "cafeteria": dict(loot=["SCP_Keycard_L1", 1], zombies=["SCP_Scientist", 1], special="scp294",
@@ -765,6 +776,27 @@ def dress(level):
                 x, y, face = slots.pop()
                 if free(x, y):
                     level.objects.append(dict(kind="prop", prop=prop, face=face, x=x, y=y)); take(x, y)
+                    break
+
+        # desks in the middle of the room, each with its chair on its south side,
+        # in rows two tiles apart with an aisle every third column
+        count, desk = spec.get("islands", (0, None))
+        for y in range(y0 + 2, y1, 3):
+            for x in range(x0 + 2, x1):
+                if count <= 0 or (x - x0) % 3 == 1:
+                    continue
+                if free(x, y) and free(x, y + 1) and y + 1 <= y1:
+                    level.objects.append(dict(kind="prop", prop=desk, face="n", x=x, y=y)); take(x, y)
+                    level.objects.append(dict(kind="prop", prop="officechair", face="n", x=x, y=y + 1))
+                    take(x, y + 1)
+                    count -= 1
+        if count > 0 and spec.get("islands") and x1 - x0 >= 2 and y1 - y0 >= 2:
+            # small room: one desk in the middle
+            for x, y in ((cx + 1, cy), (cx - 1, cy), (cx + 1, cy - 1), (cx - 1, cy - 1), (cx, cy - 1)):
+                if y + 1 <= y1 and free(x, y) and free(x, y + 1):
+                    level.objects.append(dict(kind="prop", prop=desk, face="n", x=x, y=y)); take(x, y)
+                    level.objects.append(dict(kind="prop", prop="officechair", face="n", x=x, y=y + 1))
+                    take(x, y + 1)
                     break
 
         # room sign, on the room's own north wall

@@ -1044,9 +1044,173 @@ def prop_trash(f):
     return finish(img)
 
 
+def prop_workstation(f):
+    """Scientist's desk: wooden top, drawers, flat screen, keyboard, papers, a mug."""
+    img = canvas()
+    top = to_img(wood_tex(128, 96, "#a88a62", 240))
+    fr = wood_tex(256, 96, "#8c7050", 241)
+    for v in (0.12, 0.42, 0.72):
+        rect(fr, 0.66, v, 0.95, v + 0.24, "#7a6044")
+        rect(fr, 0.77, v + 0.1, 0.84, v + 0.13, "#2a2522")
+    rect(fr, 0.05, 0.1, 0.6, 0.95, "#3a2e22")
+    side = to_img(wood_tex(64, 64, "#7d6346", 242))
+    box(img, f, 0.03, 0.1, 0.97, 0.62, 0, 0.3, top, to_img(fr), side)
+    scr = base(160, 100, "#1c1e20", 2, 2, 243)
+    rect(scr, 0.05, 0.07, 0.95, 0.88, "#14324a")
+    for k, c in enumerate(("#6fb6e8", "#e8e8e8", "#3ddc6a", "#e8e8e8", "#6fb6e8")):
+        rect(scr, 0.1, 0.14 + k * 0.14, 0.1 + 0.25 + (k * 0.29) % 0.55, 0.2 + k * 0.14, c)
+    dark = to_img(base(32, 32, "#202224", 2, 2, 244))
+    box(img, f, 0.47, 0.22, 0.53, 0.28, 0.3, 0.38, dark, dark, dark)            # stand
+    box(img, f, 0.3, 0.2, 0.7, 0.24, 0.38, 0.6, dark, to_img(scr), dark)        # screen
+    key = to_img(base(64, 16, "#d6d6d0", 2, 2, 245))
+    box(img, f, 0.32, 0.36, 0.66, 0.44, 0.3, 0.315, key, key, key)              # keyboard
+    paper = to_img(base(32, 32, "#f4f4ee", 1, 1, 246))
+    box(img, f, 0.74, 0.3, 0.92, 0.52, 0.3, 0.34, paper, paper, paper)          # papers
+    box(img, f, 0.08, 0.3, 0.22, 0.48, 0.3, 0.32, paper, paper, paper)
+    mug = to_img(base(16, 16, "#b02a2a", 2, 2, 247))
+    box(img, f, 0.2, 0.46, 0.25, 0.51, 0.3, 0.37, mug, mug, mug)                # mug
+    return finish(img)
+
+
+def prop_officechair(f):
+    """Black swivel chair on a five-arm base, turned to the desk north (or west) of it."""
+    img = canvas()
+    blk = to_img(base(32, 32, "#232527", 3, 3, 248))
+    grey = to_img(base(16, 16, "#5a5e62", 2, 2, 249))
+    for (a, b) in ((0.5, 0.3), (0.5, 0.7), (0.3, 0.5), (0.7, 0.5)):
+        box(img, f, min(a, 0.5) - 0.02, min(b, 0.5) - 0.02, max(a, 0.5) + 0.02, max(b, 0.5) + 0.02, 0, 0.03,
+            grey, grey, grey)
+    box(img, f, 0.48, 0.48, 0.53, 0.53, 0.03, 0.2, grey, grey, grey)
+    box(img, f, 0.3, 0.3, 0.7, 0.68, 0.2, 0.27, blk, blk, blk)
+    box(img, f, 0.32, 0.64, 0.68, 0.7, 0.27, 0.56, blk, blk, blk)   # back (south side: faces the desk)
+    return finish(img)
+
+
+def prop_bookcase(f):
+    """Wooden bookcase full of coloured binders and books."""
+    img = canvas()
+    fr = wood_tex(256, 320, "#6e5238", 250)
+    g = np.random.default_rng(251)
+    for k in range(5):
+        v = 0.04 + k * 0.19
+        rect(fr, 0.04, v, 0.96, v + 0.16, "#2a2018")
+        u = 0.06
+        while u < 0.9:
+            w = 0.05 + g.random() * 0.06
+            col = ["#2a4fb0", "#b02a2a", "#e0b020", "#3d8a4a", "#e8e8e0", "#5a3a7a"][int(g.random() * 6)]
+            h = 0.1 + g.random() * 0.05
+            rect(fr, u, v + 0.16 - h, min(0.94, u + w), v + 0.16, col)
+            rect(fr, u + w * 0.3, v + 0.16 - h * 0.6, u + w * 0.7, v + 0.16 - h * 0.45, "#f0f0e8")
+            u += w + 0.01
+    side = to_img(wood_tex(64, 128, "#5d4430", 252))
+    box(img, f, 0.06, 0.05, 0.94, 0.36, 0, 0.82, side, to_img(fr), side)
+    return finish(img)
+
+
+def prop_printer(f):
+    """Office photocopier."""
+    img = canvas()
+    body = base(192, 160, "#d8d9d4", 3, 3, 253)
+    rect(body, 0.05, 0.1, 0.95, 0.3, "#b9bab5")
+    for v in (0.4, 0.62, 0.84):
+        rect(body, 0.08, v, 0.92, v + 0.14, "#c4c5c0")
+        rect(body, 0.42, v + 0.05, 0.58, v + 0.08, "#4a4d50")
+    side = to_img(base(64, 64, "#c6c7c2", 3, 3, 254))
+    box(img, f, 0.14, 0.12, 0.86, 0.6, 0, 0.42, side, to_img(body), side)
+    lid = base(96, 64, "#3a3d40", 2, 2, 255)
+    rect(lid, 0.6, 0.2, 0.9, 0.5, "#3ddc6a")
+    box(img, f, 0.16, 0.14, 0.84, 0.58, 0.42, 0.46, to_img(lid), to_img(lid), to_img(lid))
+    paper = to_img(base(32, 32, "#f6f6f0", 1, 1, 256))
+    box(img, f, 0.6, 0.62, 0.84, 0.76, 0.22, 0.25, paper, paper, paper)
+    return finish(img)
+
+
+def prop_coffee(f):
+    """Low cabinet with a coffee machine, cups and a kettle."""
+    img = canvas()
+    fr = wood_tex(256, 128, "#9a9c98", 257)
+    for u in (0.04, 0.52):
+        rect(fr, u, 0.1, u + 0.44, 0.9, "#868884")
+        rect(fr, u + 0.36, 0.45, u + 0.4, 0.55, "#3a3d40")
+    top = to_img(base(96, 64, "#2a2c2e", 2, 2, 258))
+    side = to_img(base(64, 64, "#80827e", 3, 3, 259))
+    box(img, f, 0.05, 0.1, 0.95, 0.5, 0, 0.3, top, to_img(fr), side)
+    mach = base(64, 96, "#1d1f21", 2, 2, 260)
+    rect(mach, 0.25, 0.15, 0.75, 0.3, "#d03a2a")
+    rect(mach, 0.3, 0.55, 0.7, 0.85, "#0a0a0a")
+    m = to_img(base(32, 32, "#2a2c2e", 2, 2, 261))
+    box(img, f, 0.12, 0.14, 0.38, 0.38, 0.3, 0.56, m, to_img(mach), m)
+    cup = to_img(base(16, 16, "#f0f0ea", 1, 1, 262))
+    for x in (0.5, 0.6, 0.7):
+        box(img, f, x, 0.3, x + 0.06, 0.36, 0.3, 0.36, cup, cup, cup)
+    ket = to_img(base(16, 16, "#9aa0a5", 2, 2, 263))
+    box(img, f, 0.8, 0.16, 0.9, 0.28, 0.3, 0.42, ket, ket, ket)
+    return finish(img)
+
+
+def prop_microscope(f):
+    """Lab desk with a microscope, sample tray and a lamp."""
+    img = canvas()
+    fr = metal_tex(256, 128, "#d8dbd6", 264)
+    rect(fr, 0.66, 0.12, 0.95, 0.88, "#c4c8c3")
+    rect(fr, 0.77, 0.4, 0.84, 0.45, "#3a3d40")
+    top = to_img(base(128, 96, "#e6e8e4", 2, 2, 265))
+    side = to_img(metal_tex(64, 64, "#c0c4bf", 266))
+    box(img, f, 0.04, 0.12, 0.96, 0.6, 0, 0.3, top, to_img(fr), side)
+    blk = to_img(base(16, 16, "#26292c", 2, 2, 267))
+    wht = to_img(base(16, 16, "#eceeea", 2, 2, 268))
+    box(img, f, 0.3, 0.2, 0.46, 0.36, 0.3, 0.33, blk, blk, blk)        # foot
+    box(img, f, 0.36, 0.2, 0.42, 0.26, 0.33, 0.52, wht, wht, wht)      # arm
+    box(img, f, 0.34, 0.24, 0.42, 0.34, 0.44, 0.47, blk, blk, blk)     # stage
+    box(img, f, 0.36, 0.26, 0.41, 0.31, 0.52, 0.62, blk, blk, blk)     # eyepiece
+    tray = to_img(base(32, 16, "#8fb3c9", 2, 2, 269))
+    box(img, f, 0.58, 0.3, 0.86, 0.44, 0.3, 0.32, tray, tray, tray)
+    box(img, f, 0.12, 0.2, 0.15, 0.23, 0.3, 0.6, blk, blk, blk)        # lamp
+    box(img, f, 0.1, 0.2, 0.22, 0.3, 0.58, 0.62, wht, wht, wht)
+    return finish(img)
+
+
+def prop_filingboxes(f):
+    """Stacked archive boxes."""
+    img = canvas()
+    c = base(96, 64, "#c9b48a", 4, 6, 270)
+    rect(c, 0.3, 0.3, 0.7, 0.55, "#f2f0e6")
+    t = to_img(c)
+    sd = to_img(base(64, 64, "#b39f78", 4, 6, 271))
+    box(img, f, 0.12, 0.1, 0.52, 0.42, 0, 0.18, sd, t, sd)
+    box(img, f, 0.5, 0.1, 0.9, 0.42, 0, 0.18, sd, t, sd)
+    box(img, f, 0.3, 0.12, 0.7, 0.42, 0.18, 0.36, sd, t, sd)
+    return finish(img)
+
+
+def prop_desklamp(f):
+    """Small desk with papers, a reading lamp and a phone (for offices)."""
+    img = canvas()
+    top = to_img(wood_tex(128, 96, "#7d6346", 272))
+    fr = wood_tex(256, 96, "#6a5238", 273)
+    rect(fr, 0.06, 0.12, 0.4, 0.88, "#5a4430")
+    rect(fr, 0.2, 0.45, 0.26, 0.5, "#c9b48a")
+    side = to_img(wood_tex(64, 64, "#5d4430", 274))
+    box(img, f, 0.05, 0.1, 0.95, 0.58, 0, 0.3, top, to_img(fr), side)
+    paper = to_img(base(32, 32, "#f4f4ee", 1, 1, 275))
+    for k in range(3):
+        box(img, f, 0.4 + k * 0.02, 0.24, 0.62 + k * 0.02, 0.48, 0.3 + k * 0.012, 0.312 + k * 0.012,
+            paper, paper, paper)
+    grn = to_img(base(16, 16, "#2d6a3a", 2, 2, 276))
+    brs = to_img(base(16, 16, "#c9a640", 2, 2, 277))
+    box(img, f, 0.14, 0.18, 0.18, 0.22, 0.3, 0.5, brs, brs, brs)
+    box(img, f, 0.08, 0.18, 0.3, 0.3, 0.48, 0.54, grn, grn, grn)
+    blk = to_img(base(16, 16, "#1d1f21", 2, 2, 278))
+    box(img, f, 0.74, 0.2, 0.9, 0.34, 0.3, 0.35, blk, blk, blk)
+    return finish(img)
+
+
 PROPS2 = [("chair", prop_chair), ("table", prop_table), ("sofa", prop_sofa), ("vending", prop_vending),
           ("plant", prop_plant), ("cooler", prop_cooler), ("bunkbed", prop_bunkbed), ("medbed", prop_medbed),
-          ("labbench", prop_labbench), ("whiteboard", prop_whiteboard), ("trash", prop_trash)]
+          ("labbench", prop_labbench), ("whiteboard", prop_whiteboard), ("trash", prop_trash),
+          ("workstation", prop_workstation), ("officechair", prop_officechair), ("bookcase", prop_bookcase),
+          ("printer", prop_printer), ("coffee", prop_coffee), ("microscope", prop_microscope),
+          ("filingboxes", prop_filingboxes), ("desklamp", prop_desklamp)]
 
 
 def lift_door_tex():
@@ -1168,7 +1332,7 @@ def prop_props(label):
 
 SHEET = "scp_facility_02"
 COLS = 8
-ROWS = 29
+ROWS = 31
 
 # Where everything is on the sheet (also written into the mod as Lua by tools/make_site_layout.py).
 WALLS = {"a": 0, "b": 8, "c": 16, "d": 56, "e": 64}      # +0 W, +1 N, +2 NW, +3 frame W, +4 frame N
