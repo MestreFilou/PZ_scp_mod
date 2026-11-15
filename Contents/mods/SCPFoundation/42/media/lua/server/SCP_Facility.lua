@@ -453,8 +453,22 @@ local function inFootprint(x, y)
     return origin and x >= origin.x and y >= origin.y and x < origin.x + D.width and y < origin.y + D.height
 end
 
+-- Nothing is built while a game is still loading: removing or replacing
+-- objects then (the town's grass, trees...) runs the game's own handlers
+-- before they exist, which floods the log with errors (seen when a new
+-- character placed the site from OnNewGame). Squares that load before the
+-- game is ready wait in `pending`.
+local ready = false
+local readyTicks = 0
+local pending = {}
+local buildAllLater = false
+
 local function onLoadGridsquare(sq)
     if isClient() or not origin then return end
+    if not ready then
+        if sq:getZ() == 0 then pending[#pending + 1] = sq end
+        return
+    end
     if sq:getZ() ~= 0 then return end
     local x, y = sq:getX(), sq:getY()
     if not inFootprint(x, y) then return end
@@ -467,6 +481,10 @@ SCP.on("LoadGridsquare", onLoadGridsquare)
 -- Build what is already loaded (right after the site was placed).
 function F.buildLoaded()
     if not origin then return end
+    if not ready then
+        buildAllLater = true
+        return
+    end
     for x = origin.x, origin.x + D.width - 1 do
         for y = origin.y, origin.y + D.height - 1 do
             local sq = getCell():getGridSquare(x, y, 0)
@@ -538,6 +556,34 @@ SCP.ServerCommands.PlaceFacility = function(player, args)
     SCP.log("SCP site placed, access road at", args.x, args.y, "underground level", o.z)
 end
 
+local started = false
+local function onStarted()
+    refreshOrigin()
+    started = true
+end
+
+-- A couple of seconds after the game has started, build what waited.
+SCP.on("OnTick", function()
+    if ready or not started then return end
+    readyTicks = readyTicks + 1
+    if readyTicks < 120 then return end
+    ready = true
+    refreshOrigin()
+    if not origin then pending = {} return end
+    local list = pending
+    pending = {}
+    for _, sq in ipairs(list) do
+        if sq:getModData().SCP_FacilityBuilt ~= F.VERSION and inFootprint(sq:getX(), sq:getY()) then
+            buildColumn(sq)
+        end
+    end
+    if buildAllLater then
+        buildAllLater = false
+        F.buildLoaded()
+    end
+end)
+
 SCP.on("OnInitGlobalModData", function() refreshOrigin() end)
-SCP.on("OnGameStart", function() refreshOrigin() end)
-if Events.OnServerStarted then SCP.on("OnServerStarted", function() refreshOrigin() end) end
+SCP.on("OnGameStart", onStarted)
+SCP.on("EveryOneMinute", function() if not started then onStarted() end end)
+if Events.OnServerStarted then SCP.on("OnServerStarted", onStarted) end
