@@ -11,6 +11,7 @@ Scripts Python qui fabriquent une partie du mod. Ils se lancent depuis la racine
 | `make_site_preview.py` | Les aperçus isométriques du site avec les vraies tuiles | `art/renders/preview_*.png` |
 | `make_item_icons.py` | Les icônes des petites anomalies (SCP-207, 268, 330…) | `media/textures/Item_SCP_*.png` |
 | `make_weapon_models.py` | Les modèles 3D, textures et icônes des armes de la Fondation (`preview` : rendus en plus) | `media/models_X/static/weapons/*.x`, `media/textures/weapons/*.png`, `media/textures/Item_SCP_*.png`, `art/renders/weapons/` |
+| `make_site_cells.py` | Les cellules de carte du site (forêt, clairière, route d'accès) et la région de départ « Site SCP » | `media/maps/SCP Site/*`, `media/lua/shared/SCP_SiteLocation.lua`, `art/renders/site_cells.png` |
 | `make_weapon_sounds.py` | Les sons de la masse à choc (synthétisés) | `media/sound/SCP_ShockMaul_*.ogg` |
 
 (`media/` = `Contents/mods/SCPFoundation/42/media/`.)
